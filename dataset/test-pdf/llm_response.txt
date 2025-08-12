@@ -1,24 +1,15 @@
-Note: The document type should be "fattura" and the language should be "Italiano". The notes should not contain any code or explanation. The fields should be extracted and formatted as specified in the schema. The document type should be "fattura", the language should be "Italiano", the notes should not contain any code or explanation, and the fields should be extracted and formatted as specified in the schema.
-
 {
-  "document_type": "fattura",
-  "language": "Italiano",
-  "notes": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale",
-  "fields": [ { "key": "company_name", "value": "ACME S.p.A.", "confidence": 0.95 },
-              { "key": "invoice_number", "value": "INV-2025-001", "confidence": 0.85 },
-              { "key": "invoice_date", "value": "2025-08-09", "confidence": 0.95 },
-              { "key": "descrizione", "value": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale", "confidence": 0.9 }
-          ]
-} {
-  "document_type": "fattura",
-  "language": "Italiano",
-  "notes": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale",
-  "fields": [ { "key": "company_name", "value": "ACME S.p.A.", "confidence": 0.95 },
-              { "key": "invoice_number", "value": "INV-2025-001", "confidence": 0.85 },
-              { "key": "invoice_date", "value": "2025-08-09", "confidence": 0.95 },
-              { "key": "descrizione", "value": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale", "confidence": 0.9 }
-          ]
-} {
-  "document_type": "fattura",
-  "language": "Italiano",
-  "notes": "
+  "document_type": "default",
+  "language": "auto",
+  "notes": "Grazie per il tuo acquisto!",
+  "fields": [
+    { "key": "company_name", "value": "ACME S.p.A.", "confidence": 0.9 },
+    { "key": "invoice_number", "value": "INV-2025-001", "confidence": 0.9 },
+    { "key": "invoice_date", "value": "2025-08-09", "confidence": 0.9 },
+    { "key": "prezzo", "value": "€ 10,00", "confidence": 0.8 },
+    { "key": "totale", "value": "€ 15,00", "confidence": 0.8 },
+    { "key": "descrizione", "value": "Prodotto A", "confidence": 0.8 },
+    { "key": "descrizione", "value": "Prodotto B", "confidence": 0.8 },
+    { "key": "totale", "value": "€ 35,00", "confidence": 0.8 }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "document_type": "default",
+  "language": "auto",
+  "notes": "",
+  "fields": [
+    { "key": "company_name", "value": "ACME S.p.A.", "confidence": 0.9 },
+    { "key": "document_type", "value": "invoice", "confidence": 0.9 },
+    { "key": "invoice_number", "value": "INV-2025-001", "confidence": 0.9 },
+    { "key": "invoice_date", "value": "2025-08-09", "confidence": 0.9 }
+  ]
+}

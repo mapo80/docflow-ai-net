@@ -11,4 +11,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Grammars\json_generic.gbnf" />
+  </ItemGroup>
 </Project>

@@ -12,9 +12,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using System.Linq;
 using System.IO;
+using DocflowAi.Net.Application.Grammars;
 
 namespace DocflowAi.Net.Infrastructure.Llm;
 
@@ -26,6 +26,7 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
     private readonly LLamaWeights _weights;
     private readonly LLamaContext _ctx;
     private readonly InferenceParams _inferenceParams;
+    private readonly string? _gbnf;
 
     public LlamaExtractor(
         IOptions<LlmOptions> options,
@@ -46,10 +47,23 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         _weights = LLamaWeights.LoadFromFile(modelParams);
         _ctx = _weights.CreateContext(modelParams);
 
+        if (_opts.UseGrammar)
+        {
+            var resourceName = "DocflowAi.Net.Application.Grammars.json_generic.gbnf";
+            _gbnf = GrammarLoader.Load(resourceName);
+        }
+
+        var pipeline = new LLama.Sampling.DefaultSamplingPipeline
+        {
+            Temperature = _opts.Temperature,
+            TopP = 0.9f,
+            Grammar = _gbnf is null ? null : new LLama.Sampling.Grammar(_gbnf, "root")
+        };
+
         _inferenceParams = new InferenceParams()
         {
             MaxTokens = _opts.MaxTokens,
-            AntiPrompts = new List<string> { "</s>" }
+            SamplingPipeline = pipeline
         };
     }
 
@@ -79,24 +93,6 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
             _ => ReasoningMode.Auto
         };
         return _modeAccessor.Mode != ReasoningMode.Auto ? _modeAccessor.Mode : def;
-    }
-
-    private static string? ExtractFirstJson(string text)
-    {
-        var start = text.IndexOf('{');
-        if (start < 0) return null;
-        var depth = 0;
-        for (int i = start; i < text.Length; i++)
-        {
-            if (text[i] == '{') depth++;
-            else if (text[i] == '}')
-            {
-                depth--;
-                if (depth == 0)
-                    return text[start..(i + 1)];
-            }
-        }
-        return null;
     }
 
     public async Task<DocumentAnalysisResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
@@ -149,35 +145,19 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
             _logger.LogError("LLM returned empty response");
             return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
         }
-
-        raw = Regex.Replace(raw, "<think>.*?</think>", "", RegexOptions.Singleline);
-        var response = ExtractFirstJson(raw);
-        if (response is null)
-        {
-            _logger.LogError("Failed to locate JSON object in LLM output: {Output}", raw);
-            return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
-        }
-
         if (!string.IsNullOrWhiteSpace(debugDir))
-            File.WriteAllText(Path.Combine(debugDir, "llm_response.txt"), response);
+            File.WriteAllText(Path.Combine(debugDir, "llm_response.txt"), raw);
 
-        JsonNode? node = null;
+        JsonNode? node;
         try
         {
-            node = JsonNode.Parse(response);
+            JsonDocument.Parse(raw);
+            node = JsonNode.Parse(raw);
         }
-        catch
+        catch (Exception ex)
         {
-            try
-            {
-                var repaired = response.Replace("```json", "").Replace("```", "");
-                node = JsonNode.Parse(repaired);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to parse LLM output: {Output}", response);
-                return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
-            }
+            _logger.LogError(ex, "Failed to parse LLM output: {Output}", raw);
+            return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
         }
 
         var docType = node?["document_type"]?.GetValue<string>() ?? profile.DocumentType;
