@@ -1,6 +1,5 @@
-using System.Text.Json;
-using System.Linq;
 using System.Collections.Generic;
+using DocflowAi.Net.Api.Models;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
@@ -31,7 +30,7 @@ public sealed class ProcessController : ControllerBase
         IFormFile file,
         [FromForm] string templateName,
         [FromForm] string prompt,
-        [FromForm] IList<string> fields,
+        [FromForm] IList<FieldRequest> fields,
         CancellationToken ct)
     {
         if (file is null) return BadRequest("file is required");
@@ -45,39 +44,22 @@ public sealed class ProcessController : ControllerBase
             _modeAccessor.Mode = v switch { "think" => ReasoningMode.Think, "no_think" => ReasoningMode.NoThink, _ => ReasoningMode.Auto };
         }
 
-        var reqFields = new List<FieldSpecDto>();
+        var specs = new List<FieldSpec>();
         foreach (var f in fields)
         {
-            if (string.IsNullOrWhiteSpace(f)) continue;
-            try
-            {
-                var dto = JsonSerializer.Deserialize<FieldSpecDto>(f);
-                if (dto is not null) reqFields.Add(dto);
-                else return BadRequest("fields must be valid JSON");
-            }
-            catch
-            {
-                return BadRequest("fields must be valid JSON");
-            }
-        }
-
-        if (reqFields.Count == 0) return BadRequest("fields must be provided");
-
-        var specs = reqFields.Select(f => new FieldSpec
-        {
-            Key = f.Key,
-            Type = f.Format.ToLowerInvariant() switch
+            if (string.IsNullOrWhiteSpace(f.FieldName)) return BadRequest("fieldName is required");
+            var type = f.Format?.ToLowerInvariant() switch
             {
                 "int" => "number",
                 "double" => "number",
                 "date" => "date",
                 _ => "string"
-            }
-        }).ToList();
+            };
+            specs.Add(new FieldSpec { Key = f.FieldName, Type = type });
+        }
 
         var result = await _orchestrator.ProcessAsync(file, templateName, prompt, specs, ct);
         return Ok(result);
     }
 
-    private sealed record FieldSpecDto(string Key, string Format);
 }
