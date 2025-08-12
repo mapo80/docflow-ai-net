@@ -1,3 +1,4 @@
+using System.Linq;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
@@ -59,6 +60,17 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
             _logger.LogError(e, "Processing failed: {FileName}", file.FileName);
             throw;
         }
+    }
+
+    public Task<DocumentAnalysisResult> ProcessAsync(
+        IFormFile file,
+        string templateName,
+        string prompt,
+        IReadOnlyList<string> fieldNames,
+        CancellationToken ct)
+    {
+        var specs = fieldNames.Select(fn => new FieldSpec { Key = fn, Type = "string" }).ToList();
+        return ProcessAsync(file, templateName, prompt, specs, ct);
     }
 }
 

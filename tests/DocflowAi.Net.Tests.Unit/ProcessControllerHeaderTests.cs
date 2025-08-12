@@ -3,6 +3,7 @@ using System.Text;
 using DocflowAi.Net.Api.Controllers;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Profiles;
+using DocflowAi.Net.Api.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,7 @@ public class ProcessControllerHeaderTests
             ContentType = "image/png"
         };
 
-        var fields = new List<string> { "{\"Key\":\"a\",\"Format\":\"string\"}" };
+        var fields = new List<FieldRequest> { new("a", "string") };
         var res = await controller.Process(file, "tpl", "prompt", fields, default);
 
         accessor.Object.Mode.Should().Be(ReasoningMode.NoThink);

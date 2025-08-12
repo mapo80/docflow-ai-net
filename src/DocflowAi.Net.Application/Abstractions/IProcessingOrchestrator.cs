@@ -6,4 +6,5 @@ namespace DocflowAi.Net.Application.Abstractions;
 public interface IProcessingOrchestrator
 {
     Task<DocumentAnalysisResult> ProcessAsync(IFormFile file, string templateName, string prompt, IReadOnlyList<FieldSpec> fields, CancellationToken ct);
+    Task<DocumentAnalysisResult> ProcessAsync(IFormFile file, string templateName, string prompt, IReadOnlyList<string> fieldNames, CancellationToken ct);
 }

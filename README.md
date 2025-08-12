@@ -51,7 +51,7 @@ docker run --rm -p 5214:8080 -p 8000:8000 -v $(pwd)/../models:/models:ro docflow
 
 ## Endpoint principali
 - `POST /api/v1/process` (protetto API key) — multipart `file=@image`
-  - campi aggiuntivi: `templateName`, `prompt`, ripetere `fields` (ogni valore è JSON `{ "Key": "...", "Format": "string|int|double|date" }`)
+  - campi aggiuntivi: `templateName`, `prompt`, ripetere `fields[i].fieldName` e opzionale `fields[i].format` (`string|int|double|date`)
   - `X-Reasoning: think|no_think|auto`
 - `GET /health`
 - Swagger: `/swagger`
