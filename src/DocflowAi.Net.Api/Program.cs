@@ -1,7 +1,6 @@
 using System.Reflection;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Configuration;
-using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Infrastructure.Llm;
 using DocflowAi.Net.Infrastructure.Markitdown;
 using DocflowAi.Net.Infrastructure.Orchestration;
@@ -21,7 +20,6 @@ builder.Host.UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration
 builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.SectionName));
 builder.Services.Configure<ServicesOptions>(builder.Configuration.GetSection(ServicesOptions.SectionName));
 builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.SectionName));
-builder.Services.Configure<ExtractionProfilesOptions>(builder.Configuration.GetSection(ExtractionProfilesOptions.SectionName));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});

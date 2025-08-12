@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace DocflowAi.Net.Infrastructure.Llm;
 
@@ -20,7 +21,6 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
 {
     private readonly ILogger<LlamaExtractor> _logger;
     private readonly LlmOptions _opts;
-    private readonly ExtractionProfile _profile;
     private readonly IReasoningModeAccessor _modeAccessor;
     private readonly LLamaWeights _weights;
     private readonly LLamaContext _ctx;
@@ -28,18 +28,12 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
 
     public LlamaExtractor(
         IOptions<LlmOptions> options,
-        IOptions<ExtractionProfilesOptions> profiles,
         IReasoningModeAccessor modeAccessor,
         ILogger<LlamaExtractor> logger)
     {
         _logger = logger;
         _opts = options.Value;
         _modeAccessor = modeAccessor;
-
-        var p = profiles.Value;
-        _profile = p.Profiles.FirstOrDefault(x => x.Name.Equals(p.Active, StringComparison.OrdinalIgnoreCase))
-                   ?? p.Profiles.FirstOrDefault()
-                   ?? new ExtractionProfile { Name = "default", DocumentType = "generic", Language = "auto" };
 
         _logger.LogInformation("Loading LLama model from {ModelPath}", _opts.ModelPath);
         var modelParams = new ModelParams(_opts.ModelPath)
@@ -58,18 +52,18 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         };
     }
 
-    private string BuildSchemaText()
+    private string BuildSchemaText(ExtractionProfile profile)
     {
         var sb = new StringBuilder();
         sb.AppendLine("You MUST output strictly valid JSON matching this schema:");
         sb.AppendLine("{");
-        sb.AppendLine("  \"document_type\": string (expected: \"" + _profile.DocumentType + "\"),");
-        sb.AppendLine("  \"language\": string (expected: \"" + _profile.Language + "\" or ISO code),");
+        sb.AppendLine("  \"document_type\": string (expected: \"" + profile.DocumentType + "\"),");
+        sb.AppendLine("  \"language\": string (expected: \"" + profile.Language + "\" or ISO code),");
         sb.AppendLine("  \"notes\": string,");
         sb.AppendLine("  \"fields\": [ { \"key\": string, \"value\": string, \"confidence\": number (0.0..1.0) } ]");
         sb.AppendLine("}");
         sb.AppendLine("Allowed fields and types:");
-        foreach (var f in _profile.Fields)
+        foreach (var f in profile.Fields)
             sb.AppendLine($"- {f.Key} : {f.Type} {(f.Required ? "(required)" : "")} - {f.Description}");
         sb.AppendLine("Do NOT include explanations or code fences. Output JSON only.");
         return sb.ToString();
@@ -86,15 +80,17 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         return _modeAccessor.Mode != ReasoningMode.Auto ? _modeAccessor.Mode : def;
     }
 
-    public async Task<DocumentAnalysisResult> ExtractAsync(string markdown, CancellationToken ct)
+    public async Task<DocumentAnalysisResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
     {
-        var schemaText = BuildSchemaText();
+        var profile = new ExtractionProfile { Name = templateName, DocumentType = templateName, Language = "auto", Fields = fieldsSpec.ToList() };
+        var schemaText = BuildSchemaText(profile);
         var rm = ResolveMode();
         var modeDirective = rm switch { ReasoningMode.Think => "/think", ReasoningMode.NoThink => "/no_think", _ => string.Empty };
 
         var systemPrompt = "You are an extraction engine. Extract key facts from the user-provided Markdown into STRICT JSON. Return JSON ONLY.";
+        var instruction = string.IsNullOrWhiteSpace(prompt) ? string.Empty : prompt + "\n";
         var userPrompt = $@"{modeDirective}
-Follow this schema and constraints:
+{instruction}Follow this schema and constraints:
 {schemaText}
 
 Markdown to analyze:
@@ -102,7 +98,7 @@ Markdown to analyze:
 {markdown}
 ```";
 
-        _logger.LogInformation("Running LLM extraction profile={Profile} mode={Mode}", _profile.Name, rm);
+        _logger.LogInformation("Running LLM extraction template={Template} mode={Mode}", templateName, rm);
 
         var executor = new InteractiveExecutor(_ctx);
         var session = new ChatSession(executor);
@@ -128,15 +124,15 @@ Markdown to analyze:
         try { node = JsonNode.Parse(response); }
         catch { var repaired = response.Replace("```json","").Replace("```",""); node = JsonNode.Parse(repaired); }
 
-        var docType = node?["document_type"]?.GetValue<string>() ?? _profile.DocumentType;
-        var lang = node?["language"]?.GetValue<string>() ?? _profile.Language;
+        var docType = node?["document_type"]?.GetValue<string>() ?? profile.DocumentType;
+        var lang = node?["language"]?.GetValue<string>() ?? profile.Language;
         var notes = node?["notes"]?.GetValue<string>();
         var fields = new List<ExtractedField>();
         if (node?["fields"] is JsonArray arr)
             foreach (var item in arr)
                 fields.Add(new ExtractedField(item?["key"]?.GetValue<string>() ?? "", item?["value"]?.GetValue<string>(), item?["confidence"]?.GetValue<double?>() ?? 0.0));
         var result = new DocumentAnalysisResult(docType, fields, lang, notes);
-        var (ok, error, fixedResult) = ExtractionValidator.ValidateAndFix(result, _profile);
+        var (ok, error, fixedResult) = ExtractionValidator.ValidateAndFix(result, profile);
         if (!ok) _logger.LogWarning("Profile validation issues: {Error}", error);
         return fixedResult;
     }

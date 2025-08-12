@@ -1,9 +1,4 @@
 namespace DocflowAi.Net.Application.Profiles;
-public sealed class ExtractionProfilesOptions {
-    public const string SectionName = "ExtractionProfiles";
-    public string Active { get; set; } = "default";
-    public List<ExtractionProfile> Profiles { get; set; } = new();
-}
 public sealed class ExtractionProfile {
     public required string Name { get; set; }
     public string DocumentType { get; set; } = "generic";
