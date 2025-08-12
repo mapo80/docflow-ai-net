@@ -46,7 +46,7 @@ Per il debug del PDF di esempio, i test impostano la variabile d'ambiente `DEBUG
 - `markitdown.txt` con l'output del servizio OCR→Markdown
 - `fields.txt` con i campi richiesti
 - `schema_prompt.txt` con il prompt generato dal template
-- `final_prompt.txt` con messaggi system/user inviati al modello
+- `final_prompt.txt` con messaggio **system** (prompt + schema JSON) e messaggio **user** (solo markdown)
 - `llm_response.txt` con la risposta grezza dell'LLM
 
 ## All-in-one Docker (API + Python nello stesso container)

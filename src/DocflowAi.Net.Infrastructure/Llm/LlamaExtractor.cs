@@ -88,16 +88,16 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         var rm = ResolveMode();
         var modeDirective = rm switch { ReasoningMode.Think => "/think", ReasoningMode.NoThink => "/no_think", _ => string.Empty };
 
-        var systemPrompt = "You are an extraction engine. Extract key facts from the user-provided Markdown into STRICT JSON. Return JSON ONLY.";
-        var instruction = string.IsNullOrWhiteSpace(prompt) ? string.Empty : prompt + "\n";
-        var userPrompt = $@"{modeDirective}
-{instruction}Follow this schema and constraints:
-{schemaText}
-
-Markdown to analyze:
-```markdown
-{markdown}
-```";
+        var sb = new StringBuilder();
+        if (!string.IsNullOrEmpty(modeDirective))
+            sb.AppendLine(modeDirective);
+        sb.AppendLine("You are an extraction engine. Extract key facts from the user-provided Markdown into STRICT JSON. Return JSON ONLY.");
+        if (!string.IsNullOrWhiteSpace(prompt))
+            sb.AppendLine(prompt);
+        sb.AppendLine("Follow this schema and constraints:");
+        sb.Append(schemaText);
+        var systemPrompt = sb.ToString();
+        var userPrompt = markdown;
 
         _logger.LogInformation("Running LLM extraction template={Template} mode={Mode}", templateName, rm);
 
