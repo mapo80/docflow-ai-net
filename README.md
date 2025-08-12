@@ -1,6 +1,6 @@
 # docflow-ai-net
 
-.NET 9 API + Python FastAPI sidecar for OCR→Markdown (MarkItDown+Tesseract) and LLM extraction (LLamaSharp + Qwen3 GGUF).
+.NET 9 API + Python FastAPI sidecar for OCR→Markdown (MarkItDown+Tesseract) and LLM extraction (LLamaSharp + GGUF).
 
 ## Highlights
 - Clean layering (Domain / Application / Infrastructure / API)
@@ -18,7 +18,26 @@ cd deployment
 docker compose up --build
 # API: http://localhost:5214  |  MarkItDown: http://localhost:8000
 ```
-Modello GGUF: metti il file in `./models` (es. `qwen3-1_5-instruct-q4_0.gguf`).
+Modello GGUF: metti il file in `./models` (es. `SmolLM-135M-Instruct.Q4_K_S.gguf`).
+
+### Download del modello GGUF
+Scarica il modello leggero per i test in `./models` usando un token Hugging Face:
+```bash
+export HF_TOKEN="<il tuo token>"
+huggingface-cli download MaziyarPanahi/SmolLM-135M-Instruct-GGUF \
+  SmolLM-135M-Instruct.Q4_K_S.gguf \
+  --local-dir ./models --token "$HF_TOKEN"
+export LLM__ModelPath="$(pwd)/models/SmolLM-135M-Instruct.Q4_K_S.gguf"
+```
+
+### Dataset e test
+Nel repo è presente un dataset di esempio sotto `./dataset`.
+Per eseguire i test (inclusi quelli sul dataset):
+```bash
+export MSBUILDTERMINALLOGGER=false
+dotnet test
+python -m pytest
+```
 
 ## All-in-one Docker (API + Python nello stesso container)
 ```bash
