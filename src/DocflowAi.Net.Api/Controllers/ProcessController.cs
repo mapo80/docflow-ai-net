@@ -1,0 +1,16 @@
+using DocflowAi.Net.Application.Abstractions; using DocflowAi.Net.Domain.Extraction; using Microsoft.AspNetCore.Authorization; using Microsoft.AspNetCore.Mvc;
+namespace DocflowAi.Net.Api.Controllers;
+[ApiController] [Route("api/v1/[controller]")] [Authorize(AuthenticationSchemes = ApiKeyDefaults.SchemeName)]
+public sealed class ProcessController : ControllerBase {
+    private readonly IProcessingOrchestrator _orchestrator; private readonly IReasoningModeAccessor _modeAccessor;
+    public ProcessController(IProcessingOrchestrator orchestrator, IReasoningModeAccessor modeAccessor) { _orchestrator = orchestrator; _modeAccessor = modeAccessor; }
+    [HttpPost] [RequestSizeLimit(20_000_000)] [ProducesResponseType(typeof(DocumentAnalysisResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Process([FromForm] IFormFile file, CancellationToken ct) {
+        if (file is null) return BadRequest("file is required");
+        if (Request.Headers.TryGetValue("X-Reasoning", out var mode)) {
+            var v = mode.ToString().Trim().ToLowerInvariant();
+            _modeAccessor.Mode = v switch { "think" => ReasoningMode.Think, "no_think" => ReasoningMode.NoThink, _ => ReasoningMode.Auto };
+        }
+        var result = await _orchestrator.ProcessAsync(file, ct); return Ok(result);
+    }
+}
