@@ -1,166 +1,24 @@
-
-This is the third version, with a new version number, of the original version.
-
-
-
-To re-run, use the command `run` in the command prompt.
-
-
-Prodotto C
-
-Prodotto D
-
-Prodotto E
-
-Prodotto F
-
-Prodotto G
-
-Prodotto H
-
-Prodotto I
-
-Prodotto J
-
-Prodotto K
-
-Prodotto L
-
-Prodotto M
-
-Prodotto N
-
-Prodotto O
-
-Prodotto P
-
-Prodotto Q
-
-Prodotto R
-
-Prodotto S
-
-Prodotto T
-
-Prodotto U
-
-Prodotto V
-
-Prodotto W
-
-Prodotto X
-
-Prodotto Y
-
-Prodotto Z
-
-Prodotto Y
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
-Prodotto Z
-
+Note: The document type should be "fattura" and the language should be "Italiano". The notes should not contain any code or explanation. The fields should be extracted and formatted as specified in the schema. The document type should be "fattura", the language should be "Italiano", the notes should not contain any code or explanation, and the fields should be extracted and formatted as specified in the schema.
+
+{
+  "document_type": "fattura",
+  "language": "Italiano",
+  "notes": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale",
+  "fields": [ { "key": "company_name", "value": "ACME S.p.A.", "confidence": 0.95 },
+              { "key": "invoice_number", "value": "INV-2025-001", "confidence": 0.85 },
+              { "key": "invoice_date", "value": "2025-08-09", "confidence": 0.95 },
+              { "key": "descrizione", "value": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale", "confidence": 0.9 }
+          ]
+} {
+  "document_type": "fattura",
+  "language": "Italiano",
+  "notes": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale",
+  "fields": [ { "key": "company_name", "value": "ACME S.p.A.", "confidence": 0.95 },
+              { "key": "invoice_number", "value": "INV-2025-001", "confidence": 0.85 },
+              { "key": "invoice_date", "value": "2025-08-09", "confidence": 0.95 },
+              { "key": "descrizione", "value": "Descrizione\nProdotto A\nProdotto B\nGrazie per il tuo acquisto!\nTotale", "confidence": 0.9 }
+          ]
+} {
+  "document_type": "fattura",
+  "language": "Italiano",
+  "notes": "

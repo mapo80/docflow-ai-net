@@ -4,13 +4,13 @@
   - `X-API-Key`
   - optional `X-Reasoning: think|no_think|auto`
 - Ensure a GGUF model is mounted at `/models` (compose does it).
-- For local tests download `SmolLM-135M-Instruct.Q4_K_S.gguf` into `./models`:
+- For local tests download `qwen2.5-0.5b-instruct-q4_0.gguf` into `./models`:
   ```bash
   export HF_TOKEN="<il tuo token>"
-  huggingface-cli download MaziyarPanahi/SmolLM-135M-Instruct-GGUF \
-    SmolLM-135M-Instruct.Q4_K_S.gguf \
-    --local-dir ./models --token "$HF_TOKEN"
-  export LLM__ModelPath="$(pwd)/models/SmolLM-135M-Instruct.Q4_K_S.gguf"
+    huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
+      qwen2.5-0.5b-instruct-q4_0.gguf \
+      --local-dir ./models --token "$HF_TOKEN"
+  export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
   ```
 - Install the .NET 9 SDK locally if needed:
   ```bash
@@ -22,4 +22,4 @@
 Prompts:
 - The server injects `/think` or `/no_think` automatically based on header/config.
 - Do not add explanations; responses must be pure JSON.
-- Dataset samples live under `/dataset`; run `LLM__ModelPath=./models/SmolLM-135M-Instruct.Q4_K_S.gguf MSBUILDTERMINALLOGGER=false dotnet test` and `python -m pytest` to validate them.
+- Dataset samples live under `/dataset`; run `LLM__ModelPath=./models/qwen2.5-0.5b-instruct-q4_0.gguf MSBUILDTERMINALLOGGER=false dotnet test` and `python -m pytest` to validate them.
