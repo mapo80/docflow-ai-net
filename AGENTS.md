@@ -12,6 +12,11 @@
     --local-dir ./models --token "$HF_TOKEN"
   export LLM__ModelPath="$(pwd)/models/SmolLM-135M-Instruct.Q4_K_S.gguf"
   ```
+- Install the .NET 9 SDK locally if needed:
+  ```bash
+  ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
+  export PATH="$HOME/dotnet:$PATH"
+  ```
 - Output is always **valid JSON** due to **GBNF grammar** at inference, then validated against **Extraction Profiles**.
 
 Prompts:

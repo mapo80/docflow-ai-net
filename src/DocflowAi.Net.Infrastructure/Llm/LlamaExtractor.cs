@@ -46,7 +46,7 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         {
             ContextSize = (uint)_opts.ContextTokens,
             GpuLayerCount = 0,
-            Threads = (uint)_opts.Threads
+            Threads = _opts.Threads
         };
         _weights = LLamaWeights.LoadFromFile(modelParams);
         _ctx = _weights.CreateContext(modelParams);
@@ -54,7 +54,6 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         _inferenceParams = new InferenceParams()
         {
             MaxTokens = _opts.MaxTokens,
-            Temperature = _opts.Temperature,
             AntiPrompts = new List<string> { "</s>" }
         };
     }
