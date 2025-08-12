@@ -81,6 +81,24 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         return _modeAccessor.Mode != ReasoningMode.Auto ? _modeAccessor.Mode : def;
     }
 
+    private static string? ExtractFirstJson(string text)
+    {
+        var start = text.IndexOf('{');
+        if (start < 0) return null;
+        var depth = 0;
+        for (int i = start; i < text.Length; i++)
+        {
+            if (text[i] == '{') depth++;
+            else if (text[i] == '}')
+            {
+                depth--;
+                if (depth == 0)
+                    return text[start..(i + 1)];
+            }
+        }
+        return null;
+    }
+
     public async Task<DocumentAnalysisResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
     {
         var profile = new ExtractionProfile { Name = templateName, DocumentType = templateName, Language = "auto", Fields = fieldsSpec.ToList() };
@@ -113,7 +131,7 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         var executor = new InteractiveExecutor(_ctx);
         var session = new ChatSession(executor);
         session.AddSystemMessage(systemPrompt);
-        var response = string.Empty;
+        var raw = string.Empty;
 
         await foreach (var text in session.ChatAsync(
             new ChatHistory.Message(AuthorRole.User, userPrompt),
@@ -121,23 +139,27 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
             _inferenceParams,
             ct))
         {
-            response += text;
+            raw += text;
         }
 
-        _logger.LogDebug("Raw LLM output: {Output}", response);
+        _logger.LogDebug("Raw LLM output: {Output}", raw);
 
-        if (!string.IsNullOrWhiteSpace(debugDir))
-            File.WriteAllText(Path.Combine(debugDir, "llm_response.txt"), response);
-
-        if (string.IsNullOrWhiteSpace(response))
+        if (string.IsNullOrWhiteSpace(raw))
         {
             _logger.LogError("LLM returned empty response");
             return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
         }
 
-        var start = response.IndexOf('{'); var end = response.LastIndexOf('}');
-        if (start >= 0 && end > start) response = response[start..(end+1)];
-        response = Regex.Replace(response, "<think>.*?</think>", "", RegexOptions.Singleline);
+        raw = Regex.Replace(raw, "<think>.*?</think>", "", RegexOptions.Singleline);
+        var response = ExtractFirstJson(raw);
+        if (response is null)
+        {
+            _logger.LogError("Failed to locate JSON object in LLM output: {Output}", raw);
+            return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
+        }
+
+        if (!string.IsNullOrWhiteSpace(debugDir))
+            File.WriteAllText(Path.Combine(debugDir, "llm_response.txt"), response);
 
         JsonNode? node = null;
         try
