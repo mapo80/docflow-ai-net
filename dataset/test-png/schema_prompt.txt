@@ -1,0 +1,13 @@
+You MUST output strictly valid JSON matching this schema:
+{
+  "document_type": string (expected: "default"),
+  "language": string (expected: "auto" or ISO code),
+  "notes": string,
+  "fields": [ { "key": string, "value": string, "confidence": number (0.0..1.0) } ]
+}
+Allowed fields and types:
+- company_name	Nome : string  - 
+- document_type	Tipo : string  - 
+- invoice_number	Numero : string  - 
+- invoice_date	Data : string  - 
+Do NOT include explanations or code fences. Output JSON only.
