@@ -23,6 +23,7 @@ Allowed fields and types:
 - invoice_date	Data : string  - 
 Do NOT include explanations or code fences. Output JSON only.
 
+
 [USER]
 ACME S.p.A.
 
@@ -60,5 +61,4 @@ Prodotto A
 Prodotto B
 
 Grazie per il tuo acquisto!
-
 
