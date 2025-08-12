@@ -1,4 +1,6 @@
 using System.Linq;
+using System.IO;
+using System.Text.Json;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
@@ -43,9 +45,20 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
 
         await using var stream = file.OpenReadStream();
 
+        var debugDir = Environment.GetEnvironmentVariable("DEBUG_DIR");
+        if (!string.IsNullOrWhiteSpace(debugDir))
+        {
+            Directory.CreateDirectory(debugDir);
+            File.WriteAllText(Path.Combine(debugDir, "fields.txt"), JsonSerializer.Serialize(fields));
+            File.WriteAllText(Path.Combine(debugDir, "prompt.txt"), prompt);
+        }
+
         try
         {
             var markdown = await _markitdown.ToMarkdownAsync(stream, file.FileName, ct);
+            if (!string.IsNullOrWhiteSpace(debugDir))
+                File.WriteAllText(Path.Combine(debugDir, "markitdown.txt"), markdown);
+
             var result = await _llama.ExtractAsync(markdown, templateName, prompt, fields, ct);
 
             _logger.LogInformation(

@@ -42,6 +42,13 @@ python -m pytest
 I test di integrazione avviano il servizio Python e verificano sia i casi OK sia gli errori (file vuoto/estensione non supportata) usando i PDF/PNG in `./dataset`.
 Il prompt dell'LLM e la lista dei campi sono passati alla chiamata di processo; i risultati per ogni file vengono stampati nei log dei test.
 
+Per il debug del PDF di esempio, i test impostano la variabile d'ambiente `DEBUG_DIR=./dataset/test-pdf` e salvano:
+- `markitdown.txt` con l'output del servizio OCR→Markdown
+- `fields.txt` con i campi richiesti
+- `schema_prompt.txt` con il prompt generato dal template
+- `final_prompt.txt` con messaggi system/user inviati al modello
+- `llm_response.txt` con la risposta grezza dell'LLM
+
 ## All-in-one Docker (API + Python nello stesso container)
 ```bash
 cd deployment
