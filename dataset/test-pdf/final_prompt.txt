@@ -1,8 +1,5 @@
 [SYSTEM]
 You are an extraction engine. Extract key facts from the user-provided Markdown into STRICT JSON. Return JSON ONLY.
-
-[USER]
-
 Estrarre dal testo fornito i seguenti campi di una fattura.
 Rispondi solo in formato JSON valido, senza testo aggiuntivo.
 
@@ -26,9 +23,7 @@ Allowed fields and types:
 - invoice_date	Data : string  - 
 Do NOT include explanations or code fences. Output JSON only.
 
-
-Markdown to analyze:
-```markdown
+[USER]
 ACME S.p.A.
 
 Q.tà
@@ -67,4 +62,3 @@ Prodotto B
 Grazie per il tuo acquisto!
 
 
-```
