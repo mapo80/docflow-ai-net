@@ -8,9 +8,10 @@
 - **Swagger + API Key** (`X-API-Key`)
 - **Serilog** logs (console + rolling files)
 - **Polly** retry/timeout sul client MarkItDown
+- **Eccezioni propagate**: errori dal servizio Python sollevano `MarkitdownException`
 - **GBNF grammar** sempre attiva → output **JSON valido**
 - **Thinking/no_think** per-request (`X-Reasoning`) o da config `LLM:ThinkingMode`
-- **Extraction Profiles** (schema campi) + validazione post-LLM
+- Schema dei campi definito a runtime (lista di key/format) e validazione post-LLM
 
 ## Avvio rapido con Docker Compose
 ```bash
@@ -38,6 +39,8 @@ export MSBUILDTERMINALLOGGER=false
 dotnet test
 python -m pytest
 ```
+I test di integrazione avviano il servizio Python e verificano sia i casi OK sia gli errori (file vuoto/estensione non supportata) usando i PDF/PNG in `./dataset`.
+Il prompt dell'LLM e la lista dei campi sono passati alla chiamata di processo; i risultati per ogni file vengono stampati nei log dei test.
 
 ## All-in-one Docker (API + Python nello stesso container)
 ```bash
@@ -48,6 +51,7 @@ docker run --rm -p 5214:8080 -p 8000:8000 -v $(pwd)/../models:/models:ro docflow
 
 ## Endpoint principali
 - `POST /api/v1/process` (protetto API key) — multipart `file=@image`
+  - campi aggiuntivi: `templateName`, `prompt`, ripetere `fields` (ogni valore è JSON `{ "Key": "...", "Format": "string|int|double|date" }`)
   - `X-Reasoning: think|no_think|auto`
 - `GET /health`
 - Swagger: `/swagger`
