@@ -15,9 +15,4 @@
     <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.24.0" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Grammars\json.gbnf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 </Project>
