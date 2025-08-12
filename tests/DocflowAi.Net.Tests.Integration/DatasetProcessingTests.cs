@@ -93,7 +93,13 @@ public class DatasetProcessingTests : IClassFixture<MarkitdownServiceFixture>, I
         File.Exists(Path.Combine(debugDir, "fields.txt")).Should().BeTrue();
         File.Exists(Path.Combine(debugDir, "schema_prompt.txt")).Should().BeTrue();
         File.Exists(Path.Combine(debugDir, "final_prompt.txt")).Should().BeTrue();
-        File.Exists(Path.Combine(debugDir, "llm_response.txt")).Should().BeTrue();
+        var llmPath = Path.Combine(debugDir, "llm_response.txt");
+        File.Exists(llmPath).Should().BeTrue();
+        var llmRaw = File.ReadAllText(llmPath);
+        llmRaw.TrimStart().StartsWith("{").Should().BeTrue();
+        var lastBrace = llmRaw.TrimEnd().LastIndexOf('}');
+        lastBrace.Should().Be(llmRaw.TrimEnd().Length - 1);
+        JsonDocument.Parse(llmRaw); // will throw if invalid
 
         Environment.SetEnvironmentVariable("DEBUG_DIR", null);
     }
