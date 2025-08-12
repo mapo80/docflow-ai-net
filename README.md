@@ -19,16 +19,16 @@ cd deployment
 docker compose up --build
 # API: http://localhost:5214  |  MarkItDown: http://localhost:8000
 ```
-Modello GGUF: metti il file in `./models` (es. `SmolLM-135M-Instruct.Q4_K_S.gguf`).
+Modello GGUF: metti il file in `./models` (es. `qwen2.5-0.5b-instruct-q4_0.gguf`).
 
 ### Download del modello GGUF
 Scarica il modello leggero per i test in `./models` usando un token Hugging Face:
 ```bash
 export HF_TOKEN="<il tuo token>"
-huggingface-cli download MaziyarPanahi/SmolLM-135M-Instruct-GGUF \
-  SmolLM-135M-Instruct.Q4_K_S.gguf \
+huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
+  qwen2.5-0.5b-instruct-q4_0.gguf \
   --local-dir ./models --token "$HF_TOKEN"
-export LLM__ModelPath="$(pwd)/models/SmolLM-135M-Instruct.Q4_K_S.gguf"
+export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
 ```
 
 ### Dataset e test

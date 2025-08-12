@@ -41,7 +41,7 @@ public class DatasetProcessingTests : IClassFixture<MarkitdownServiceFixture>, I
             .ToList();
 
         var modelPath = Environment.GetEnvironmentVariable("LLM__ModelPath")
-            ?? Path.Combine(_root, "models/SmolLM-135M-Instruct.Q4_K_S.gguf");
+            ?? Path.Combine(_root, "models/qwen2.5-0.5b-instruct-q4_0.gguf");
         var llmOpts = Options.Create(new LlmOptions { ModelPath = modelPath });
         _llama = new LlamaExtractor(llmOpts, new ReasoningModeAccessor(), NullLogger<LlamaExtractor>.Instance);
 
