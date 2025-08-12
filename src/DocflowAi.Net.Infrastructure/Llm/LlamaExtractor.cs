@@ -116,13 +116,34 @@ Markdown to analyze:
 
         _logger.LogDebug("Raw LLM output: {Output}", response);
 
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            _logger.LogError("LLM returned empty response");
+            return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
+        }
+
         var start = response.IndexOf('{'); var end = response.LastIndexOf('}');
         if (start >= 0 && end > start) response = response[start..(end+1)];
         response = Regex.Replace(response, "<think>.*?</think>", "", RegexOptions.Singleline);
 
-        JsonNode? node;
-        try { node = JsonNode.Parse(response); }
-        catch { var repaired = response.Replace("```json","").Replace("```",""); node = JsonNode.Parse(repaired); }
+        JsonNode? node = null;
+        try
+        {
+            node = JsonNode.Parse(response);
+        }
+        catch
+        {
+            try
+            {
+                var repaired = response.Replace("```json", "").Replace("```", "");
+                node = JsonNode.Parse(repaired);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse LLM output: {Output}", response);
+                return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
+            }
+        }
 
         var docType = node?["document_type"]?.GetValue<string>() ?? profile.DocumentType;
         var lang = node?["language"]?.GetValue<string>() ?? profile.Language;

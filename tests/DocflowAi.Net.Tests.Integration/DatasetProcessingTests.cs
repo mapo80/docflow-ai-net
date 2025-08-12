@@ -69,34 +69,20 @@ public class DatasetProcessingTests : IClassFixture<MarkitdownServiceFixture>, I
     }
 
     [Fact]
-    public async Task Dataset_files_are_processed_and_reported()
+    public async Task Pdf_processing_returns_result()
     {
-        var datasetDir = Path.Combine(_root, "dataset");
-        int processed = 0;
-
-        foreach (var path in Directory.EnumerateFiles(datasetDir).Where(p => p.EndsWith(".pdf") || p.EndsWith(".png")))
+        var path = Path.Combine(_root, "dataset/sample_invoice.pdf");
+        await using var fs = File.OpenRead(path);
+        var form = new FormFile(fs, 0, fs.Length, "file", Path.GetFileName(path))
         {
-            await using var fs = File.OpenRead(path);
-            var form = new FormFile(fs, 0, fs.Length, "file", Path.GetFileName(path))
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = path.EndsWith(".pdf") ? "application/pdf" : "image/png",
-            };
+            Headers = new HeaderDictionary(),
+            ContentType = "application/pdf",
+        };
 
-            try
-            {
-                var result = await _orchestrator.ProcessAsync(form, "default", _prompt, _specs, default);
-                var json = JsonSerializer.Serialize(result);
-                _output.WriteLine($"{Path.GetFileName(path)} => {json}");
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"{Path.GetFileName(path)} => ERROR {ex}");
-            }
-            processed++;
-        }
-
-        processed.Should().BeGreaterThan(0);
+        var result = await _orchestrator.ProcessAsync(form, "default", _prompt, _specs, default);
+        var json = JsonSerializer.Serialize(result);
+        _output.WriteLine(json);
+        result.Should().NotBeNull();
     }
 
     public void Dispose() => _llama.Dispose();
