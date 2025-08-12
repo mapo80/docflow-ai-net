@@ -1,0 +1,225 @@
+{
+  "markdown": "",
+  "ocr": {
+    "words": [
+      {
+        "text": "ACME",
+        "left": 60,
+        "top": 69,
+        "width": 149,
+        "height": 37
+      },
+      {
+        "text": "S.p.A.",
+        "left": 233,
+        "top": 69,
+        "width": 152,
+        "height": 46
+      },
+      {
+        "text": "Fattura",
+        "left": 63,
+        "top": 146,
+        "width": 97,
+        "height": 20
+      },
+      {
+        "text": "/",
+        "left": 171,
+        "top": 146,
+        "width": 9,
+        "height": 23
+      },
+      {
+        "text": "Invoice",
+        "left": 192,
+        "top": 145,
+        "width": 96,
+        "height": 21
+      },
+      {
+        "text": "Invoice",
+        "left": 63,
+        "top": 205,
+        "width": 96,
+        "height": 21
+      },
+      {
+        "text": "Number:",
+        "left": 172,
+        "top": 205,
+        "width": 116,
+        "height": 21
+      },
+      {
+        "text": "INV-2025-001",
+        "left": 303,
+        "top": 206,
+        "width": 188,
+        "height": 20
+      },
+      {
+        "text": "Date:",
+        "left": 63,
+        "top": 246,
+        "width": 70,
+        "height": 20
+      },
+      {
+        "text": "2025-08-09",
+        "left": 147,
+        "top": 246,
+        "width": 160,
+        "height": 20
+      },
+      {
+        "text": "Descrizione",
+        "left": 73,
+        "top": 336,
+        "width": 160,
+        "height": 33
+      },
+      {
+        "text": "Q.ta",
+        "left": 592,
+        "top": 339,
+        "width": 55,
+        "height": 26
+      },
+      {
+        "text": "Prezzo",
+        "left": 833,
+        "top": 341,
+        "width": 89,
+        "height": 20
+      },
+      {
+        "text": "Totale",
+        "left": 1050,
+        "top": 340,
+        "width": 86,
+        "height": 21
+      },
+      {
+        "text": "Prodotto",
+        "left": 73,
+        "top": 400,
+        "width": 116,
+        "height": 21
+      },
+      {
+        "text": "A",
+        "left": 199,
+        "top": 401,
+        "width": 19,
+        "height": 20
+      },
+      {
+        "text": "2",
+        "left": 592,
+        "top": 401,
+        "width": 13,
+        "height": 20
+      },
+      {
+        "text": "\u20ac",
+        "left": 830,
+        "top": 401,
+        "width": 16,
+        "height": 20
+      },
+      {
+        "text": "10,00",
+        "left": 860,
+        "top": 401,
+        "width": 76,
+        "height": 24
+      },
+      {
+        "text": "\u20ac",
+        "left": 1050,
+        "top": 401,
+        "width": 16,
+        "height": 20
+      },
+      {
+        "text": "20,00",
+        "left": 1079,
+        "top": 401,
+        "width": 77,
+        "height": 24
+      },
+      {
+        "text": "Prodotto",
+        "left": 73,
+        "top": 460,
+        "width": 116,
+        "height": 21
+      },
+      {
+        "text": "B",
+        "left": 202,
+        "top": 461,
+        "width": 14,
+        "height": 20
+      },
+      {
+        "text": "1",
+        "left": 593,
+        "top": 461,
+        "width": 12,
+        "height": 20
+      },
+      {
+        "text": "\u20ac",
+        "left": 830,
+        "top": 461,
+        "width": 16,
+        "height": 20
+      },
+      {
+        "text": "15,00",
+        "left": 860,
+        "top": 461,
+        "width": 76,
+        "height": 24
+      },
+      {
+        "text": "\u20ac",
+        "left": 1050,
+        "top": 461,
+        "width": 16,
+        "height": 20
+      },
+      {
+        "text": "15,00",
+        "left": 1080,
+        "top": 461,
+        "width": 76,
+        "height": 24
+      },
+      {
+        "text": "TOTALE",
+        "left": 830,
+        "top": 521,
+        "width": 107,
+        "height": 20
+      },
+      {
+        "text": "\u20ac",
+        "left": 1050,
+        "top": 521,
+        "width": 16,
+        "height": 20
+      },
+      {
+        "text": "35,00",
+        "left": 1079,
+        "top": 521,
+        "width": 77,
+        "height": 24
+      }
+    ],
+    "count": 31
+  }
+}

@@ -1,0 +1,1 @@
+[{"Key":"company_name\tNome","Description":"","Type":"string","Required":false},{"Key":"document_type\tTipo","Description":"","Type":"string","Required":false},{"Key":"invoice_number\tNumero","Description":"","Type":"string","Required":false},{"Key":"invoice_date\tData","Description":"","Type":"string","Required":false}]
