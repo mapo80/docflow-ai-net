@@ -1,0 +1,37 @@
+ACME S.p.A.
+
+Q.tà
+
+Prezzo
+
+Totale
+
+2
+
+1
+
+€ 10,00
+
+€ 15,00
+
+TOTALE
+
+€ 20,00
+
+€ 15,00
+
+€ 35,00
+
+Fattura / Invoice
+
+Invoice Number: INV-2025-001
+Date: 2025-08-09
+
+Descrizione
+
+Prodotto A
+
+Prodotto B
+
+Grazie per il tuo acquisto!
+
