@@ -5,9 +5,10 @@ using DocflowAi.Net.Domain.Extraction;
 using DocflowAi.Net.Infrastructure.Validation;
 using LLama;
 using LLama.Abstractions;
-using LLama.Grammars;
+using LLama.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -41,30 +42,20 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
                    ?? new ExtractionProfile { Name = "default", DocumentType = "generic", Language = "auto" };
 
         _logger.LogInformation("Loading LLama model from {ModelPath}", _opts.ModelPath);
-        _weights = LLamaWeights.LoadFromFile(_opts.ModelPath);
-        var @params = new ModelParams(_opts.ModelPath)
+        var modelParams = new ModelParams(_opts.ModelPath)
         {
-            ContextSize = _opts.ContextTokens,
+            ContextSize = (uint)_opts.ContextTokens,
             GpuLayerCount = 0,
-            Threads = _opts.Threads
+            Threads = (uint)_opts.Threads
         };
-        _ctx = _weights.CreateContext(@params);
-
-        var gbnfPath = Path.Combine(AppContext.BaseDirectory, "Grammars", "json.gbnf");
-        if (!File.Exists(gbnfPath))
-        {
-            var alt = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "DocflowAi.Net.Infrastructure", "Grammars", "json.gbnf");
-            gbnfPath = File.Exists(alt) ? Path.GetFullPath(alt) : gbnfPath;
-        }
-        var gbnf = File.ReadAllText(gbnfPath).Trim();
-        var grammar = Grammar.Parse(gbnf, "root");
+        _weights = LLamaWeights.LoadFromFile(modelParams);
+        _ctx = _weights.CreateContext(modelParams);
 
         _inferenceParams = new InferenceParams()
         {
             MaxTokens = _opts.MaxTokens,
             Temperature = _opts.Temperature,
-            Antiprompt = new List<string> { "</s>" },
-            Grammar = grammar
+            AntiPrompts = new List<string> { "</s>" }
         };
     }
 
@@ -115,14 +106,18 @@ Markdown to analyze:
         _logger.LogInformation("Running LLM extraction profile={Profile} mode={Mode}", _profile.Name, rm);
 
         var executor = new InteractiveExecutor(_ctx);
-        var inference = new ChatSession(executor);
+        var session = new ChatSession(executor);
+        session.AddSystemMessage(systemPrompt);
         var response = string.Empty;
 
-        await foreach (var text in inference.ChatAsync(
-            new ChatHistoryMessage(AuthorRole.System, systemPrompt),
-            new ChatHistoryMessage(AuthorRole.User, userPrompt),
-            _inferenceParams, ct))
-        { response += text; }
+        await foreach (var text in session.ChatAsync(
+            new ChatHistory.Message(AuthorRole.User, userPrompt),
+            false,
+            _inferenceParams,
+            ct))
+        {
+            response += text;
+        }
 
         _logger.LogDebug("Raw LLM output: {Output}", response);
 

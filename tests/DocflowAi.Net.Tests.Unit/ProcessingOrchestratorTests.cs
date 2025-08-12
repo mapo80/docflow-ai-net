@@ -4,6 +4,7 @@ using DocflowAi.Net.Domain.Extraction;
 using DocflowAi.Net.Infrastructure.Orchestration;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Moq;
 namespace DocflowAi.Net.Tests.Unit;
 public class ProcessingOrchestratorTests {

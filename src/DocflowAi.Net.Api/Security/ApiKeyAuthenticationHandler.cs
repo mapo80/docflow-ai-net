@@ -4,7 +4,7 @@ public sealed class ApiKeyAuthenticationHandler : AuthenticationHandler<Authenti
     private readonly ApiKeyOptions _opts;
     public ApiKeyAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IOptions<ApiKeyOptions> apiOpts) : base(options, logger, encoder, clock) { _opts = apiOpts.Value; }
     protected override Task<AuthenticateResult> HandleAuthenticateAsync() {
-        if (!Request.Headers.TryGetValue(_opts.HeaderName, out var provided)) return Task.FromResult(AuthenticateResult.Fail("Missing API Key header."));
+        if (!Request.Headers.TryGetValue(_opts.HeaderName, out var provided)) return Task.FromResult(AuthenticateResult.NoResult());
         if (_opts.Keys.Length == 0) return Task.FromResult(AuthenticateResult.Fail("No API keys configured."));
         if (!_opts.Keys.Contains(provided.ToString())) return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "api-key-user") };

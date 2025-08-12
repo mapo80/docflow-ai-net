@@ -4,8 +4,11 @@ namespace DocflowAi.Net.Api.Controllers;
 public sealed class ProcessController : ControllerBase {
     private readonly IProcessingOrchestrator _orchestrator; private readonly IReasoningModeAccessor _modeAccessor;
     public ProcessController(IProcessingOrchestrator orchestrator, IReasoningModeAccessor modeAccessor) { _orchestrator = orchestrator; _modeAccessor = modeAccessor; }
-    [HttpPost] [RequestSizeLimit(20_000_000)] [ProducesResponseType(typeof(DocumentAnalysisResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Process([FromForm] IFormFile file, CancellationToken ct) {
+    [HttpPost]
+    [RequestSizeLimit(20_000_000)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DocumentAnalysisResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Process(IFormFile file, CancellationToken ct) {
         if (file is null) return BadRequest("file is required");
         if (Request.Headers.TryGetValue("X-Reasoning", out var mode)) {
             var v = mode.ToString().Trim().ToLowerInvariant();

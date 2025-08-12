@@ -49,7 +49,7 @@ builder.Services.AddHttpClient<IMarkitdownClient, MarkitdownClient>()
     .AddPolicyHandler((sp,_) => HttpPolicies.GetTimeoutPolicy(sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ServicesOptions>>()));
 
 builder.Services.AddScoped<IReasoningModeAccessor, ReasoningModeAccessor>();
-builder.Services.AddSingleton<ILlamaExtractor, LlamaExtractor>();
+builder.Services.AddScoped<ILlamaExtractor, LlamaExtractor>();
 builder.Services.AddScoped<IProcessingOrchestrator, ProcessingOrchestrator>();
 
 builder.Services.AddHealthChecks();
@@ -66,5 +66,7 @@ app.UseSwaggerUI();
 app.MapHealthChecks("/health");
 app.MapControllers();
 app.Run();
+
+public partial class Program { }
 
 public static class ApiKeyDefaults { public const string SchemeName = "ApiKey"; }
