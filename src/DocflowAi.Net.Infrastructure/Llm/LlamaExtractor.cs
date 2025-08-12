@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.IO;
 
 namespace DocflowAi.Net.Infrastructure.Llm;
 
@@ -100,6 +101,15 @@ Markdown to analyze:
 
         _logger.LogInformation("Running LLM extraction template={Template} mode={Mode}", templateName, rm);
 
+        var debugDir = Environment.GetEnvironmentVariable("DEBUG_DIR");
+        if (!string.IsNullOrWhiteSpace(debugDir))
+        {
+            Directory.CreateDirectory(debugDir);
+            File.WriteAllText(Path.Combine(debugDir, "schema_prompt.txt"), schemaText);
+            var fullPrompt = $"[SYSTEM]\n{systemPrompt}\n\n[USER]\n{userPrompt}";
+            File.WriteAllText(Path.Combine(debugDir, "final_prompt.txt"), fullPrompt);
+        }
+
         var executor = new InteractiveExecutor(_ctx);
         var session = new ChatSession(executor);
         session.AddSystemMessage(systemPrompt);
@@ -115,6 +125,9 @@ Markdown to analyze:
         }
 
         _logger.LogDebug("Raw LLM output: {Output}", response);
+
+        if (!string.IsNullOrWhiteSpace(debugDir))
+            File.WriteAllText(Path.Combine(debugDir, "llm_response.txt"), response);
 
         if (string.IsNullOrWhiteSpace(response))
         {

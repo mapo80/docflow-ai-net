@@ -79,10 +79,23 @@ public class DatasetProcessingTests : IClassFixture<MarkitdownServiceFixture>, I
             ContentType = "application/pdf",
         };
 
+        var debugDir = Path.Combine(_root, "dataset/test-pdf");
+        Environment.SetEnvironmentVariable("DEBUG_DIR", debugDir);
+        Directory.CreateDirectory(debugDir);
+        foreach (var f in Directory.GetFiles(debugDir)) File.Delete(f);
+
         var result = await _orchestrator.ProcessAsync(form, "default", _prompt, _specs, default);
         var json = JsonSerializer.Serialize(result);
         _output.WriteLine(json);
         result.Should().NotBeNull();
+
+        File.Exists(Path.Combine(debugDir, "markitdown.txt")).Should().BeTrue();
+        File.Exists(Path.Combine(debugDir, "fields.txt")).Should().BeTrue();
+        File.Exists(Path.Combine(debugDir, "schema_prompt.txt")).Should().BeTrue();
+        File.Exists(Path.Combine(debugDir, "final_prompt.txt")).Should().BeTrue();
+        File.Exists(Path.Combine(debugDir, "llm_response.txt")).Should().BeTrue();
+
+        Environment.SetEnvironmentVariable("DEBUG_DIR", null);
     }
 
     public void Dispose() => _llama.Dispose();
