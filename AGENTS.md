@@ -45,7 +45,6 @@ Prompts:
 - Tests: `tests/DocflowAi.Net.Tests.Integration/MarkdownNetConverterTests.cs`
 
 ## Pre-PR checklist
-- `rg --pcre2 -n -i 'markitdown(?!net)'` → **vuoto**
 - `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` → **vuoto**
 - `dotnet build -c Release`
 - `dotnet test -c Release`
