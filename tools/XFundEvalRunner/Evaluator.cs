@@ -10,8 +10,14 @@ public static class Evaluator
         bool pointerStrategy,
         bool strictPointer)
     {
-        var expected = expectedFields.ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase);
-        var map = fields.ToDictionary(f => f.Key, StringComparer.OrdinalIgnoreCase);
+        var expected = expectedFields
+            .GroupBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase);
+        var map = fields
+            .GroupBy(f => f.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToDictionary(f => f.Key, StringComparer.OrdinalIgnoreCase);
 
         int withBBox = 0, textOnly = 0, missing = 0, pointerValid = 0;
         double iouSum = 0; int iouCount = 0; int iou50 = 0, iou75 = 0;

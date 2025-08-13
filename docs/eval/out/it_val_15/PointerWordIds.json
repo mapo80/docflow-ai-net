@@ -2,16 +2,46 @@
   "file": "./dataset/xfund_it_val/it_val_15.jpg",
   "strategy": "PointerWordIds",
   "metrics": {
-    "Expected": 0,
+    "Expected": 22,
     "WithBBox": 0,
-    "TextOnly": 0,
+    "TextOnly": 22,
     "Missing": 0,
     "CoverageRate": 0,
-    "ExtractionRate": 0,
-    "PointerValidityRate": null,
+    "ExtractionRate": 1,
+    "PointerValidityRate": 0,
     "IoUMean": 0,
     "IoUAt0_5": 0,
     "IoUAt0_75": 0,
-    "PerLabelOutcome": {}
+    "PerLabelOutcome": {
+      "il sottoscritto": 1,
+      "nome e cognome": 1,
+      "nato a_": 1,
+      "il": 1,
+      "residente a": 1,
+      "prov.": 1,
+      "cap": 1,
+      "in via": 1,
+      "n.": 1,
+      "professione": 1,
+      "codice fiscale / p. iva": 1,
+      "telefono": 1,
+      "e-mail": 1,
+      "di partecipare al corso di": 1,
+      "previsto nelle date": 1,
+      "nella sede di": 1,
+      "letto, confermato e sottoscritto,": 1,
+      "luogo": 1,
+      "data": 1,
+      "firma": 1,
+      "indicazioni per l\u0027invio del modulo": 1,
+      "percorso formativo:": 1
+    }
+  },
+  "timing": {
+    "t_convert_ms": 5.1637,
+    "t_index_ms_median": 2.138,
+    "t_llm_ms_median": 10.1825,
+    "t_resolve_ms_median": 2.1369,
+    "t_total_ms_median": 19.6193
   }
 }

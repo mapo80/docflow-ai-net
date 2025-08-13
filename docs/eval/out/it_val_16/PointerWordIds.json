@@ -2,16 +2,33 @@
   "file": "./dataset/xfund_it_val/it_val_16.jpg",
   "strategy": "PointerWordIds",
   "metrics": {
-    "Expected": 0,
+    "Expected": 9,
     "WithBBox": 0,
-    "TextOnly": 0,
+    "TextOnly": 9,
     "Missing": 0,
     "CoverageRate": 0,
-    "ExtractionRate": 0,
-    "PointerValidityRate": null,
+    "ExtractionRate": 1,
+    "PointerValidityRate": 0,
     "IoUMean": 0,
     "IoUAt0_5": 0,
     "IoUAt0_75": 0,
-    "PerLabelOutcome": {}
+    "PerLabelOutcome": {
+      "tutti i visitatori devono attenersi scrupolosamente alle misure igienico-sanitarie idonee a prevenire il contagio e in particolare:": 1,
+      "luogo e data": 1,
+      "(firma leggibile)": 1,
+      "ora di ingresso": 1,
+      "ora di uscita": 1,
+      "ruolo": 1,
+      "motivo": 1,
+      "contatto": 1,
+      "1. i dati da lei forniti verranno trattati per le seguenti finalit\u00E0:": 1
+    }
+  },
+  "timing": {
+    "t_convert_ms": 5.1319,
+    "t_index_ms_median": 2.1273,
+    "t_llm_ms_median": 10.1548,
+    "t_resolve_ms_median": 2.1638,
+    "t_total_ms_median": 19.5748
   }
 }

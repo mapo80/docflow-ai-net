@@ -2,16 +2,41 @@
   "file": "./dataset/xfund_it_val/it_val_11.jpg",
   "strategy": "PointerOffsets",
   "metrics": {
-    "Expected": 0,
+    "Expected": 17,
     "WithBBox": 0,
-    "TextOnly": 0,
+    "TextOnly": 17,
     "Missing": 0,
     "CoverageRate": 0,
-    "ExtractionRate": 0,
-    "PointerValidityRate": null,
+    "ExtractionRate": 1,
+    "PointerValidityRate": 0,
     "IoUMean": 0,
     "IoUAt0_5": 0,
     "IoUAt0_75": 0,
-    "PerLabelOutcome": {}
+    "PerLabelOutcome": {
+      "io sottoscritto/a": 1,
+      "c.i.d.": 1,
+      "societ\u00E0": 1,
+      "assunto/a il": 1,
+      "categoria d\u0027appartenenza": 1,
+      "codice fiscale": 1,
+      "domicilio via": 1,
+      "comune": 1,
+      "prov": 1,
+      "residenza via": 1,
+      "in seguito alla richiesta di smobilizzo della propria posizione previdenziale derivante da:": 1,
+      "al fine di consentire al fondo pensione fnm di procedere all\u0027operazione di pagamento in un\u0027unica soluzione, io sottoscritto/a errore. l\u0027origine riferimento non \u00E8 stata trovata. in qualit\u00E0 di beneficiario/a della parte di prestazione maturata a tutto il 31.12.2000": 1,
+      "data": 1,
+      "timbro e firma": 1,
+      "telefono": 1,
+      "data 1^ iscrizione fondo": 1,
+      "cap": 1
+    }
+  },
+  "timing": {
+    "t_convert_ms": 6.1849,
+    "t_index_ms_median": 3.1754,
+    "t_llm_ms_median": 12.2033,
+    "t_resolve_ms_median": 3.1781,
+    "t_total_ms_median": 24.7431
   }
 }

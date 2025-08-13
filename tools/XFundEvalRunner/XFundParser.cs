@@ -15,7 +15,14 @@ public static class XFundParser
         {
             foreach (var d in documents.EnumerateArray())
             {
-                var img = d.GetProperty("img").GetString() ?? string.Empty;
+                string img = string.Empty;
+                if (d.TryGetProperty("img", out var imgElem))
+                {
+                    if (imgElem.ValueKind == JsonValueKind.Object && imgElem.TryGetProperty("fname", out var fname))
+                        img = fname.GetString() ?? string.Empty;
+                    else
+                        img = imgElem.GetString() ?? string.Empty;
+                }
                 var nodes = d.GetProperty("document").EnumerateArray().ToList();
                 var byId = nodes.ToDictionary(n => n.GetProperty("id").GetInt32());
                 var fields = new List<FieldManifest>();
