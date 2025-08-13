@@ -154,38 +154,66 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         if (!string.IsNullOrWhiteSpace(debugDir))
             File.WriteAllText(Path.Combine(debugDir, "llm_response.txt"), raw);
 
-        JsonNode? node;
+        return ParseResult(raw, profile, templateName, _logger);
+    }
+    public void Dispose() { _ctx.Dispose(); _weights.Dispose(); }
+
+    internal static DocumentAnalysisResult ParseResult(string raw, ExtractionProfile profile, string templateName, ILogger logger)
+    {
+        // LLM output is constrained by a JSON grammar, but GBNF cannot enforce
+        // unique property names. JsonDocument tolerates duplicates and preserves
+        // their order, allowing later occurrences to override earlier ones.
+        JsonDocument doc;
         try
         {
-            JsonDocument.Parse(raw);
-            node = JsonNode.Parse(raw);
+            doc = JsonDocument.Parse(raw);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse LLM output: {Output}", raw);
+            logger.LogError(ex, "Failed to parse LLM output: {Output}", raw);
             return new DocumentAnalysisResult(profile.DocumentType, new List<ExtractedField>(), profile.Language, null);
         }
 
-        var docType = node?["document_type"]?.GetValue<string>() ?? profile.DocumentType;
-        var lang = node?["language"]?.GetValue<string>() ?? profile.Language;
-        var notes = node?["notes"]?.GetValue<string>();
+        var root = doc.RootElement;
+        string docType = profile.DocumentType;
+        string lang = profile.Language;
+        string? notes = null;
+        foreach (var prop in root.EnumerateObject())
+        {
+            if (prop.NameEquals("document_type"))
+                docType = prop.Value.GetString() ?? profile.DocumentType;
+            else if (prop.NameEquals("language"))
+                lang = prop.Value.GetString() ?? profile.Language;
+            else if (prop.NameEquals("notes"))
+                notes = prop.Value.GetString();
+        }
+
         var fields = new List<ExtractedField>();
-        if (node?["fields"] is JsonArray arr)
-            foreach (var item in arr)
+        if (root.TryGetProperty("fields", out var arr) && arr.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in arr.EnumerateArray())
             {
                 Pointer? ptr = null;
-                if (item?["wordIds"] is JsonArray wids)
-                    ptr = new Pointer(PointerMode.WordIds, wids.Select(x => x!.GetValue<string>()).ToArray(), null, null);
-                else if (item?["offsets"] is JsonObject off)
-                    ptr = new Pointer(PointerMode.Offsets, null, off["start"]?.GetValue<int>(), off["end"]?.GetValue<int>());
-                fields.Add(new ExtractedField(item?["key"]?.GetValue<string>() ?? "", item?["value"]?.GetValue<string>(), item?["confidence"]?.GetValue<double?>() ?? 0.0, null, ptr));
+                if (item.TryGetProperty("wordIds", out var wids) && wids.ValueKind == JsonValueKind.Array)
+                    ptr = new Pointer(PointerMode.WordIds, wids.EnumerateArray().Select(x => x.GetString()!).ToArray(), null, null);
+                else if (item.TryGetProperty("offsets", out var off) && off.ValueKind == JsonValueKind.Object)
+                {
+                    var start = off.TryGetProperty("start", out var s) ? s.GetInt32() : (int?)null;
+                    var end = off.TryGetProperty("end", out var e) ? e.GetInt32() : (int?)null;
+                    ptr = new Pointer(PointerMode.Offsets, null, start, end);
+                }
+
+                var key = item.TryGetProperty("key", out var k) ? k.GetString() ?? string.Empty : string.Empty;
+                var value = item.TryGetProperty("value", out var v) ? v.GetString() : null;
+                var confidence = item.TryGetProperty("confidence", out var c) ? c.GetDouble() : 0.0;
+                fields.Add(new ExtractedField(key, value, confidence, null, ptr));
             }
-        _logger.LogInformation("Parsed {FieldCount} fields from LLM output", fields.Count);
+        }
+        logger.LogInformation("Parsed {FieldCount} fields from LLM output", fields.Count);
         var result = new DocumentAnalysisResult(docType, fields, lang, notes);
         var (ok, error, fixedResult) = ExtractionValidator.ValidateAndFix(result, profile);
-        if (!ok) _logger.LogWarning("Profile validation issues: {Error}", error);
-        else _logger.LogInformation("Extraction successful for template={Template}", templateName);
+        if (!ok) logger.LogWarning("Profile validation issues: {Error}", error);
+        else logger.LogInformation("Extraction successful for template={Template}", templateName);
         return fixedResult;
     }
-    public void Dispose() { _ctx.Dispose(); _weights.Dispose(); }
 }
