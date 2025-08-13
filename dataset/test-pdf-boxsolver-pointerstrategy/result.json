@@ -1,0 +1,254 @@
+[
+  {
+    "FieldName": "company_name",
+    "Value": "ACME S.p.A.",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          0,
+          1
+        ],
+        "BBox": {
+          "X": 0.40843904,
+          "Y": 0.0551046,
+          "W": 0.18312192,
+          "H": 0.016163632
+        },
+        "Text": "ACME S.p.A.",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_0",
+        "W0_1"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "invoice_number",
+    "Value": "INV-2025-001",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          7
+        ],
+        "BBox": {
+          "X": 0.19752195,
+          "Y": 0.1577166,
+          "W": 0.1045734,
+          "H": 0.008575946
+        },
+        "Text": "INV-2025-001",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_7"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "invoice_date",
+    "Value": "2025-08-09",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          9
+        ],
+        "BBox": {
+          "X": 0.11537513,
+          "Y": 0.17197025,
+          "W": 0.085909784,
+          "H": 0.008575946
+        },
+        "Text": "2025-08-09",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_9"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "prezzo",
+    "Value": "\u20AC 10,00",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          17,
+          18
+        ],
+        "BBox": {
+          "X": 0.7026624,
+          "Y": 0.23254825,
+          "W": 0.05604124,
+          "H": 0.008575946
+        },
+        "Text": "\u20AC 10,00",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_17",
+        "W0_18"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "totale",
+    "Value": "\u20AC 15,00",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          24,
+          25
+        ],
+        "BBox": {
+          "X": 0.7026624,
+          "Y": 0.25392872,
+          "W": 0.05604124,
+          "H": 0.008575946
+        },
+        "Text": "\u20AC 15,00",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_24",
+        "W0_25"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "descrizione",
+    "Value": "Prodotto A",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          14,
+          15
+        ],
+        "BBox": {
+          "X": 0.07330689,
+          "Y": 0.2324176,
+          "W": 0.079375,
+          "H": 0.0087065995
+        },
+        "Text": "Prodotto A",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_14",
+        "W0_15"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "descrizione",
+    "Value": "Prodotto B",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          21,
+          22
+        ],
+        "BBox": {
+          "X": 0.07330689,
+          "Y": 0.25379807,
+          "W": 0.079375,
+          "H": 0.0087065995
+        },
+        "Text": "Prodotto B",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_21",
+        "W0_22"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "totale",
+    "Value": "\u20AC 35,00",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          29,
+          30
+        ],
+        "BBox": {
+          "X": 0.87065184,
+          "Y": 0.2753092,
+          "W": 0.05604124,
+          "H": 0.008575946
+        },
+        "Text": "\u20AC 35,00",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_29",
+        "W0_30"
+      ],
+      "Start": null,
+      "End": null
+    }
+  }
+]

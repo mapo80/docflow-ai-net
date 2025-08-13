@@ -15,13 +15,13 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
 {
     private readonly IMarkdownConverter _converter;
     private readonly ILlamaExtractor _llama;
-    private readonly IBBoxResolver _resolver;
+    private readonly IResolverOrchestrator _resolver;
     private readonly ILogger<ProcessingOrchestrator> _logger;
 
     public ProcessingOrchestrator(
         IMarkdownConverter converter,
         ILlamaExtractor llama,
-        IBBoxResolver resolver,
+        IResolverOrchestrator resolver,
         ILogger<ProcessingOrchestrator> logger)
     {
         _converter = converter;
@@ -79,7 +79,7 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
             var wordsIn = mdResult.Boxes.Select(b => new DocumentIndexBuilder.SourceWord(b.Page, b.Text, (float)b.XNorm, (float)b.YNorm, (float)b.WidthNorm, (float)b.HeightNorm, false)).ToList();
             var index = DocumentIndexBuilder.Build(pagesIn, wordsIn);
             var resolved = await _resolver.ResolveAsync(index, result.Fields, ct);
-            var enrichedFields = resolved.Select(r => new ExtractedField(r.FieldName, r.Value, r.Confidence, r.Spans)).ToList();
+            var enrichedFields = resolved.Select(r => new ExtractedField(r.FieldName, r.Value, r.Confidence, r.Spans, r.Pointer)).ToList();
             var enriched = new DocumentAnalysisResult(result.DocumentType, enrichedFields, result.Language, result.Notes);
 
             _logger.LogInformation(

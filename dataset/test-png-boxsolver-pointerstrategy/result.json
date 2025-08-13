@@ -1,0 +1,124 @@
+[
+  {
+    "FieldName": "company_name",
+    "Value": "ACME S.p.A.",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          0,
+          1
+        ],
+        "BBox": {
+          "X": 0.051903114,
+          "Y": 0.12660551,
+          "W": 0.28114188,
+          "H": 0.084403664
+        },
+        "Text": "ACME S.p.A.",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_0",
+        "W0_1"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "document_type",
+    "Value": "invoice",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          4
+        ],
+        "BBox": {
+          "X": 0.16608997,
+          "Y": 0.26605505,
+          "W": 0.08304499,
+          "H": 0.038532108
+        },
+        "Text": "Invoice",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_4"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "invoice_number",
+    "Value": "INV-2025-001",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          7
+        ],
+        "BBox": {
+          "X": 0.26211074,
+          "Y": 0.37798166,
+          "W": 0.16262975,
+          "H": 0.03669724
+        },
+        "Text": "INV-2025-001",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_7"
+      ],
+      "Start": null,
+      "End": null
+    }
+  },
+  {
+    "FieldName": "invoice_date",
+    "Value": "2025-08-09",
+    "Confidence": 1,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          9
+        ],
+        "BBox": {
+          "X": 0.12716264,
+          "Y": 0.45137614,
+          "W": 0.1384083,
+          "H": 0.03669724
+        },
+        "Text": "2025-08-09",
+        "Score": 1,
+        "Label": null
+      }
+    ],
+    "Pointer": {
+      "Mode": 0,
+      "WordIds": [
+        "W0_9"
+      ],
+      "Start": null,
+      "End": null
+    }
+  }
+]

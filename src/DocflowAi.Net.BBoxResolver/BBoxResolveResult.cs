@@ -5,4 +5,5 @@ namespace DocflowAi.Net.BBoxResolver;
 /// <param name="Value">Value of the field.</param>
 /// <param name="Confidence">Final confidence score.</param>
 /// <param name="Spans">Evidence spans.</param>
-public sealed record BBoxResolveResult(string FieldName, string? Value, double Confidence, IReadOnlyList<SpanEvidence> Spans);
+/// <param name="Pointer">Pointer information if resolution used pointers.</param>
+public sealed record BBoxResolveResult(string FieldName, string? Value, double Confidence, IReadOnlyList<SpanEvidence> Spans, Pointer? Pointer = null);

@@ -27,6 +27,7 @@ builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptio
 builder.Services.Configure<ResolverOptions>(builder.Configuration.GetSection("Resolver"));
 builder.Services.Configure<BBoxOptions>(builder.Configuration.GetSection("BBox"));
 builder.Services.PostConfigure<BBoxOptions>(o => builder.Configuration.GetSection("Resolver:TokenFirst").Bind(o));
+builder.Services.Configure<PointerOptions>(builder.Configuration.GetSection("Resolver:Pointer"));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
@@ -55,7 +56,9 @@ builder.Services.AddScoped<ILlamaExtractor, LlamaExtractor>();
 builder.Services.AddScoped<IProcessingOrchestrator, ProcessingOrchestrator>();
 builder.Services.AddSingleton<LegacyBBoxResolver>();
 builder.Services.AddSingleton<TokenFirstBBoxResolver>();
-builder.Services.AddSingleton<IBBoxResolver, BBoxResolver>();
+builder.Services.AddSingleton<PlainTextViewBuilder>();
+builder.Services.AddSingleton<IPointerResolver, PointerResolver>();
+builder.Services.AddSingleton<IResolverOrchestrator, ResolverOrchestrator>();
 
 builder.Services.AddHealthChecks();
 

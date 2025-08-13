@@ -62,7 +62,8 @@ public class ProcessEndpointSnapshotTests : IClassFixture<ProcessEndpointSnapsho
     {
         public Task<DocumentAnalysisResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fields, CancellationToken ct)
         {
-            var extracted = new List<ExtractedField> { new("name", "John", 0.99) };
+            var ptr = new Pointer(PointerMode.WordIds, new[] { "W0_0" }, null, null);
+            var extracted = new List<ExtractedField> { new("name", "John", 0.99, null, ptr) };
             return Task.FromResult(new DocumentAnalysisResult("doc", extracted, "en", null));
         }
     }
