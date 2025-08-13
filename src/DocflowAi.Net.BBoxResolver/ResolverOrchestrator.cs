@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace DocflowAi.Net.BBoxResolver;
 
 /// <summary>Orchestrates resolution using Pointer, TokenFirst and Legacy strategies.</summary>
@@ -7,21 +9,25 @@ public sealed class ResolverOrchestrator : IResolverOrchestrator
     private readonly IPointerResolver _pointer;
     private readonly TokenFirstBBoxResolver _tokenFirst;
     private readonly LegacyBBoxResolver _legacy;
+    private readonly ILogger<ResolverOrchestrator> _logger;
 
     public ResolverOrchestrator(
         Microsoft.Extensions.Options.IOptions<ResolverOptions> options,
         IPointerResolver pointer,
         TokenFirstBBoxResolver tokenFirst,
-        LegacyBBoxResolver legacy)
+        LegacyBBoxResolver legacy,
+        ILogger<ResolverOrchestrator> logger)
     {
         _options = options.Value;
         _pointer = pointer;
         _tokenFirst = tokenFirst;
         _legacy = legacy;
+        _logger = logger;
     }
 
     public async Task<IReadOnlyList<BBoxResolveResult>> ResolveAsync(DocumentIndex index, IReadOnlyList<ExtractedField> fields, CancellationToken ct = default)
     {
+        _logger.LogInformation("Starting BBox resolution for {FieldCount} fields", fields.Count);
         var results = new BBoxResolveResult[fields.Count];
         var remaining = Enumerable.Range(0, fields.Count).ToList();
 
@@ -31,9 +37,12 @@ public sealed class ResolverOrchestrator : IResolverOrchestrator
         else
             order = _options.Order?.ToList() ?? new List<ResolverStrategy> { ResolverStrategy.Pointer, ResolverStrategy.TokenFirst, ResolverStrategy.Legacy };
 
+        _logger.LogDebug("Resolution strategy order: {Order}", string.Join(",", order));
+
         foreach (var strategy in order)
         {
             if (remaining.Count == 0) break;
+            _logger.LogInformation("Executing strategy {Strategy} for {Remaining} remaining fields", strategy, remaining.Count);
             switch (strategy)
             {
                 case ResolverStrategy.Pointer:
@@ -46,6 +55,7 @@ public sealed class ResolverOrchestrator : IResolverOrchestrator
                             resolvedIdx.Add(i);
                         }
                     }
+                    _logger.LogInformation("Pointer strategy resolved {Count} fields", resolvedIdx.Count);
                     foreach (var i in resolvedIdx)
                         remaining.Remove(i);
                     break;
@@ -62,6 +72,7 @@ public sealed class ResolverOrchestrator : IResolverOrchestrator
                             toRemove.Add(remaining[j]);
                         }
                     }
+                    _logger.LogInformation("TokenFirst strategy resolved {Count} fields", toRemove.Count);
                     foreach (var i in toRemove)
                         remaining.Remove(i);
                     break;
@@ -71,6 +82,7 @@ public sealed class ResolverOrchestrator : IResolverOrchestrator
                     for (int j = 0; j < lgFields.Count; j++)
                         results[remaining[j]] = lgResults[j];
                     remaining.Clear();
+                    _logger.LogInformation("Legacy strategy resolved remaining fields");
                     break;
             }
         }
@@ -80,6 +92,7 @@ public sealed class ResolverOrchestrator : IResolverOrchestrator
             var f = fields[i];
             results[i] = new BBoxResolveResult(f.Key, f.Value, f.Confidence, Array.Empty<SpanEvidence>());
         }
+        _logger.LogInformation("BBox resolution completed");
         return results;
     }
 }

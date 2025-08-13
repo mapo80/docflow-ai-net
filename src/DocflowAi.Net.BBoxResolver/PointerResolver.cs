@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 
 namespace DocflowAi.Net.BBoxResolver;
 
@@ -7,12 +8,14 @@ public sealed class PointerResolver : IPointerResolver
 {
     private readonly PointerOptions _options;
     private readonly PlainTextViewBuilder _textBuilder;
+    private readonly ILogger<PointerResolver> _logger;
     private static readonly Regex WordIdRegex = new("^W(?<p>\\d+)_(?<w>\\d+)$", RegexOptions.Compiled);
 
-    public PointerResolver(Microsoft.Extensions.Options.IOptions<PointerOptions> options, PlainTextViewBuilder textBuilder)
+    public PointerResolver(Microsoft.Extensions.Options.IOptions<PointerOptions> options, PlainTextViewBuilder textBuilder, ILogger<PointerResolver> logger)
     {
         _options = options.Value;
         _textBuilder = textBuilder;
+        _logger = logger;
     }
 
     public bool TryResolve(DocumentIndex index, ExtractedField field, out BBoxResolveResult result)
@@ -20,14 +23,19 @@ public sealed class PointerResolver : IPointerResolver
         result = new BBoxResolveResult(field.Key, field.Value, field.Confidence, Array.Empty<SpanEvidence>());
         var ptr = field.Pointer;
         if (ptr is null)
+        {
+            _logger.LogDebug("Field {FieldName} has no pointer", field.Key);
             return false;
+        }
 
-        return ptr.Mode switch
+        var resolved = ptr.Mode switch
         {
             PointerMode.WordIds => ResolveWordIds(index, field, ptr.WordIds!, out result),
             PointerMode.Offsets => ResolveOffsets(index, field, ptr.Start ?? 0, ptr.End ?? 0, out result),
             _ => false
         };
+        _logger.LogDebug("Pointer resolution for {FieldName} mode={Mode} success={Success}", field.Key, ptr.Mode, resolved);
+        return resolved;
     }
 
     private bool ResolveWordIds(DocumentIndex index, ExtractedField field, string[] ids, out BBoxResolveResult result)

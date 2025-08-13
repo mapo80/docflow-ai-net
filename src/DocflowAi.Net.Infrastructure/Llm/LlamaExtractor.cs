@@ -98,8 +98,11 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
 
     public async Task<DocumentAnalysisResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
     {
+        _logger.LogInformation("Preparing extraction for template={Template}", templateName);
+
         var profile = new ExtractionProfile { Name = templateName, DocumentType = templateName, Language = "auto", Fields = fieldsSpec.ToList() };
         var schemaText = BuildSchemaText(profile);
+        _logger.LogDebug("Built schema text of length {Length}", schemaText.Length);
         var rm = ResolveMode();
         var modeDirective = rm switch { ReasoningMode.Think => "/think", ReasoningMode.NoThink => "/no_think", _ => string.Empty };
 
@@ -130,6 +133,7 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         session.AddSystemMessage(systemPrompt);
         var raw = string.Empty;
 
+        _logger.LogDebug("Starting chat session for template={Template}", templateName);
         await foreach (var text in session.ChatAsync(
             new ChatHistory.Message(AuthorRole.User, userPrompt),
             false,
@@ -138,6 +142,7 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         {
             raw += text;
         }
+        _logger.LogDebug("Chat session completed for template={Template}", templateName);
 
         _logger.LogDebug("Raw LLM output: {Output}", raw);
 
@@ -165,19 +170,21 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         var lang = node?["language"]?.GetValue<string>() ?? profile.Language;
         var notes = node?["notes"]?.GetValue<string>();
         var fields = new List<ExtractedField>();
-          if (node?["fields"] is JsonArray arr)
-              foreach (var item in arr)
-              {
-                  Pointer? ptr = null;
-                  if (item?["wordIds"] is JsonArray wids)
-                      ptr = new Pointer(PointerMode.WordIds, wids.Select(x => x!.GetValue<string>()).ToArray(), null, null);
-                  else if (item?["offsets"] is JsonObject off)
-                      ptr = new Pointer(PointerMode.Offsets, null, off["start"]?.GetValue<int>(), off["end"]?.GetValue<int>());
-                  fields.Add(new ExtractedField(item?["key"]?.GetValue<string>() ?? "", item?["value"]?.GetValue<string>(), item?["confidence"]?.GetValue<double?>() ?? 0.0, null, ptr));
-              }
+        if (node?["fields"] is JsonArray arr)
+            foreach (var item in arr)
+            {
+                Pointer? ptr = null;
+                if (item?["wordIds"] is JsonArray wids)
+                    ptr = new Pointer(PointerMode.WordIds, wids.Select(x => x!.GetValue<string>()).ToArray(), null, null);
+                else if (item?["offsets"] is JsonObject off)
+                    ptr = new Pointer(PointerMode.Offsets, null, off["start"]?.GetValue<int>(), off["end"]?.GetValue<int>());
+                fields.Add(new ExtractedField(item?["key"]?.GetValue<string>() ?? "", item?["value"]?.GetValue<string>(), item?["confidence"]?.GetValue<double?>() ?? 0.0, null, ptr));
+            }
+        _logger.LogInformation("Parsed {FieldCount} fields from LLM output", fields.Count);
         var result = new DocumentAnalysisResult(docType, fields, lang, notes);
         var (ok, error, fixedResult) = ExtractionValidator.ValidateAndFix(result, profile);
         if (!ok) _logger.LogWarning("Profile validation issues: {Error}", error);
+        else _logger.LogInformation("Extraction successful for template={Template}", templateName);
         return fixedResult;
     }
     public void Dispose() { _ctx.Dispose(); _weights.Dispose(); }

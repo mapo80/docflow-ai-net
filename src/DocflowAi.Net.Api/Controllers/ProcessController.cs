@@ -5,6 +5,7 @@ using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace DocflowAi.Net.Api.Controllers;
 
@@ -15,11 +16,13 @@ public sealed class ProcessController : ControllerBase
 {
     private readonly IProcessingOrchestrator _orchestrator;
     private readonly IReasoningModeAccessor _modeAccessor;
+    private readonly ILogger<ProcessController> _logger;
 
-    public ProcessController(IProcessingOrchestrator orchestrator, IReasoningModeAccessor modeAccessor)
+    public ProcessController(IProcessingOrchestrator orchestrator, IReasoningModeAccessor modeAccessor, ILogger<ProcessController> logger)
     {
         _orchestrator = orchestrator;
         _modeAccessor = modeAccessor;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -33,21 +36,44 @@ public sealed class ProcessController : ControllerBase
         var prompt = request.Prompt;
         var fields = request.Fields;
 
-        if (file is null) return BadRequest("file is required");
-        if (string.IsNullOrWhiteSpace(templateName)) return BadRequest("templateName is required");
-        if (string.IsNullOrWhiteSpace(prompt)) return BadRequest("prompt is required");
-        if (fields is null || fields.Count == 0) return BadRequest("fields are required");
+        _logger.LogInformation("Received processing request: file={FileName} template={Template} fields={FieldCount}", file?.FileName, templateName, fields?.Count);
+
+        if (file is null)
+        {
+            _logger.LogWarning("Processing request rejected: missing file");
+            return BadRequest("file is required");
+        }
+        if (string.IsNullOrWhiteSpace(templateName))
+        {
+            _logger.LogWarning("Processing request rejected: missing templateName");
+            return BadRequest("templateName is required");
+        }
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            _logger.LogWarning("Processing request rejected: missing prompt");
+            return BadRequest("prompt is required");
+        }
+        if (fields is null || fields.Count == 0)
+        {
+            _logger.LogWarning("Processing request rejected: missing fields");
+            return BadRequest("fields are required");
+        }
 
         if (Request.Headers.TryGetValue("X-Reasoning", out var mode))
         {
             var v = mode.ToString().Trim().ToLowerInvariant();
             _modeAccessor.Mode = v switch { "think" => ReasoningMode.Think, "no_think" => ReasoningMode.NoThink, _ => ReasoningMode.Auto };
+            _logger.LogInformation("Reasoning mode header detected: {Mode}", _modeAccessor.Mode);
         }
 
         var specs = new List<FieldSpec>();
         foreach (var f in fields)
         {
-            if (string.IsNullOrWhiteSpace(f.FieldName)) return BadRequest("fieldName is required");
+            if (string.IsNullOrWhiteSpace(f.FieldName))
+            {
+                _logger.LogWarning("Processing request rejected: field with empty name");
+                return BadRequest("fieldName is required");
+            }
             var type = f.Format?.ToLowerInvariant() switch
             {
                 "int" => "number",
@@ -58,7 +84,9 @@ public sealed class ProcessController : ControllerBase
             specs.Add(new FieldSpec { Key = f.FieldName, Type = type });
         }
 
+        _logger.LogInformation("Invoking orchestrator for {File} with {Specs} specs", file.FileName, specs.Count);
         var result = await _orchestrator.ProcessAsync(file, templateName, prompt, specs, ct);
+        _logger.LogInformation("Orchestrator completed for {File}", file.FileName);
         return Ok(result);
     }
 

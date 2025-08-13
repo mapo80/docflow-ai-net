@@ -1,6 +1,7 @@
 using DocflowAi.Net.BBoxResolver;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace DocflowAi.Net.BBoxResolver.Tests;
@@ -33,7 +34,7 @@ public class PointerStrategyTests
     public void PlainTextViewBuilder_Offsets_To_Words()
     {
         var index = BuildIndex(("hello",0f), ("world",10f));
-        var builder = new PlainTextViewBuilder();
+        var builder = new PlainTextViewBuilder(NullLogger<PlainTextViewBuilder>.Instance);
         var (text, spans) = builder.Build(index);
         text.Should().Be("hello world");
         spans.Should().Contain(x => x.page==0 && x.wordIdx==1 && x.start==6 && x.len==5);
@@ -44,7 +45,7 @@ public class PointerStrategyTests
     {
         var index = BuildIndex(("w10",0f), ("w11",10f), ("w12",20f), ("w13",30f));
         var options = Options.Create(new PointerOptions { Strict = true, MaxGapBetweenIds = 1 });
-        var resolver = new PointerResolver(options, new PlainTextViewBuilder());
+        var resolver = new PointerResolver(options, new PlainTextViewBuilder(NullLogger<PlainTextViewBuilder>.Instance), NullLogger<PointerResolver>.Instance);
         var field = new ExtractedField("f", "", 1.0, null, new Pointer(PointerMode.WordIds, new[]{"W0_0","W0_2"}, null, null));
         resolver.TryResolve(index, field, out var res).Should().BeTrue();
         res.Confidence.Should().BeLessThan(1.0);
@@ -56,7 +57,7 @@ public class PointerStrategyTests
     public void Pointer_WordIds_ACME_SPA_Exact()
     {
         var index = BuildIndex(("ACME",0f), ("SPA",10f));
-        var resolver = new PointerResolver(Options.Create(new PointerOptions()), new PlainTextViewBuilder());
+        var resolver = new PointerResolver(Options.Create(new PointerOptions()), new PlainTextViewBuilder(NullLogger<PlainTextViewBuilder>.Instance), NullLogger<PointerResolver>.Instance);
         var field = new ExtractedField("company", "ACME SPA", 0.9, null, new Pointer(PointerMode.WordIds, new[]{"W0_0","W0_1"}, null, null));
         resolver.TryResolve(index, field, out var res).Should().BeTrue();
         res.Spans[0].WordIndices.Should().BeEquivalentTo(new[]{0,1});
@@ -67,7 +68,11 @@ public class PointerStrategyTests
     {
         var index = BuildIndex(("ACME",0f), ("SPA",10f));
         var pointerOptions = Options.Create(new ResolverOptions());
-        var orchestrator = new ResolverOrchestrator(pointerOptions, new PointerResolver(Options.Create(new PointerOptions()), new PlainTextViewBuilder()), new TokenFirstBBoxResolver(Options.Create(new BBoxOptions())), new LegacyBBoxResolver(Options.Create(new BBoxOptions())));
+        var orchestrator = new ResolverOrchestrator(pointerOptions,
+            new PointerResolver(Options.Create(new PointerOptions()), new PlainTextViewBuilder(NullLogger<PlainTextViewBuilder>.Instance), NullLogger<PointerResolver>.Instance),
+            new TokenFirstBBoxResolver(Options.Create(new BBoxOptions()), NullLogger<TokenFirstBBoxResolver>.Instance),
+            new LegacyBBoxResolver(Options.Create(new BBoxOptions()), NullLogger<LegacyBBoxResolver>.Instance),
+            NullLogger<ResolverOrchestrator>.Instance);
         var field = new ExtractedField("company", "ACME SPA", 0.9, null, new Pointer(PointerMode.WordIds, new[]{"W0_99"}, null, null));
         var res = await orchestrator.ResolveAsync(index, new[]{field});
         res[0].Spans.Should().NotBeEmpty();
@@ -78,11 +83,11 @@ public class PointerStrategyTests
     public void Pointer_Offsets_ACME_SPA_Exact()
     {
         var index = BuildIndex(("ACME",0f), ("SPA",10f));
-        var builder = new PlainTextViewBuilder();
+        var builder = new PlainTextViewBuilder(NullLogger<PlainTextViewBuilder>.Instance);
         var (text, spans) = builder.Build(index);
         var start = spans[0].start;
         var end = spans[1].start + spans[1].len;
-        var resolver = new PointerResolver(Options.Create(new PointerOptions { Mode = PointerMode.Offsets }), builder);
+        var resolver = new PointerResolver(Options.Create(new PointerOptions { Mode = PointerMode.Offsets }), builder, NullLogger<PointerResolver>.Instance);
         var field = new ExtractedField("company", "ACME SPA", 0.9, null, new Pointer(PointerMode.Offsets, null, start, end));
         resolver.TryResolve(index, field, out var res).Should().BeTrue();
         res.Spans[0].WordIndices.Should().BeEquivalentTo(new[]{0,1});
@@ -93,7 +98,11 @@ public class PointerStrategyTests
     {
         var index = BuildIndex(("ACME",0f), ("SPA",10f));
         var ropts = new ResolverOptions { Pointer = new PointerOptions { Mode = PointerMode.Offsets } };
-        var orchestrator = new ResolverOrchestrator(Options.Create(ropts), new PointerResolver(Options.Create(ropts.Pointer), new PlainTextViewBuilder()), new TokenFirstBBoxResolver(Options.Create(new BBoxOptions())), new LegacyBBoxResolver(Options.Create(new BBoxOptions())));
+        var orchestrator = new ResolverOrchestrator(Options.Create(ropts),
+            new PointerResolver(Options.Create(ropts.Pointer), new PlainTextViewBuilder(NullLogger<PlainTextViewBuilder>.Instance), NullLogger<PointerResolver>.Instance),
+            new TokenFirstBBoxResolver(Options.Create(new BBoxOptions()), NullLogger<TokenFirstBBoxResolver>.Instance),
+            new LegacyBBoxResolver(Options.Create(new BBoxOptions()), NullLogger<LegacyBBoxResolver>.Instance),
+            NullLogger<ResolverOrchestrator>.Instance);
         var field = new ExtractedField("company", "ACME SPA", 0.9, null, new Pointer(PointerMode.Offsets, null, 0, 0));
         var res = await orchestrator.ResolveAsync(index, new[]{field});
         res[0].Spans.Should().NotBeEmpty();

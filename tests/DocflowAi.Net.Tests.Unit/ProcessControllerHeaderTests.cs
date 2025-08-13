@@ -9,6 +9,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DocflowAi.Net.Tests.Unit;
 
@@ -30,7 +31,7 @@ public class ProcessControllerHeaderTests
         var accessor = new Mock<IReasoningModeAccessor>();
         accessor.SetupProperty(a => a.Mode, ReasoningMode.Auto);
 
-        var controller = new ProcessController(orchestrator.Object, accessor.Object)
+        var controller = new ProcessController(orchestrator.Object, accessor.Object, NullLogger<ProcessController>.Instance)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
