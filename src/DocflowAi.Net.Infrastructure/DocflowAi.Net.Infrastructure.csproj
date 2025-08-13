@@ -6,13 +6,12 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DocflowAi.Net.Application\DocflowAi.Net.Application.csproj" />
+    <ProjectReference Include="..\..\markitdownnet\src\MarkItDownNet\MarkItDownNet.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.8" />
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
     <PackageReference Include="LLamaSharp" Version="0.24.0" />
     <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.24.0" />
-    <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@ using System.Linq;
 using System.IO;
 using System.Text.Json;
 using DocflowAi.Net.Application.Abstractions;
+using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
 using Microsoft.AspNetCore.Http;
@@ -11,16 +12,16 @@ namespace DocflowAi.Net.Infrastructure.Orchestration;
 
 public sealed class ProcessingOrchestrator : IProcessingOrchestrator
 {
-    private readonly IMarkitdownClient _markitdown;
+    private readonly IMarkdownConverter _converter;
     private readonly ILlamaExtractor _llama;
     private readonly ILogger<ProcessingOrchestrator> _logger;
 
     public ProcessingOrchestrator(
-        IMarkitdownClient markitdown,
+        IMarkdownConverter converter,
         ILlamaExtractor llama,
         ILogger<ProcessingOrchestrator> logger)
     {
-        _markitdown = markitdown;
+        _converter = converter;
         _llama = llama;
         _logger = logger;
     }
@@ -55,11 +56,21 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
 
         try
         {
-            var markdown = await _markitdown.ToMarkdownAsync(stream, file.FileName, ct);
-            if (!string.IsNullOrWhiteSpace(debugDir))
-                File.WriteAllText(Path.Combine(debugDir, "markitdown.txt"), markdown);
+            MarkdownResult mdResult;
+            var options = new MarkdownOptions();
+            if (file.ContentType == "application/pdf" || file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                mdResult = await _converter.ConvertPdfAsync(stream, options);
+            else if (file.ContentType.StartsWith("image/") || new[]{".png",".jpg",".jpeg"}.Any(e => file.FileName.EndsWith(e, StringComparison.OrdinalIgnoreCase)))
+                mdResult = await _converter.ConvertImageAsync(stream, options);
+            else
+                throw new ArgumentException($"Unsupported content type: {file.ContentType}");
 
-            var result = await _llama.ExtractAsync(markdown, templateName, prompt, fields, ct);
+            if (!string.IsNullOrWhiteSpace(debugDir))
+            {
+                File.WriteAllText(Path.Combine(debugDir, "markdown.txt"), mdResult.Markdown);
+            }
+
+            var result = await _llama.ExtractAsync(mdResult.Markdown, templateName, prompt, fields, ct);
 
             _logger.LogInformation(
                 "Processing completed: {FileName}. Extracted {Count} fields.",

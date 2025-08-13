@@ -6,7 +6,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Api__Keys__0=dev-secret-key-change-me
-      - Services__Markitdown__BaseUrl=http://markitdown:8000
       - LLM__ModelPath=/models/qwen3-1_5-instruct-q4_0.gguf
       - LLM__ContextTokens=4096
       - LLM__Threads=6
@@ -14,10 +13,5 @@ services:
       - LLM__Temperature=0.2
       - LLM__ThinkingMode=auto
     ports: [ "5214:8080" ]
-    depends_on: [ markitdown ]
     volumes:
       - ../models:/models:ro
-  markitdown:
-    build:
-      context: ../python/markitdown_service
-    ports: [ "8000:8000" ]
