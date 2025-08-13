@@ -1,0 +1,149 @@
+[
+  {
+    "FieldName": "company_name",
+    "Value": "ACME S.p.A.",
+    "Confidence": 0.96,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          0,
+          1
+        ],
+        "BBox": {
+          "X": 0.40843904,
+          "Y": 0.0551046,
+          "W": 0.18312192,
+          "H": 0.016163632
+        },
+        "Text": "ACME S.p.A.",
+        "Score": 1,
+        "Label": null
+      }
+    ]
+  },
+  {
+    "FieldName": "descrizione",
+    "Value": "Prodotto B",
+    "Confidence": 0.92,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          21,
+          22
+        ],
+        "BBox": {
+          "X": 0.07330689,
+          "Y": 0.25379807,
+          "W": 0.079375,
+          "H": 0.0087065995
+        },
+        "Text": "Prodotto B",
+        "Score": 1,
+        "Label": null
+      }
+    ]
+  },
+  {
+    "FieldName": "descrizione",
+    "Value": "Prodotto A",
+    "Confidence": 0.92,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          14,
+          15
+        ],
+        "BBox": {
+          "X": 0.07330689,
+          "Y": 0.2324176,
+          "W": 0.079375,
+          "H": 0.0087065995
+        },
+        "Text": "Prodotto A",
+        "Score": 1,
+        "Label": null
+      }
+    ]
+  },
+  {
+    "FieldName": "invoice_date",
+    "Value": "2025-08-09",
+    "Confidence": 0.9,
+    "Spans": []
+  },
+  {
+    "FieldName": "invoice_number",
+    "Value": "INV-2025-001",
+    "Confidence": 0.9,
+    "Spans": []
+  },
+  {
+    "FieldName": "prezzo",
+    "Value": "\u20AC 10,00",
+    "Confidence": 0.92,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          18
+        ],
+        "BBox": {
+          "X": 0.7166727,
+          "Y": 0.23254825,
+          "W": 0.04203093,
+          "H": 0.008575946
+        },
+        "Text": "10,00",
+        "Score": 1,
+        "Label": null
+      }
+    ]
+  },
+  {
+    "FieldName": "totale",
+    "Value": "\u20AC 35,00",
+    "Confidence": 0.92,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          30
+        ],
+        "BBox": {
+          "X": 0.88466215,
+          "Y": 0.2753092,
+          "W": 0.04203093,
+          "H": 0.008575946
+        },
+        "Text": "35,00",
+        "Score": 1,
+        "Label": null
+      }
+    ]
+  },
+  {
+    "FieldName": "totale",
+    "Value": "\u20AC 15,00",
+    "Confidence": 0.92,
+    "Spans": [
+      {
+        "Page": 0,
+        "WordIndices": [
+          25
+        ],
+        "BBox": {
+          "X": 0.7166727,
+          "Y": 0.25392872,
+          "W": 0.04203093,
+          "H": 0.008575946
+        },
+        "Text": "15,00",
+        "Score": 1,
+        "Label": null
+      }
+    ]
+  }
+]
