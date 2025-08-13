@@ -70,10 +70,13 @@ app.UseProblemDetails();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapHealthChecks("/health");
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 app.Run();
 
 public partial class Program { }

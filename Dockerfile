@@ -9,6 +9,16 @@ ARG LLM_MODEL_REV=main
 ARG HF_TOKEN=""
 
 #############################
+# Frontend stage (Node 20)
+#############################
+FROM --platform=linux/amd64 node:20 AS frontend
+WORKDIR /src/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend ./
+RUN npm run build
+
+#############################
 # Build stage (SDK 9.0)
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
@@ -17,6 +27,7 @@ WORKDIR /src
 
 # Copia sorgenti
 COPY . .
+COPY --from=frontend /src/frontend/dist ./src/DocflowAi.Net.Api/wwwroot
 
 # Restore con RID esplicito (linux-x64)
 RUN dotnet restore "$API_PROJECT" -r linux-x64
