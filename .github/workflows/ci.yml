@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install .NET SDK
+        run: ./dotnet-install.sh --version 9.0.100 --install-dir $HOME/dotnet
+      - name: Add dotnet to PATH
+        run: echo "$HOME/dotnet" >> $GITHUB_PATH
+      - name: Restore
+        run: dotnet restore
+      - name: Build
+        run: dotnet build -c Release
+      - name: Test
+        run: dotnet test -c Release --logger trx --results-directory TestResults
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: TestResults

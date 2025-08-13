@@ -10,6 +10,7 @@
     <ProjectReference Include="..\DocflowAi.Net.Infrastructure\DocflowAi.Net.Infrastructure.csproj" />
     <ProjectReference Include="..\DocflowAi.Net.Application\DocflowAi.Net.Application.csproj" />
     <ProjectReference Include="..\DocflowAi.Net.Domain\DocflowAi.Net.Domain.csproj" />
+    <ProjectReference Include="..\..\markitdownnet\src\MarkItDownNet\MarkItDownNet.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />

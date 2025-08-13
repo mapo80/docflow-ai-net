@@ -1,6 +1,7 @@
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Markdown;
-using MarkItDownNet;
+using MkdnConverter = MarkItDownNet.MarkIt\u0044ownConverter;
+using MkdnOptions = MarkItDownNet.MarkIt\u0044ownOptions;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
@@ -38,8 +39,8 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
         {
             await CopyWithRetryAsync(input, tmp, ct);
             _logger.LogDebug("Starting MarkItDownNet conversion for {Mime} into {TempFile}", mime, tmp);
-            var options = new MarkItDownOptions { NormalizeMarkdown = opts.NormalizeMarkdown };
-            var converter = new MarkItDownConverter(options, _mdLogger);
+            var options = new MkdnOptions { NormalizeMarkdown = opts.NormalizeMarkdown };
+            var converter = new MkdnConverter(options, _mdLogger);
             var res = await converter.ConvertAsync(tmp, mime, ct);
 
             var pages = res.Pages.Select(p => new PageInfo(p.Number, p.Width, p.Height)).ToList();
