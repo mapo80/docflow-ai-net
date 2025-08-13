@@ -38,3 +38,7 @@ Prompts:
   docker build -f deployment/Dockerfile.api -t docflow-api .
   docker run --rm -p 8080:8080 docflow-api
   ```
+# Operations
+Le librerie native di Tesseract (libtesseract.so.5) e Leptonica (liblept.so.5) sono già presenti in src/MarkItDownNet/TesseractOCR/x64 e vengono copiate automaticamente accanto ai binari. Non è quindi necessario installare pacchetti di sistema o creare collegamenti simbolici.
+
+Per eseguire l'OCR è necessario fornire i file tessdata delle lingue e indicarli tramite OcrDataPath.
