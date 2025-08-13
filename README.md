@@ -188,9 +188,9 @@ L’entrypoint scarica il **GGUF** con `curl` (Authorization: Bearer **HF\_TOKEN
 ### Esempio `curl`
 
 ```bash
-curl -X POST 'http://localhost:8080/api/v1/Process' \
+curl -X POST 'http://localhost:5000/api/v1/Process' \
   -H 'X-API-Key: dev-secret-key-change-me' \
-  -F 'file=@sample_invoice.pdf;type=application/pdf' \
+  -F 'file=@dataset/sample_invoice.pdf;type=application/pdf' \
   -F 'templateName=string' \
   -F 'prompt=Estrarre dal testo fornito i seguenti campi di una fattura. Rispondi solo in formato JSON valido, senza testo aggiuntivo.  Campi richiesti: - company_name: string - document_type: string - invoice_number: string - invoice_date: string (YYYY-MM-DD)' \
   -F 'fields[0].fieldName=company_name' \
@@ -202,28 +202,45 @@ curl -X POST 'http://localhost:8080/api/v1/Process' \
   -F 'fields[3].fieldName=invoice_date' \
   -F 'fields[3].format=date'
 ```
-**Response (estratto)**:
+**Response:**
 
 ```json
 {
-  "fields": [
+  "DocumentType": "Invoice",
+  "Fields": [
     {
-      "name": "ragione_sociale",
-      "value": "ACME S.p.A.",
-      "confidence": 0.98,
-      "evidence": [
+      "Key": "company_name",
+      "Value": "ACME S.p.A.",
+      "Confidence": 0.96,
+      "Evidence": [
         {
-          "page": 0,
-          "wordIndices": [42,43],
-          "bbox": [0.31,0.18,0.27,0.05],
-          "text": "ACME S.p.A.",
-          "score": 1.0,
-          "pointer": { "mode": "WordIds", "wordIds": ["W0_42","W0_43"] }
+          "Page": 0,
+          "WordIndices": [0, 1],
+          "BBox": { "X": 0.40843904, "Y": 0.0551046, "W": 0.18312192, "H": 0.016163632 },
+          "Text": "ACME S.p.A.",
+          "Score": 1,
+          "Label": null
         }
-      ]
+      ],
+      "Pointer": null
+    },
+    {
+      "Key": "invoice_date",
+      "Value": "2025-08-09",
+      "Confidence": 0.9,
+      "Evidence": [],
+      "Pointer": null
+    },
+    {
+      "Key": "invoice_number",
+      "Value": "INV-2025-001",
+      "Confidence": 0.9,
+      "Evidence": [],
+      "Pointer": null
     }
   ],
-  "traceId": "..."
+  "Language": "auto",
+  "Notes": "Grazie per acquisto! il tuo"
 }
 ```
 
