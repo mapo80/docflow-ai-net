@@ -26,13 +26,13 @@ public sealed class ProcessController : ControllerBase
     [RequestSizeLimit(20_000_000)]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(DocumentAnalysisResult), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Process(
-        IFormFile file,
-        [FromForm] string templateName,
-        [FromForm] string prompt,
-        [FromForm] IList<FieldRequest> fields,
-        CancellationToken ct)
+    public async Task<IActionResult> Process([FromForm] ProcessRequest request, CancellationToken ct)
     {
+        var file = request.File;
+        var templateName = request.TemplateName;
+        var prompt = request.Prompt;
+        var fields = request.Fields;
+
         if (file is null) return BadRequest("file is required");
         if (string.IsNullOrWhiteSpace(templateName)) return BadRequest("templateName is required");
         if (string.IsNullOrWhiteSpace(prompt)) return BadRequest("prompt is required");

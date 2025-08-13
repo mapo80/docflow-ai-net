@@ -43,8 +43,14 @@ public class ProcessControllerHeaderTests
             ContentType = "image/png"
         };
 
-        var fields = new List<FieldRequest> { new("a", "string") };
-        var res = await controller.Process(file, "tpl", "prompt", fields, default);
+        var request = new ProcessRequest
+        {
+            File = file,
+            TemplateName = "tpl",
+            Prompt = "prompt",
+            Fields = new List<FieldRequest> { new("a", "string") }
+        };
+        var res = await controller.Process(request, default);
 
         accessor.Object.Mode.Should().Be(ReasoningMode.NoThink);
         res.Should().BeOfType<OkObjectResult>();
