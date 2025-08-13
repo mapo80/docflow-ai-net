@@ -126,3 +126,6 @@ Una panoramica delle metriche di copertura per diverse strategie è disponibile 
 
 ## agents.md
 Consulta `agents.md` per l’uso con strumenti di codegen.
+
+## Evaluation & Benchmarks
+- [Valutazione XFUND IT (subset 10)](docs/XFUND_IT_Eval.md)
