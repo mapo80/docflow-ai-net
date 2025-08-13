@@ -102,7 +102,7 @@ Salva `process.json` con l'output dell'endpoint.
 Per i risultati dell'estrazione su PDF e PNG consulta [dataset/markitdownnet-integration.md](dataset/markitdownnet-integration.md).
 
 ## Test di Integrazione BBoxResolver
-Risultati e confronto tra gli algoritmi di distanza su PDF e PNG sono disponibili in [dataset/boxsolver-integration.md](dataset/boxsolver-integration.md).
+Risultati dettagliati (bbox, confidence e tempi) e confronto tra `BitParallel` e `ClassicLevenshtein` su PDF e PNG sono disponibili in [dataset/boxsolver-integration.md](dataset/boxsolver-integration.md).
 
 ## agents.md
 Consulta `agents.md` per l’uso con strumenti di codegen.

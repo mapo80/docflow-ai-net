@@ -1,27 +1,96 @@
 {
   "Algorithm": "BitParallel",
-  "TotalMilliseconds": 69.4081,
+  "TotalMilliseconds": 44.7949,
   "TotalFields": 8,
-  "Resolved": 0,
-  "AverageConfidence": 0.8374999999999999,
+  "Resolved": 6,
+  "AverageConfidence": 0.9199999999999999,
   "Results": [
     {
       "FieldName": "company_name",
       "Value": "ACME S.p.A.",
-      "Confidence": 0.9,
-      "Spans": []
-    },
-    {
-      "FieldName": "descrizione",
-      "Value": "Prodotto B",
-      "Confidence": 0.8,
-      "Spans": []
+      "Confidence": 0.96,
+      "Spans": [
+        {
+          "Page": 0,
+          "WordIndices": [
+            0,
+            1
+          ],
+          "BBox": {
+            "X": 0.40843904,
+            "Y": 0.0551046,
+            "W": 0.18312192,
+            "H": 0.016163632
+          },
+          "Text": "ACME S.p.A.",
+          "Score": 1,
+          "Label": null
+        }
+      ]
     },
     {
       "FieldName": "descrizione",
       "Value": "Prodotto A",
-      "Confidence": 0.8,
-      "Spans": []
+      "Confidence": 0.92,
+      "Spans": [
+        {
+          "Page": 0,
+          "WordIndices": [
+            14,
+            15
+          ],
+          "BBox": {
+            "X": 0.07330689,
+            "Y": 0.2324176,
+            "W": 0.079375,
+            "H": 0.0087065995
+          },
+          "Text": "Prodotto A",
+          "Score": 1,
+          "Label": {
+            "Text": "Descrizione",
+            "BBox": {
+              "X": 0.07330689,
+              "Y": 0.21121529,
+              "W": 0.08774087,
+              "H": 0.008528432
+            },
+            "Distance": 0.02169839238963338
+          }
+        }
+      ]
+    },
+    {
+      "FieldName": "descrizione",
+      "Value": "Prodotto B",
+      "Confidence": 0.92,
+      "Spans": [
+        {
+          "Page": 0,
+          "WordIndices": [
+            21,
+            22
+          ],
+          "BBox": {
+            "X": 0.07330689,
+            "Y": 0.25379807,
+            "W": 0.079375,
+            "H": 0.0087065995
+          },
+          "Text": "Prodotto B",
+          "Score": 1,
+          "Label": {
+            "Text": "Descrizione",
+            "BBox": {
+              "X": 0.07330689,
+              "Y": 0.21121529,
+              "W": 0.08774087,
+              "H": 0.008528432
+            },
+            "Distance": 0.04287637187122587
+          }
+        }
+      ]
     },
     {
       "FieldName": "invoice_date",
@@ -38,20 +107,95 @@
     {
       "FieldName": "prezzo",
       "Value": "\u20AC 10,00",
-      "Confidence": 0.8,
-      "Spans": []
-    },
-    {
-      "FieldName": "totale",
-      "Value": "\u20AC 35,00",
-      "Confidence": 0.8,
-      "Spans": []
+      "Confidence": 0.92,
+      "Spans": [
+        {
+          "Page": 0,
+          "WordIndices": [
+            18
+          ],
+          "BBox": {
+            "X": 0.7166727,
+            "Y": 0.23254825,
+            "W": 0.04203093,
+            "H": 0.008575946
+          },
+          "Text": "10,00",
+          "Score": 1,
+          "Label": {
+            "Text": "Prezzo",
+            "BBox": {
+              "X": 0.61087304,
+              "Y": 0.21121529,
+              "W": 0.052278306,
+              "H": 0.008528432
+            },
+            "Distance": 0.10291630967444436
+          }
+        }
+      ]
     },
     {
       "FieldName": "totale",
       "Value": "\u20AC 15,00",
-      "Confidence": 0.8,
-      "Spans": []
+      "Confidence": 0.92,
+      "Spans": [
+        {
+          "Page": 0,
+          "WordIndices": [
+            25
+          ],
+          "BBox": {
+            "X": 0.7166727,
+            "Y": 0.25392872,
+            "W": 0.04203093,
+            "H": 0.008575946
+          },
+          "Text": "15,00",
+          "Score": 1,
+          "Label": {
+            "Text": "TOTALE",
+            "BBox": {
+              "X": 0.6933558,
+              "Y": 0.27490532,
+              "W": 0.06534788,
+              "H": 0.008979797
+            },
+            "Distance": 0.024175395249511768
+          }
+        }
+      ]
+    },
+    {
+      "FieldName": "totale",
+      "Value": "\u20AC 35,00",
+      "Confidence": 0.92,
+      "Spans": [
+        {
+          "Page": 0,
+          "WordIndices": [
+            30
+          ],
+          "BBox": {
+            "X": 0.88466215,
+            "Y": 0.2753092,
+            "W": 0.04203093,
+            "H": 0.008575946
+          },
+          "Text": "35,00",
+          "Score": 1,
+          "Label": {
+            "Text": "Totale",
+            "BBox": {
+              "X": 0.7788624,
+              "Y": 0.21121529,
+              "W": 0.046684258,
+              "H": 0.008528432
+            },
+            "Distance": 0.12172817730541015
+          }
+        }
+      ]
     }
   ]
 }

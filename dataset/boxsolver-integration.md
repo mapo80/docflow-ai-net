@@ -1,7 +1,7 @@
 # BBox Resolver Integration Test
 
 Questo documento riassume l'esecuzione di **BBoxResolver** sui file `sample_invoice.pdf` e `sample_invoice.png`.
-I risultati sono stati salvati in:
+I risultati sono salvati in:
 - [`test-pdf-boxsolver/`](test-pdf-boxsolver)
 - [`test-png-boxsolver/`](test-png-boxsolver)
 
@@ -16,40 +16,42 @@ Per ciascun file sono stati eseguiti i due algoritmi di distanza disponibili: `B
 
 | Algoritmo | Tempo (ms) | Campi risolti / totali | Confidenza media |
 |-----------|-----------:|-----------------------:|-----------------:|
-| BitParallel | 69.41 | 0 / 8 | 0.8375 |
-| ClassicLevenshtein | 1.87 | 0 / 8 | 0.8375 |
+| BitParallel | 44.79 | 6 / 8 | 0.92 |
+| ClassicLevenshtein | 0.75 | 6 / 8 | 0.92 |
 
-Nessun campo ha prodotto evidenze (`Spans` vuoto).
+Entrambi gli algoritmi ancorano correttamente "ACME S.p.A.", le due righe "Prodotto A"/"Prodotto B" e i valori monetari.
+`invoice_date` e `invoice_number` restano senza evidenze.
 
-Esempio di record nel JSON:
+Esempio di record con span:
 
 ```json
 {
   "FieldName": "company_name",
   "Value": "ACME S.p.A.",
-  "Confidence": 0.9,
-  "Spans": []
+  "Confidence": 0.96,
+  "Spans": [
+    {
+      "Page": 0,
+      "WordIndices": [0,1],
+      "BBox": { "X": 0.4084, "Y": 0.0551, "W": 0.1831, "H": 0.0162 },
+      "Text": "ACME S.p.A.",
+      "Score": 1.0
+    }
+  ]
 }
 ```
 
 ## PNG
 - File: `dataset/sample_invoice.png`
 - Output LLM originale: [`test-png/llm_response.json`](test-png/llm_response.json)
-- Nuovi output resolver:
+- Nuovi output resolver: **non generati**. L'esecuzione di MarkItDownNet su PNG fallisce per la mancanza della libreria native `libleptonica-1.82.0.so` richiesta da Tesseract.
+- Per riferimento rimangono i precedenti JSON:
   - [`test-png-boxsolver/bitparallel.json`](test-png-boxsolver/bitparallel.json)
   - [`test-png-boxsolver/classiclevenshtein.json`](test-png-boxsolver/classiclevenshtein.json)
 
-| Algoritmo | Tempo (ms) | Campi risolti / totali | Confidenza media |
-|-----------|-----------:|-----------------------:|-----------------:|
-| BitParallel | 0.86 | 0 / 4 | 0.90 |
-| ClassicLevenshtein | 0.38 | 0 / 4 | 0.90 |
-
-Anche in questo caso nessun campo è stato ancorato a bounding box.
-
 ## Confronto con `test-pdf` e `test-png`
-Gli output originali (`test-pdf` e `test-png`) contenevano solo i campi estratti dall'LLM senza informazioni spaziali. Le esecuzioni con `BBoxResolver` non hanno aggiunto evidenze, pertanto i valori rimangono invariati.
+Gli output originali (`test-pdf` e `test-png`) contenevano solo i campi estratti dall'LLM senza informazioni spaziali. Il resolver ora fornisce evidenze bbox su 6 campi del PDF, mentre il PNG resta non elaborato a causa di dipendenze mancanti.
 
 ## Note
-- La presenza di caratteri non ASCII nei valori (es. simbolo €) ha comportato il fallback automatico all'algoritmo classico per evitare errori nell'implementazione bit-parallel.
-- Il motore bit-parallel risulta più lento su questo dataset (≈37× sul PDF, ≈2× sul PNG) a causa del fallback e dell'overhead di setup.
-- Ulteriori ottimizzazioni dell'indice e della tokenizzazione sono necessarie per ottenere evidenze utili.
+- Il motore `BitParallel` è ~60× più lento di `ClassicLevenshtein` su questo PDF (44.79ms vs 0.75ms) pur producendo le stesse evidenze.
+- Sono necessari ulteriori setup di librerie native per elaborare i PNG.
