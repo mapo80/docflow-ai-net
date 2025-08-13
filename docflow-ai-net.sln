@@ -28,6 +28,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocflowAi.Net.BBoxResolver"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocflowAi.Net.BBoxResolver.Tests", "tests\DocflowAi.Net.BBoxResolver.Tests\DocflowAi.Net.BBoxResolver.Tests.csproj", "{F866E4AD-CF21-4012-865B-215B0559218D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{210CCEEE-34E6-407E-A83C-3CD2173F022A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BBoxEvalRunner", "tools\BBoxEvalRunner\BBoxEvalRunner.csproj", "{CAB20486-737F-4CAE-B5C0-F51EE5DB54CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +74,10 @@ Global
 		{F866E4AD-CF21-4012-865B-215B0559218D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F866E4AD-CF21-4012-865B-215B0559218D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F866E4AD-CF21-4012-865B-215B0559218D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAB20486-737F-4CAE-B5C0-F51EE5DB54CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAB20486-737F-4CAE-B5C0-F51EE5DB54CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAB20486-737F-4CAE-B5C0-F51EE5DB54CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAB20486-737F-4CAE-B5C0-F51EE5DB54CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +93,7 @@ Global
 		{5827403E-170A-4BF9-8F93-AA28D89865B9} = {39DF2CC7-17BD-4088-A9EC-1E5E2A7394BA}
 		{52880D9D-AAF9-4808-B381-DEF15AB63AF5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{F866E4AD-CF21-4012-865B-215B0559218D} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{CAB20486-737F-4CAE-B5C0-F51EE5DB54CD} = {210CCEEE-34E6-407E-A83C-3CD2173F022A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7F7F18DD-043A-4504-BFB9-7FFA372529FA}
