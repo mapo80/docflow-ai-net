@@ -15,11 +15,11 @@ public sealed class BBoxResolver : IBBoxResolver
     {
         var results = new ConcurrentBag<BBoxResolveResult>();
         var finder = new CandidateFinder(index);
-        var refiner = new CandidateRefiner(_options);
+        var refiner = new CandidateRefiner(index, _options);
         Parallel.ForEach(fields, new ParallelOptions { CancellationToken = ct }, field =>
         {
             var candidates = finder.Find(field.Value ?? string.Empty, _options.MaxCandidates);
-            var best = refiner.Refine(field.Value ?? string.Empty, candidates);
+            var best = refiner.Refine(field.Key, field.Value ?? string.Empty, candidates);
             var confidence = field.Confidence;
             IReadOnlyList<SpanEvidence> spans = Array.Empty<SpanEvidence>();
             if (best is not null)
