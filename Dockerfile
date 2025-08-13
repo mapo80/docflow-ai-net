@@ -3,8 +3,8 @@
 ########################################
 # ARG globali (unica fonte di verità)
 ########################################
-ARG LLM_MODEL_REPO=Qwen/Qwen2.5-0.5B-Instruct-GGUF
-ARG LLM_MODEL_FILE=qwen2.5-0.5b-instruct-q4_0.gguf
+ARG LLM_MODEL_REPO=unsloth/Qwen3-0.6B-GGUF
+ARG LLM_MODEL_FILE=Qwen3-0.6B-Q4_0.gguf
 ARG LLM_MODEL_REV=main
 ARG HF_TOKEN=""
 
@@ -77,7 +77,7 @@ ARG LLM_MODEL_REV
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     LLM__Provider="LLamaSharp" \
-    LLAMASHARP__ContextSize=128000 \
+    LLAMASHARP__ContextSize=32768 \
     LLAMASHARP__Threads=0 \
     LLM_MODEL_REPO=${LLM_MODEL_REPO} \
     LLM_MODEL_FILE=${LLM_MODEL_FILE} \
