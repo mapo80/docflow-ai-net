@@ -3,7 +3,7 @@
 #############################
 # Build stage (SDK 9.0)
 #############################
-FROM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
 ARG API_PROJECT=src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj
 WORKDIR /src
 
@@ -23,7 +23,7 @@ RUN dotnet publish "$API_PROJECT" -c Release -r linux-x64 \
 #############################
 # Model stage (scarica GGUF)
 #############################
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble AS model
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS model
 ARG LLM_MODEL_REPO=unsloth/Qwen3-1.7B-GGUF
 ARG LLM_MODEL_FILE=Qwen3-1.7B-UD-Q4_K_XL.gguf
 ARG LLM_MODEL_REV=main
@@ -51,7 +51,7 @@ RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
 #############################
 # Runtime stage (ASP.NET 9.0)
 #############################
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
 # Dipendenze native per libllama su Ubuntu 24.04 (Noble):
 # - libgomp1: OpenMP runtime
@@ -66,7 +66,7 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     # configurazione LLamaSharp/LLM (override via env/k8s se vuoi)
     LLM__Provider="LLamaSharp" \
-    LLAMASHARP__ContextSize=8192 \
+    LLAMASHARP__ContextSize=40960 \
     LLAMASHARP__Threads=0 \
     LLM_MODEL_REPO="unsloth/Qwen3-1.7B-GGUF" \
     LLM_MODEL_FILE="Qwen3-1.7B-UD-Q4_K_XL.gguf" \
