@@ -66,10 +66,10 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     # configurazione LLamaSharp/LLM (override via env/k8s se vuoi)
     LLM__Provider="LLamaSharp" \
-    LLAMASHARP__ContextSize=40960 \
+    LLAMASHARP__ContextSize=128000 \
     LLAMASHARP__Threads=0 \
-    LLM_MODEL_REPO="unsloth/Qwen3-1.7B-GGUF" \
-    LLM_MODEL_FILE="Qwen3-1.7B-UD-Q4_K_XL.gguf" \
+    LLM_MODEL_REPO="Qwen/Qwen2.5-0.5B-Instruct-GGUF" \
+    LLM_MODEL_FILE="qwen2.5-0.5b-instruct-q4_0.gguf" \
     LLM_MODEL_REV="main"
 
 # Utente non-root
