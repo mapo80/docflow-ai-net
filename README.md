@@ -69,6 +69,28 @@ Vedi `src/DocflowAi.Net.Api/appsettings.json`. Override via env (`LLM__ModelPath
 - coordinate **normalizzate** \[0..1]: `XNorm`, `YNorm`, `WidthNorm`, `HeightNorm`
 - formato: **xywh** con origine in alto a sinistra
 
+### Bounding Box Evidence
+Il resolver `DocflowAi.Net.BBoxResolver` ancora ogni campo dell'LLM alle parole del documento e restituisce:
+
+```json
+{
+  "Key": "amount",
+  "Value": "1234.56",
+  "Confidence": 0.92,
+  "Evidence": [
+    {
+      "Page": 0,
+      "WordIndices": [5,6],
+      "BBox": [0.1,0.2,0.3,0.05],
+      "Text": "1234.56",
+      "Score": 0.98
+    }
+  ]
+}
+```
+
+Le coordinate sono normalizzate [0..1] con origine in alto a sinistra. L'algoritmo di distanza può essere scelto tramite configurazione `BBox:DistanceAlgorithm` oppure variabile d'ambiente `BBox__DistanceAlgorithm`.
+
 ## Smoke Test
 ```bash
 cd smoke
@@ -78,6 +100,9 @@ Salva `process.json` con l'output dell'endpoint.
 
 ## Test di Integrazione MarkItDownNet
 Per i risultati dell'estrazione su PDF e PNG consulta [dataset/markitdownnet-integration.md](dataset/markitdownnet-integration.md).
+
+## Test di Integrazione BBoxResolver
+Risultati e confronto tra gli algoritmi di distanza su PDF e PNG sono disponibili in [dataset/boxsolver-integration.md](dataset/boxsolver-integration.md).
 
 ## agents.md
 Consulta `agents.md` per l’uso con strumenti di codegen.

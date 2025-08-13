@@ -45,14 +45,14 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
 
             var pages = res.Pages.Select(p => new PageInfo(p.Number, p.Width, p.Height)).ToList();
             var dict = pages.ToDictionary(p => p.Number);
-            var boxes = res.Lines.Select(l =>
+            var boxes = res.Words.Select(w =>
             {
-                var page = dict[l.Page];
-                var x = l.BBox.X * page.Width;
-                var y = l.BBox.Y * page.Height;
-                var w = l.BBox.Width * page.Width;
-                var h = l.BBox.Height * page.Height;
-                return new Box(l.Page, x, y, w, h, l.BBox.X, l.BBox.Y, l.BBox.Width, l.BBox.Height, l.Text);
+                var page = dict[w.Page];
+                var x = w.BBox.X * page.Width;
+                var y = w.BBox.Y * page.Height;
+                var width = w.BBox.Width * page.Width;
+                var height = w.BBox.Height * page.Height;
+                return new Box(w.Page, x, y, width, height, w.BBox.X, w.BBox.Y, w.BBox.Width, w.BBox.Height, w.Text);
             }).ToList();
 
             _logger.LogDebug("Converted to markdown with {Length} chars and {Boxes} boxes", res.Markdown.Length, boxes.Count);

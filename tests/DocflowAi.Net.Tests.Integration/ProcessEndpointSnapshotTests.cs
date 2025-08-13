@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
+using DocflowAi.Net.BBoxResolver;
 using UglyToad.PdfPig.Writer;
 using UglyToad.PdfPig.Fonts.Standard14Fonts;
 using UglyToad.PdfPig.Core;
