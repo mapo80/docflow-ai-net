@@ -59,6 +59,7 @@ builder.Services.AddSingleton<TokenFirstBBoxResolver>();
 builder.Services.AddSingleton<PlainTextViewBuilder>();
 builder.Services.AddSingleton<IPointerResolver, PointerResolver>();
 builder.Services.AddSingleton<IResolverOrchestrator, ResolverOrchestrator>();
+builder.Services.AddHttpClient<ILlmModelService, LlmModelService>();
 
 builder.Services.AddHealthChecks();
 
