@@ -27,6 +27,7 @@ public static class XFundParser
                         string fieldName = Normalize(GetText(n));
                         string expected = string.Empty;
                         var boxes = new List<int[]>();
+                        bool linked = false;
                         if (n.TryGetProperty("linking", out var linking) && linking.ValueKind == JsonValueKind.Array)
                         {
                             foreach (var pair in linking.EnumerateArray())
@@ -36,6 +37,7 @@ public static class XFundParser
                                     int answerId = pair[1].GetInt32();
                                     if (byId.TryGetValue(answerId, out var ans))
                                     {
+                                        linked = true;
                                         expected = string.IsNullOrEmpty(expected) ? GetText(ans) : expected + " " + GetText(ans);
                                         var box = GetBox(ans);
                                         if (box.Length == 4) boxes.Add(box);
@@ -43,12 +45,15 @@ public static class XFundParser
                                 }
                             }
                         }
-                        fields.Add(new FieldManifest
+                        if (linked)
                         {
-                            Name = fieldName,
-                            ExpectedValue = Normalize(expected),
-                            ExpectedBoxes = boxes
-                        });
+                            fields.Add(new FieldManifest
+                            {
+                                Name = fieldName,
+                                ExpectedValue = Normalize(expected),
+                                ExpectedBoxes = boxes
+                            });
+                        }
                     }
                 }
                 result[Path.GetFileName(img)] = new DocumentManifest { File = img, Fields = fields };
