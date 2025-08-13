@@ -24,7 +24,9 @@ builder.Host.UseSerilog((ctx, lc) => lc
 
 builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.SectionName));
 builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.SectionName));
+builder.Services.Configure<ResolverOptions>(builder.Configuration.GetSection("Resolver"));
 builder.Services.Configure<BBoxOptions>(builder.Configuration.GetSection("BBox"));
+builder.Services.PostConfigure<BBoxOptions>(o => builder.Configuration.GetSection("Resolver:TokenFirst").Bind(o));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
@@ -51,6 +53,8 @@ builder.Services.AddSingleton<IMarkdownConverter, MarkdownNetConverter>();
 builder.Services.AddScoped<IReasoningModeAccessor, ReasoningModeAccessor>();
 builder.Services.AddScoped<ILlamaExtractor, LlamaExtractor>();
 builder.Services.AddScoped<IProcessingOrchestrator, ProcessingOrchestrator>();
+builder.Services.AddSingleton<LegacyBBoxResolver>();
+builder.Services.AddSingleton<TokenFirstBBoxResolver>();
 builder.Services.AddSingleton<IBBoxResolver, BBoxResolver>();
 
 builder.Services.AddHealthChecks();
