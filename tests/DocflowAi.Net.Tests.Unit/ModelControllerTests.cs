@@ -21,4 +21,18 @@ public class ModelControllerTests
         svc.Verify(x => x.SwitchModelAsync("k", "r", "f", 10, It.IsAny<CancellationToken>()), Times.Once);
         res.Should().BeOfType<OkResult>();
     }
+
+    [Fact]
+    public void Status_ReturnsServiceResult()
+    {
+        var svc = new Mock<ILlmModelService>();
+        var status = new ModelDownloadStatus(true, 100);
+        svc.Setup(x => x.GetStatus()).Returns(status);
+        var controller = new ModelController(svc.Object);
+
+        var res = controller.Status();
+
+        res.Result.Should().BeOfType<OkObjectResult>();
+        ((OkObjectResult)res.Result).Value.Should().Be(status);
+    }
 }

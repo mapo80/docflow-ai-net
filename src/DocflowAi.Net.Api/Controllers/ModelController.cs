@@ -24,4 +24,11 @@ public sealed class ModelController : ControllerBase
         await _service.SwitchModelAsync(request.HfKey, request.ModelRepo, request.ModelFile, request.ContextSize, ct);
         return Ok();
     }
+
+    [HttpGet("status")]
+    [ProducesResponseType(typeof(ModelDownloadStatus), StatusCodes.Status200OK)]
+    public ActionResult<ModelDownloadStatus> Status()
+    {
+        return Ok(_service.GetStatus());
+    }
 }
