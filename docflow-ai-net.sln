@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -17,6 +17,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocflowAi.Net.Application", "src\DocflowAi.Net.Application\DocflowAi.Net.Application.csproj", "{3CEA7195-0317-434D-0B70-ADAEB2E0A816}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocflowAi.Net.Api", "src\DocflowAi.Net.Api\DocflowAi.Net.Api.csproj", "{D7AB4F89-8F46-7559-B608-C93B6B40E992}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "markitdownnet", "markitdownnet", "{0C597EB0-8BCB-47B7-9544-DA174335000D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{39DF2CC7-17BD-4088-A9EC-1E5E2A7394BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkItDownNet", "markitdownnet\src\MarkItDownNet\MarkItDownNet.csproj", "{5827403E-170A-4BF9-8F93-AA28D89865B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +54,10 @@ Global
 		{D7AB4F89-8F46-7559-B608-C93B6B40E992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7AB4F89-8F46-7559-B608-C93B6B40E992}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7AB4F89-8F46-7559-B608-C93B6B40E992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5827403E-170A-4BF9-8F93-AA28D89865B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5827403E-170A-4BF9-8F93-AA28D89865B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5827403E-170A-4BF9-8F93-AA28D89865B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5827403E-170A-4BF9-8F93-AA28D89865B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,6 +69,8 @@ Global
 		{33D84DB6-E313-E7F3-7901-44EB5BCCB77E} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{3CEA7195-0317-434D-0B70-ADAEB2E0A816} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{D7AB4F89-8F46-7559-B608-C93B6B40E992} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{39DF2CC7-17BD-4088-A9EC-1E5E2A7394BA} = {0C597EB0-8BCB-47B7-9544-DA174335000D}
+		{5827403E-170A-4BF9-8F93-AA28D89865B9} = {39DF2CC7-17BD-4088-A9EC-1E5E2A7394BA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7F7F18DD-043A-4504-BFB9-7FFA372529FA}

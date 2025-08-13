@@ -17,9 +17,13 @@
   ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
   export PATH="$HOME/dotnet:$PATH"
   ```
+- Initialize submodules:
+  ```bash
+  git submodule update --init --recursive
+  ```
 - Output is always **valid JSON** due to **GBNF grammar** at inference, then validated against **Extraction Profiles**.
 
 Prompts:
 - The server injects `/think` or `/no_think` automatically based on header/config.
 - Do not add explanations; responses must be pure JSON.
-- Dataset samples live under `/dataset`; run `LLM__ModelPath=./models/qwen2.5-0.5b-instruct-q4_0.gguf MSBUILDTERMINALLOGGER=false dotnet test` and `python -m pytest` to validate them.
+- Dataset samples live under `/dataset`; run `LLM__ModelPath=./models/qwen2.5-0.5b-instruct-q4_0.gguf MSBUILDTERMINALLOGGER=false dotnet test -c Release` and `python -m pytest` to validate them.

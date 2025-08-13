@@ -2,9 +2,8 @@ using System.Reflection;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Configuration;
 using DocflowAi.Net.Infrastructure.Llm;
-using DocflowAi.Net.Infrastructure.Markitdown;
+using DocflowAi.Net.Infrastructure.Markdown;
 using DocflowAi.Net.Infrastructure.Orchestration;
-using DocflowAi.Net.Infrastructure.Http;
 using DocflowAi.Net.Infrastructure.Reasoning;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -15,10 +14,14 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration).Enrich.FromLogContext());
+var level = Environment.GetEnvironmentVariable("LOG_LEVEL") ?? "Information";
+var parsed = Enum.TryParse<Serilog.Events.LogEventLevel>(level, true, out var lvl) ? lvl : Serilog.Events.LogEventLevel.Information;
+builder.Host.UseSerilog((ctx, lc) => lc
+    .MinimumLevel.Is(parsed)
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.FromLogContext());
 
 builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.SectionName));
-builder.Services.Configure<ServicesOptions>(builder.Configuration.GetSection(ServicesOptions.SectionName));
 builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.SectionName));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
@@ -42,10 +45,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddProblemDetails(o => { o.IncludeExceptionDetails = (ctx, ex) => builder.Environment.IsDevelopment(); });
 
-builder.Services.AddHttpClient<IMarkitdownClient, MarkitdownClient>()
-    .AddPolicyHandler((sp,_) => HttpPolicies.GetRetryPolicy(sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ServicesOptions>>()))
-    .AddPolicyHandler((sp,_) => HttpPolicies.GetTimeoutPolicy(sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ServicesOptions>>()));
-
+builder.Services.AddScoped<IMarkdownConverter, MarkdownNetConverter>();
 builder.Services.AddScoped<IReasoningModeAccessor, ReasoningModeAccessor>();
 builder.Services.AddScoped<ILlamaExtractor, LlamaExtractor>();
 builder.Services.AddScoped<IProcessingOrchestrator, ProcessingOrchestrator>();
