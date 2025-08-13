@@ -22,9 +22,9 @@ public class ProcessingOrchestratorTests {
         mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
         var llama = new Mock<ILlamaExtractor>();
         llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>())).ReturnsAsync(expected);
-        var resolver = new Mock<IBBoxResolver>();
+        var resolver = new Mock<IResolverOrchestrator>();
         resolver.Setup(r => r.ResolveAsync(It.IsAny<DocumentIndex>(), It.IsAny<IReadOnlyList<ExtractedField>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>())).ToList());
+            .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>(), null)).ToList());
         var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("fake")), 0, 4, "file", "test.png") { Headers = new HeaderDictionary(), ContentType = "image/png" };
         var orchestrator = new ProcessingOrchestrator(mdClient.Object, llama.Object, resolver.Object, new LoggerFactory().CreateLogger<ProcessingOrchestrator>());
         var res = await orchestrator.ProcessAsync(file, "tpl", "prompt", new List<FieldSpec>(), default);
@@ -41,9 +41,9 @@ public class ProcessingOrchestratorTests {
         mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
         var llama = new Mock<ILlamaExtractor>();
         llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>())).ReturnsAsync(expected);
-        var resolver = new Mock<IBBoxResolver>();
+        var resolver = new Mock<IResolverOrchestrator>();
         resolver.Setup(r => r.ResolveAsync(It.IsAny<DocumentIndex>(), It.IsAny<IReadOnlyList<ExtractedField>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>())).ToList());
+            .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>(), null)).ToList());
         var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("fake")), 0, 4, "file", "test.png") { Headers = new HeaderDictionary(), ContentType = "image/png" };
         var orchestrator = new ProcessingOrchestrator(mdClient.Object, llama.Object, resolver.Object, new LoggerFactory().CreateLogger<ProcessingOrchestrator>());
         var res = await orchestrator.ProcessAsync(file, "tpl", "prompt", new List<string> { "Key" }, default);

@@ -1,1 +1,1 @@
-{"DocumentType":"doc","Fields":[{"Key":"name","Value":"John","Confidence":0.99,"Evidence":[]}],"Language":"en","Notes":null}
+{"DocumentType":"doc","Fields":[{"Key":"name","Value":"John","Confidence":1,"Evidence":[{"Page":0,"WordIndices":[0],"BBox":{"X":0.1,"Y":0.01384,"W":0.25344,"H":0.08616},"Text":"hello","Score":1,"Label":null}],"Pointer":{"Mode":0,"WordIds":["W0_0"],"Start":null,"End":null}}],"Language":"en","Notes":null}

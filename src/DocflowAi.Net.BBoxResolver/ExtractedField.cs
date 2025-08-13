@@ -5,4 +5,5 @@ namespace DocflowAi.Net.BBoxResolver;
 /// <param name="Value">Field value.</param>
 /// <param name="Confidence">Confidence returned by the LLM or resolver.</param>
 /// <param name="Evidence">Word-level evidence spans.</param>
-public sealed record ExtractedField(string Key, string? Value, double Confidence, IReadOnlyList<SpanEvidence>? Evidence = null);
+/// <param name="Pointer">Optional pointer information returned by the LLM.</param>
+public sealed record ExtractedField(string Key, string? Value, double Confidence, IReadOnlyList<SpanEvidence>? Evidence = null, Pointer? Pointer = null);

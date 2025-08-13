@@ -119,7 +119,7 @@ Salva `process.json` con l'output dell'endpoint.
 Per i risultati dell'estrazione su PDF e PNG consulta [dataset/markitdownnet-integration.md](dataset/markitdownnet-integration.md).
 
 ## Test di Integrazione BBoxResolver
-Esecuzioni della strategia **TokenFirst** su PDF e PNG con confronto tra `BitParallel` e `ClassicLevenshtein` sono documentate in [dataset/boxsolver-integration.md](dataset/boxsolver-integration.md).
+Esecuzioni delle strategie **TokenFirst** e **PointerStrategy** su PDF e PNG sono documentate in [dataset/boxsolver-integration.md](dataset/boxsolver-integration.md).
 
 ## agents.md
 Consulta `agents.md` per l’uso con strumenti di codegen.
