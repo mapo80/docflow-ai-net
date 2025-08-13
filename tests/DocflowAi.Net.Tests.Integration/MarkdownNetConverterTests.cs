@@ -134,6 +134,65 @@ public class MarkdownNetConverterTests
         }
     }
 
+    [Fact]
+    public async Task Image_Small_Png_ProducesMarkdown()
+    {
+        if (!HasTesseract) return;
+        var tmp = Path.GetTempFileName();
+        try
+        {
+            GenerateSmallSkiaImage(tmp);
+            await using var fs = File.OpenRead(tmp);
+            var res = await _converter.ConvertImageAsync(fs, new MarkdownOptions());
+            res.Markdown.Should().Contain("hi");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
+    }
+
+    [Theory]
+    [InlineData(90)]
+    [InlineData(180)]
+    [InlineData(270)]
+    public async Task Image_Rotated_Png_ProducesMarkdown(int angle)
+    {
+        if (!HasTesseract) return;
+        var tmp = Path.GetTempFileName();
+        try
+        {
+            GenerateRotatedSkiaImage(tmp, angle, SKEncodedImageFormat.Png);
+            await using var fs = File.OpenRead(tmp);
+            var res = await _converter.ConvertImageAsync(fs, new MarkdownOptions());
+            res.Markdown.Should().Contain("hello");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
+    }
+
+    [Theory]
+    [InlineData(50)]
+    [InlineData(600)]
+    public async Task Image_Tiff_WithDifferentDpi_ProducesMarkdown(int dpi)
+    {
+        if (!HasTesseract) return;
+        var tmp = Path.GetTempFileName();
+        try
+        {
+            GenerateTiffImage(tmp, dpi);
+            await using var fs = File.OpenRead(tmp);
+            var res = await _converter.ConvertImageAsync(fs, new MarkdownOptions());
+            res.Markdown.Should().Contain("hello");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
+    }
+
     private static void GenerateSkiaImage(string path, SKEncodedImageFormat format)
     {
         using var bmp = new SKBitmap(200, 100);
@@ -146,7 +205,42 @@ public class MarkdownNetConverterTests
         File.WriteAllBytes(path, data.ToArray());
     }
 
-    private static void GenerateTiffImage(string path)
+    private static void GenerateSmallSkiaImage(string path)
+    {
+        using var bmp = new SKBitmap(40, 40);
+        using var canvas = new SKCanvas(bmp);
+        canvas.Clear(SKColors.White);
+        using var paint = new SKPaint { Color = SKColors.Black, TextSize = 12 };
+        canvas.DrawText("hi", 2, 20, paint);
+        using var image = SKImage.FromBitmap(bmp);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        File.WriteAllBytes(path, data.ToArray());
+    }
+
+    private static void GenerateRotatedSkiaImage(string path, int angle, SKEncodedImageFormat format)
+    {
+        using var src = new SKBitmap(200, 100);
+        using (var canvas = new SKCanvas(src))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint { Color = SKColors.Black, TextSize = 24 };
+            canvas.DrawText("hello", 10, 50, paint);
+        }
+        SKBitmap dst = angle % 180 == 0 ? new SKBitmap(src.Width, src.Height) : new SKBitmap(src.Height, src.Width);
+        using (var canvas = new SKCanvas(dst))
+        {
+            canvas.Clear(SKColors.White);
+            canvas.Translate(dst.Width / 2f, dst.Height / 2f);
+            canvas.RotateDegrees(angle);
+            canvas.Translate(-src.Width / 2f, -src.Height / 2f);
+            canvas.DrawBitmap(src, 0, 0);
+        }
+        using var image = SKImage.FromBitmap(dst);
+        using var data = image.Encode(format, 100);
+        File.WriteAllBytes(path, data.ToArray());
+    }
+
+    private static void GenerateTiffImage(string path, int dpi = 96)
     {
         const int width = 200;
         const int height = 100;
@@ -167,6 +261,9 @@ public class MarkdownNetConverterTests
         tiff.SetField(TiffTag.PHOTOMETRIC, Photometric.RGB);
         tiff.SetField(TiffTag.PLANARCONFIG, PlanarConfig.CONTIG);
         tiff.SetField(TiffTag.COMPRESSION, Compression.LZW);
+        tiff.SetField(TiffTag.XRESOLUTION, (float)dpi);
+        tiff.SetField(TiffTag.YRESOLUTION, (float)dpi);
+        tiff.SetField(TiffTag.RESOLUTIONUNIT, ResUnit.INCH);
         for (int i = 0; i < height; i++)
         {
             var offset = i * width * 4;

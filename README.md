@@ -23,8 +23,7 @@ File/PDF/Image -> MarkdownNetConverter -> LlamaExtractor -> JSON Output
 git submodule update --init --recursive
 ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
 export PATH="$HOME/dotnet:$PATH"
-dotnet build -c Release
-dotnet test -c Release
+dotnet restore && dotnet build -c Release && dotnet test -c Release
 ```
 
 ## Avvio rapido con Docker Compose
@@ -32,6 +31,16 @@ dotnet test -c Release
 cd deployment
 docker compose up --build
 # API: http://localhost:5214
+```
+Snippet minimale:
+```yaml
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: ./deployment/Dockerfile.api
+    ports:
+      - "5214:8080"
 ```
 Modello GGUF: metti il file in `./models` (es. `qwen2.5-0.5b-instruct-q4_0.gguf`).
 
@@ -54,6 +63,11 @@ export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
 
 ## Config (estratto)
 Vedi `src/DocflowAi.Net.Api/appsettings.json`. Override via env (`LLM__ModelPath`, `LOG_LEVEL`, `MARKDOWNNET_VERBOSE`, ecc.).
+
+## Bounding boxes
+- coordinate in **pixel**: `X`, `Y`, `Width`, `Height`
+- coordinate **normalizzate** \[0..1]: `XNorm`, `YNorm`, `WidthNorm`, `HeightNorm`
+- formato: **xywh** con origine in alto a sinistra
 
 ## Smoke Test
 ```bash
