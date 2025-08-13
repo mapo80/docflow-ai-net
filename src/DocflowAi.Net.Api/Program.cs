@@ -5,6 +5,7 @@ using DocflowAi.Net.Infrastructure.Llm;
 using DocflowAi.Net.Infrastructure.Markdown;
 using DocflowAi.Net.Infrastructure.Orchestration;
 using DocflowAi.Net.Infrastructure.Reasoning;
+using DocflowAi.Net.BBoxResolver;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Hellang.Middleware.ProblemDetails;
@@ -23,6 +24,7 @@ builder.Host.UseSerilog((ctx, lc) => lc
 
 builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.SectionName));
 builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.SectionName));
+builder.Services.Configure<BBoxOptions>(builder.Configuration.GetSection("BBox"));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
@@ -49,6 +51,7 @@ builder.Services.AddSingleton<IMarkdownConverter, MarkdownNetConverter>();
 builder.Services.AddScoped<IReasoningModeAccessor, ReasoningModeAccessor>();
 builder.Services.AddScoped<ILlamaExtractor, LlamaExtractor>();
 builder.Services.AddScoped<IProcessingOrchestrator, ProcessingOrchestrator>();
+builder.Services.AddSingleton<IBBoxResolver, BBoxResolver>();
 
 builder.Services.AddHealthChecks();
 

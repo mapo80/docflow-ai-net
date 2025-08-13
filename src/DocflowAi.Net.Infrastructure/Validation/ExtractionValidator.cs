@@ -1,4 +1,6 @@
-using DocflowAi.Net.Application.Profiles; using DocflowAi.Net.Domain.Extraction;
+using DocflowAi.Net.Application.Profiles;
+using DocflowAi.Net.Domain.Extraction;
+using DocflowAi.Net.BBoxResolver;
 namespace DocflowAi.Net.Infrastructure.Validation;
 public static class ExtractionValidator {
     public static (bool ok, string? error, DocumentAnalysisResult fixedResult) ValidateAndFix(DocumentAnalysisResult input, ExtractionProfile profile) {

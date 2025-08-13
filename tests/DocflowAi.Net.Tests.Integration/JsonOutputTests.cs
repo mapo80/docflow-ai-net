@@ -4,6 +4,7 @@ using System.Text.Json;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
+using DocflowAi.Net.BBoxResolver;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

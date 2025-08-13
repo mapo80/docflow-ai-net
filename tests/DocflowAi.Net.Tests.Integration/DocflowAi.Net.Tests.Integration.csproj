@@ -15,4 +15,7 @@
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.660" />
     <PackageReference Include="Verify.Xunit" Version="24.7.2" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DocflowAi.Net.BBoxResolver\DocflowAi.Net.BBoxResolver.csproj" />
+  </ItemGroup>
 </Project>

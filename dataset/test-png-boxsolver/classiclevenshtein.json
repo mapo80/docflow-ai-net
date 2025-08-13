@@ -1,0 +1,33 @@
+{
+  "Algorithm": "ClassicLevenshtein",
+  "TotalMilliseconds": 0.3805,
+  "TotalFields": 4,
+  "Resolved": 0,
+  "AverageConfidence": 0.9,
+  "Results": [
+    {
+      "FieldName": "company_name",
+      "Value": "ACME S.p.A.",
+      "Confidence": 0.9,
+      "Spans": []
+    },
+    {
+      "FieldName": "document_type",
+      "Value": "invoice",
+      "Confidence": 0.9,
+      "Spans": []
+    },
+    {
+      "FieldName": "invoice_date",
+      "Value": "2025-08-09",
+      "Confidence": 0.9,
+      "Spans": []
+    },
+    {
+      "FieldName": "invoice_number",
+      "Value": "INV-2025-001",
+      "Confidence": 0.9,
+      "Spans": []
+    }
+  ]
+}

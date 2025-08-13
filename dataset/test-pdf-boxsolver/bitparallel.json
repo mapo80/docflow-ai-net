@@ -1,0 +1,57 @@
+{
+  "Algorithm": "BitParallel",
+  "TotalMilliseconds": 69.4081,
+  "TotalFields": 8,
+  "Resolved": 0,
+  "AverageConfidence": 0.8374999999999999,
+  "Results": [
+    {
+      "FieldName": "company_name",
+      "Value": "ACME S.p.A.",
+      "Confidence": 0.9,
+      "Spans": []
+    },
+    {
+      "FieldName": "descrizione",
+      "Value": "Prodotto B",
+      "Confidence": 0.8,
+      "Spans": []
+    },
+    {
+      "FieldName": "descrizione",
+      "Value": "Prodotto A",
+      "Confidence": 0.8,
+      "Spans": []
+    },
+    {
+      "FieldName": "invoice_date",
+      "Value": "2025-08-09",
+      "Confidence": 0.9,
+      "Spans": []
+    },
+    {
+      "FieldName": "invoice_number",
+      "Value": "INV-2025-001",
+      "Confidence": 0.9,
+      "Spans": []
+    },
+    {
+      "FieldName": "prezzo",
+      "Value": "\u20AC 10,00",
+      "Confidence": 0.8,
+      "Spans": []
+    },
+    {
+      "FieldName": "totale",
+      "Value": "\u20AC 35,00",
+      "Confidence": 0.8,
+      "Spans": []
+    },
+    {
+      "FieldName": "totale",
+      "Value": "\u20AC 15,00",
+      "Confidence": 0.8,
+      "Spans": []
+    }
+  ]
+}

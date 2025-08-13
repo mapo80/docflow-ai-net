@@ -2,6 +2,7 @@ using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Configuration;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Domain.Extraction;
+using DocflowAi.Net.BBoxResolver;
 using DocflowAi.Net.Infrastructure.Validation;
 using LLama;
 using LLama.Abstractions;

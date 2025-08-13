@@ -4,6 +4,7 @@ using DocflowAi.Net.Api.Controllers;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Profiles;
 using DocflowAi.Net.Api.Models;
+using DocflowAi.Net.BBoxResolver;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,7 @@ public class ProcessControllerHeaderTests
                 It.IsAny<string>(),
                 It.IsAny<IReadOnlyList<FieldSpec>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new DocflowAi.Net.Domain.Extraction.DocumentAnalysisResult("t", new List<DocflowAi.Net.Domain.Extraction.ExtractedField>(), "en", null));
+            .ReturnsAsync(new DocflowAi.Net.Domain.Extraction.DocumentAnalysisResult("t", new List<ExtractedField>(), "en", null));
 
         var accessor = new Mock<IReasoningModeAccessor>();
         accessor.SetupProperty(a => a.Mode, ReasoningMode.Auto);
