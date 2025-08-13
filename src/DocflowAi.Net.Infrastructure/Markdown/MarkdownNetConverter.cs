@@ -37,6 +37,7 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
         var tmp = Path.GetTempFileName();
         try
         {
+            _logger.LogDebug("Copying input stream to temp file {TempFile}", tmp);
             await CopyWithRetryAsync(input, tmp, ct);
             _logger.LogDebug("Starting MarkItDownNet conversion for {Mime} into {TempFile}", mime, tmp);
             var options = new MkdnOptions { NormalizeMarkdown = opts.NormalizeMarkdown };
@@ -55,6 +56,7 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
                 return new Box(w.Page, x, y, width, height, w.BBox.X, w.BBox.Y, w.BBox.Width, w.BBox.Height, w.Text);
             }).ToList();
 
+            _logger.LogInformation("MarkItDownNet produced {PageCount} pages", pages.Count);
             _logger.LogDebug("Converted to markdown with {Length} chars and {Boxes} boxes", res.Markdown.Length, boxes.Count);
             return new MarkdownResult(res.Markdown, pages, boxes);
         }

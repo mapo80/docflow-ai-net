@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DocflowAi.Net.BBoxResolver;
 
@@ -8,16 +9,23 @@ namespace DocflowAi.Net.BBoxResolver;
 public sealed class TokenFirstBBoxResolver : IBBoxResolver
 {
     private readonly BBoxOptions _options;
+    private readonly ILogger<TokenFirstBBoxResolver> _logger;
 
-    public TokenFirstBBoxResolver(Microsoft.Extensions.Options.IOptions<BBoxOptions> options) => _options = options.Value;
+    public TokenFirstBBoxResolver(Microsoft.Extensions.Options.IOptions<BBoxOptions> options, ILogger<TokenFirstBBoxResolver> logger)
+    {
+        _options = options.Value;
+        _logger = logger;
+    }
 
     public Task<IReadOnlyList<BBoxResolveResult>> ResolveAsync(DocumentIndex index, IReadOnlyList<ExtractedField> fields, CancellationToken ct = default)
     {
+        _logger.LogInformation("TokenFirst resolving {Count} fields", fields.Count);
         var results = new ConcurrentBag<BBoxResolveResult>();
         var legacyFinder = new CandidateFinder(index);
         var legacyRefiner = new CandidateRefiner(index, _options);
         Parallel.ForEach(fields, new ParallelOptions { CancellationToken = ct }, field =>
         {
+            _logger.LogDebug("Resolving field {FieldName} via TokenFirst", field.Key);
             SpanEvidence? best = ExactMatch(index, field.Value);
             if (best is null)
             {
@@ -30,10 +38,17 @@ public sealed class TokenFirstBBoxResolver : IBBoxResolver
             {
                 spans = new[] { best };
                 confidence = 0.6 * best.Score + 0.4 * field.Confidence;
+                _logger.LogDebug("Field {FieldName} resolved with score {Score}", field.Key, best.Score);
+            }
+            else
+            {
+                _logger.LogDebug("Field {FieldName} could not be resolved", field.Key);
             }
             results.Add(new BBoxResolveResult(field.Key, field.Value, confidence, spans));
         });
-        return Task.FromResult((IReadOnlyList<BBoxResolveResult>)results.OrderBy(r => r.FieldName).ToList());
+        var ordered = results.OrderBy(r => r.FieldName).ToList();
+        _logger.LogInformation("TokenFirst resolved {Count} fields", ordered.Count);
+        return Task.FromResult((IReadOnlyList<BBoxResolveResult>)ordered);
     }
 
     private SpanEvidence? ExactMatch(DocumentIndex index, string? value)
