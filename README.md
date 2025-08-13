@@ -188,7 +188,7 @@ L’entrypoint scarica il **GGUF** con `curl` (Authorization: Bearer **HF\_TOKEN
 ### Esempio `curl`
 
 ```bash
-curl -X POST 'https://cserd-docflowai.azurewebsites.net/api/v1/Process' \
+curl -X POST 'http://localhost:8080/api/v1/Process' \
   -H 'X-API-Key: dev-secret-key-change-me' \
   -F 'file=@sample_invoice.pdf;type=application/pdf' \
   -F 'templateName=string' \
