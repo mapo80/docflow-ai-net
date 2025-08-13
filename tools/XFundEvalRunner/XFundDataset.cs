@@ -16,16 +16,17 @@ public static class XFundDataset
     public static async Task<IReadOnlyList<DocumentManifest>> LoadAsync(DatasetConfig config)
     {
         if (!File.Exists(config.ZipPath))
-            await DownloadAsync(config);
+            await DownloadFileAsync(config.DownloadUrl, config.ZipPath);
         if (!Directory.Exists(config.ExtractPath))
             ZipFile.ExtractToDirectory(config.ZipPath, config.ExtractPath);
 
-        var jsonPath = Directory.GetFiles(config.ExtractPath, "*.json", SearchOption.TopDirectoryOnly)
-                                 .FirstOrDefault();
+        if (!File.Exists(config.AnnotationPath))
+            await DownloadFileAsync(config.AnnotationUrl, config.AnnotationPath);
+
         Dictionary<string, DocumentManifest> manifests = new(StringComparer.OrdinalIgnoreCase);
-        if (jsonPath != null)
+        if (File.Exists(config.AnnotationPath))
         {
-            var json = await File.ReadAllTextAsync(jsonPath);
+            var json = await File.ReadAllTextAsync(config.AnnotationPath);
             manifests = XFundParser.Parse(json);
         }
 
@@ -50,11 +51,11 @@ public static class XFundDataset
         return result;
     }
 
-    private static async Task DownloadAsync(DatasetConfig config)
+    private static async Task DownloadFileAsync(string url, string path)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(config.ZipPath)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         using var http = new HttpClient();
-        var data = await http.GetByteArrayAsync(config.DownloadUrl);
-        await File.WriteAllBytesAsync(config.ZipPath, data);
+        var data = await http.GetByteArrayAsync(url);
+        await File.WriteAllBytesAsync(path, data);
     }
 }

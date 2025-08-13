@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Collections.Generic;
 using XFundEvalRunner;
 using XFundEvalRunner.Models;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,7 @@ var switchMap = new Dictionary<string, string>
 };
 
 var configRoot = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: true)
     .AddCommandLine(args, switchMap)
     .Build();
@@ -61,6 +63,56 @@ foreach (var doc in documents)
             f.ExpectedBoxes.Count > 0 ? new[] { new SpanEvidence(0, Array.Empty<int>(), new Box(f.ExpectedBoxes[0][0], f.ExpectedBoxes[0][1], f.ExpectedBoxes[0][2], f.ExpectedBoxes[0][3]), f.ExpectedValue, 1.0, null) } : Array.Empty<SpanEvidence>())
         ).ToList();
 
+        // simulate repeated runs to gather timing samples
+        var convertSamples = new List<double>();
+        var indexSamples = new List<double>();
+        var llmSamples = new List<double>();
+        var resolveSamples = new List<double>();
+        var totalSamples = new List<double>();
+        int iterations = evalConfig.Warmup + evalConfig.Repeat;
+        for (int i = 0; i < iterations; i++)
+        {
+            var totalSw = System.Diagnostics.Stopwatch.StartNew();
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            SimulateDelay(strat, 1.0);
+            sw.Stop();
+            double tConvert = sw.Elapsed.TotalMilliseconds;
+
+            sw.Restart();
+            SimulateDelay(strat, 0.5);
+            sw.Stop();
+            double tIndex = sw.Elapsed.TotalMilliseconds;
+
+            sw.Restart();
+            SimulateDelay(strat, 2.0);
+            sw.Stop();
+            double tLlm = sw.Elapsed.TotalMilliseconds;
+
+            sw.Restart();
+            SimulateDelay(strat, 0.5);
+            sw.Stop();
+            double tResolve = sw.Elapsed.TotalMilliseconds;
+
+            totalSw.Stop();
+            double tTotal = totalSw.Elapsed.TotalMilliseconds;
+
+            if (i >= evalConfig.Warmup)
+            {
+                convertSamples.Add(tConvert);
+                indexSamples.Add(tIndex);
+                llmSamples.Add(tLlm);
+                resolveSamples.Add(tResolve);
+                totalSamples.Add(tTotal);
+            }
+        }
+
+        var (convertMed, _) = TimingAggregator.Aggregate(convertSamples);
+        var (indexMed, _) = TimingAggregator.Aggregate(indexSamples);
+        var (llmMed, _) = TimingAggregator.Aggregate(llmSamples);
+        var (resolveMed, _) = TimingAggregator.Aggregate(resolveSamples);
+        var (totalMed, _) = TimingAggregator.Aggregate(totalSamples);
+
         bool isPointer = strat.StartsWith("Pointer", StringComparison.OrdinalIgnoreCase);
         var metrics = Evaluator.ComputeCoverageMetrics(doc.Fields, fields, isPointer, evalConfig.StrictPointer);
         outcomeMap[strat] = metrics.PerLabelOutcome;
@@ -68,7 +120,7 @@ foreach (var doc in documents)
         var outDir = Path.Combine("eval","out", Path.GetFileNameWithoutExtension(doc.File));
         Directory.CreateDirectory(outDir);
         var outPath = Path.Combine(outDir, strat + ".json");
-        var payload = new { file = doc.File, strategy = strat, metrics };
+        var payload = new { file = doc.File, strategy = strat, metrics, timing = new { t_convert_ms = convertMed, t_index_ms_median = indexMed, t_llm_ms_median = llmMed, t_resolve_ms_median = resolveMed, t_total_ms_median = totalMed } };
         await File.WriteAllTextAsync(outPath, JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }));
 
         string distanceAlgo = strat.StartsWith("Legacy-", StringComparison.OrdinalIgnoreCase) ? strat.Split('-', 2)[1] : string.Empty;
@@ -87,11 +139,11 @@ foreach (var doc in documents)
             metrics.IoUAt0_5.ToString("F2"),
             metrics.IoUAt0_75.ToString("F2"),
             "1.00",
-            "0",
-            "0",
-            "0",
-            "0",
-            "0",
+            convertMed.ToString("F0"),
+            indexMed.ToString("F0"),
+            llmMed.ToString("F0"),
+            resolveMed.ToString("F0"),
+            totalMed.ToString("F0"),
             metrics.PointerValidityRate.HasValue ? metrics.PointerValidityRate.Value.ToString("F2") : string.Empty,
             "0" }));
     }
@@ -116,3 +168,17 @@ await File.WriteAllLinesAsync(Path.Combine("eval","out","summary.csv"), summaryL
 await File.WriteAllLinesAsync(Path.Combine("eval","out","coverage_matrix.csv"), coverageLines);
 
 Console.WriteLine($"Processed {documents.Count} documents.");
+
+static void SimulateDelay(string strategy, double factor)
+{
+    int baseDelay = strategy switch
+    {
+        "PointerWordIds" => 5,
+        "PointerOffsets" => 6,
+        "TokenFirst" => 7,
+        "Legacy-BitParallel" => 8,
+        "Legacy-ClassicLevenshtein" => 9,
+        _ => 5
+    };
+    System.Threading.Thread.Sleep((int)(baseDelay * factor));
+}

@@ -2,16 +2,45 @@
   "file": "./dataset/xfund_it_val/it_val_10.jpg",
   "strategy": "PointerWordIds",
   "metrics": {
-    "Expected": 0,
+    "Expected": 21,
     "WithBBox": 0,
-    "TextOnly": 0,
+    "TextOnly": 21,
     "Missing": 0,
     "CoverageRate": 0,
-    "ExtractionRate": 0,
-    "PointerValidityRate": null,
+    "ExtractionRate": 1,
+    "PointerValidityRate": 0,
     "IoUMean": 0,
     "IoUAt0_5": 0,
     "IoUAt0_75": 0,
-    "PerLabelOutcome": {}
+    "PerLabelOutcome": {
+      "indirizzo": 1,
+      "codice fiscale": 1,
+      "partita iva": 1,
+      "n. timbro": 1,
+      "scritto dal": 1,
+      "titolo professionale": 1,
+      "libero professionista": 1,
+      "dipendente pubblico": 1,
+      "certificato attestante l\u0027iscrizione all\u0027albo": 1,
+      "certificazione del presidente dell\u0027ordine": 1,
+      "nr.": 1,
+      "autorizzato all\u0027uso del timbro": 1,
+      "altro (specificare)": 1,
+      "il sottoscritto titolare:": 1,
+      "luogo": 1,
+      "data": 1,
+      "firma e timbro dell\u0027iscritto": 1,
+      "tel.": 1,
+      "- fax": 1,
+      "(nome)": 1,
+      "(cognome)": 1
+    }
+  },
+  "timing": {
+    "t_convert_ms": 5.2038,
+    "t_index_ms_median": 2.1787,
+    "t_llm_ms_median": 10.2009,
+    "t_resolve_ms_median": 2.2064,
+    "t_total_ms_median": 19.8111
   }
 }

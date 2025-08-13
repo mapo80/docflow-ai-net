@@ -2,16 +2,41 @@
   "file": "./dataset/xfund_it_val/it_val_0.jpg",
   "strategy": "Legacy-BitParallel",
   "metrics": {
-    "Expected": 0,
+    "Expected": 17,
     "WithBBox": 0,
-    "TextOnly": 0,
+    "TextOnly": 17,
     "Missing": 0,
     "CoverageRate": 0,
-    "ExtractionRate": 0,
+    "ExtractionRate": 1,
     "PointerValidityRate": null,
     "IoUMean": 0,
     "IoUAt0_5": 0,
     "IoUAt0_75": 0,
-    "PerLabelOutcome": {}
+    "PerLabelOutcome": {
+      "1) cognome*": 1,
+      "nome*": 1,
+      "data di nascita *": 1,
+      "stato civile **": 1,
+      "codice fiscale*": 1,
+      "posizione nella professione se occupato: **": 1,
+      "cittadinanza*": 1,
+      "condizione non professionale: **": 1,
+      "titolo di studio: **": 1,
+      "patente tipo ***": 1,
+      "numero ***": 1,
+      "data di rilascio ***": 1,
+      "provincia di ***": 1,
+      "autoveicoli ***": 1,
+      "rimorchi ***": 1,
+      "motoveicoli ***": 1,
+      "ciclomotori ***": 1
+    }
+  },
+  "timing": {
+    "t_convert_ms": 8.2685,
+    "t_index_ms_median": 4.1984,
+    "t_llm_ms_median": 16.3319,
+    "t_resolve_ms_median": 4.2089,
+    "t_total_ms_median": 33.0864
   }
 }

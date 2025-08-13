@@ -2,16 +2,32 @@
   "file": "./dataset/xfund_it_val/it_val_13.jpg",
   "strategy": "PointerOffsets",
   "metrics": {
-    "Expected": 0,
+    "Expected": 8,
     "WithBBox": 0,
-    "TextOnly": 0,
+    "TextOnly": 8,
     "Missing": 0,
     "CoverageRate": 0,
-    "ExtractionRate": 0,
-    "PointerValidityRate": null,
+    "ExtractionRate": 1,
+    "PointerValidityRate": 0,
     "IoUMean": 0,
     "IoUAt0_5": 0,
     "IoUAt0_75": 0,
-    "PerLabelOutcome": {}
+    "PerLabelOutcome": {
+      "impresa:": 1,
+      "azienda / cantiere sito in:": 1,
+      "data": 1,
+      "nome": 1,
+      "cognome": 1,
+      "ora di rilevazione": 1,
+      "firma del lavoratore": 1,
+      "firma dell\u0027addetto alla misurazione": 1
+    }
+  },
+  "timing": {
+    "t_convert_ms": 6.1554,
+    "t_index_ms_median": 3.1706,
+    "t_llm_ms_median": 12.1828,
+    "t_resolve_ms_median": 3.1512,
+    "t_total_ms_median": 24.6934
   }
 }

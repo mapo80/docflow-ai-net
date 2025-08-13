@@ -1,1 +1,203 @@
 file,label,PointerWordIds,PointerOffsets,TokenFirst,Legacy-BitParallel,Legacy-ClassicLevenshtein
+it_val_0.jpg,1) cognome*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,nome*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,data di nascita *,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,stato civile **,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,codice fiscale*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,posizione nella professione se occupato: **,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,cittadinanza*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,condizione non professionale: **,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,titolo di studio: **,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,patente tipo ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,numero ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,data di rilascio ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,provincia di ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,autoveicoli ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,rimorchi ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,motoveicoli ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_0.jpg,ciclomotori ***,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,numero,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,tributi,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,mporti,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,rettifiche ai codici di tributo e/o relativi import,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,da,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,importo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,importo versato,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,codice ufficio,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,l'impiegato addetto alla tassazione,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,l'impiegato addetto alla registrazione,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,all'ufficio di,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,codice fiscale del richiedente la registrazione,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,data di stipula/adempimento,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,data fine proroga,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,adempimento,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,uso abitativo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,.ord,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,cognome o denominazione o ragione sociale,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,nome,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,comune o stato estero di nascita,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,provincia],TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,data di nascita,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,sesso,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,domicilio fiscale: c.a.p. e comune,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,provincia,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,n. civico,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,codice fiscale,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,v. civico,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,|provincia,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,via o piazza,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,a,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_1.jpg,n.civico,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,indirizzo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,codice fiscale,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,partita iva,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,n. timbro,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,scritto dal,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,titolo professionale,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,libero professionista,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,dipendente pubblico,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,certificato attestante l'iscrizione all'albo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,certificazione del presidente dell'ordine,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,nr.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,autorizzato all'uso del timbro,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,altro (specificare),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,il sottoscritto titolare:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,luogo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,firma e timbro dell'iscritto,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,tel.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,- fax,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,(nome),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_10.jpg,(cognome),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,io sottoscritto/a,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,c.i.d.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,società,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,assunto/a il,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,categoria d'appartenenza,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,codice fiscale,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,domicilio via,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,comune,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,prov,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,residenza via,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,in seguito alla richiesta di smobilizzo della propria posizione previdenziale derivante da:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,al fine di consentire al fondo pensione fnm di procedere all'operazione di pagamento in un'unica soluzione, io sottoscritto/a errore. l'origine riferimento non è stata trovata. in qualità di beneficiario/a della parte di prestazione maturata a tutto il 31.12.2000,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,timbro e firma,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,telefono,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,data 1^ iscrizione fondo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_11.jpg,cap,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,cognome e nome del cliente finale,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,il sottoscritto,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,dell'impresa (ragione sociale),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,sede nel comune di:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,tel.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,(tel. cellulare:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,n.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,partita iva:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,• iscritta nel registro delle ditte (r.d. 20.9.1934, n. 2011) della cciaa di,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,• iscritta all'albo imprese artigiane (l. 8.8.1985, n. 443) della provincia di,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,.n.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,a) di aver effettuato in data odierna la prova di tenuta nel rispetto di quanto previsto dalla vigente norma tecnica (1):,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,via,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,piano,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,interno,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,comune,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,(prov ._,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,inteso come impianto:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,codice del punto di riconsegna,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,matricola del contatore,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,b) che ai sensi della norma tecnica applicata (dichiarata al precedente punto a) la prova di tenuta ha avuto:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,pressione di prova:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,durata della prova:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,il dichiarante (timbro e firma),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_12.jpg,e_mail:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,impresa:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,azienda / cantiere sito in:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,nome,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,cognome,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,ora di rilevazione,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,firma del lavoratore,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_13.jpg,firma dell'addetto alla misurazione,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,con la sottoscrizione della presente dichiarazione, io sottoscritto/a ...,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,firma,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,luogo e data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,nato/a,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,il,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,e residente in,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,cap,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,n,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,in via,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_14.jpg,prov,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,il sottoscritto,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,nome e cognome,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,nato a_,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,il,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,residente a,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,prov.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,cap,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,in via,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,n.,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,professione,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,codice fiscale / p. iva,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,telefono,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,e-mail,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,di partecipare al corso di,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,previsto nelle date,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,nella sede di,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,letto, confermato e sottoscritto,,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,luogo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,firma,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,indicazioni per l'invio del modulo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_15.jpg,percorso formativo:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,tutti i visitatori devono attenersi scrupolosamente alle misure igienico-sanitarie idonee a prevenire il contagio e in particolare:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,luogo e data,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,(firma leggibile),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,ora di ingresso,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,ora di uscita,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,ruolo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,motivo,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,contatto,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_16.jpg,1. i dati da lei forniti verranno trattati per le seguenti finalità:,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,codice utente* (se iscritto),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,in qualità di,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,cognome*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,codice fiscale*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,nome*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,sesso,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,luogo di nascita* (comune/città /stato estero,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,indirizzo di residenza* (via/piazza),TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,cap,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,città di residenza/comune/stato estero*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,telefono/cellulare,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,e-mail,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,data di nascita',TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,provincia*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,numero*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,edificio*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,interno*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,fax,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,x|comunicazione di iscrizione dal*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,immobile*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,via / piazza*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,n. civico*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,estremi catastali*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,sezione*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,scala*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,cap*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,sup* in tariffa,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,subalterno*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,foglio*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,particella*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,codice contratto*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,via/piazza*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,indicare la motivazione*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,n.civico*,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,cognome,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,☒ decesso del titolare,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,☒ restituzione o cessione,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,codice utente,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
+it_val_17.jpg,nome,TextOnly,TextOnly,TextOnly,TextOnly,TextOnly
