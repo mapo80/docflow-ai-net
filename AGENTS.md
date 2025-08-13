@@ -49,3 +49,8 @@ Prompts:
 - `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` → **vuoto**
 - `dotnet build -c Release`
 - `dotnet test -c Release`
+
+# Operations
+Le librerie native di Tesseract (libtesseract.so.5) e Leptonica (liblept.so.5) sono già presenti in src/MarkItDownNet/TesseractOCR/x64 e vengono copiate automaticamente accanto ai binari. Non è quindi necessario installare pacchetti di sistema o creare collegamenti simbolici.
+
+Per eseguire l'OCR è necessario fornire i file tessdata delle lingue e indicarli tramite OcrDataPath.
