@@ -24,8 +24,8 @@ RUN dotnet publish "$API_PROJECT" -c Release -r linux-x64 \
 # Model stage (scarica GGUF)
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS model
-ARG LLM_MODEL_REPO=unsloth/Qwen3-1.7B-GGUF
-ARG LLM_MODEL_FILE=Qwen3-1.7B-UD-Q4_K_XL.gguf
+ARG LLM_MODEL_REPO=Qwen/Qwen2.5-0.5B-Instruct-GGUF
+ARG LLM_MODEL_FILE=qwen2.5-0.5b-instruct-q4_0.gguf
 ARG LLM_MODEL_REV=main
 ARG HF_TOKEN=""
 
