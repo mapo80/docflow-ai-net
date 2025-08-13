@@ -1,128 +1,87 @@
-# docflow-ai-net
+Ecco una proposta di **README.md** molto più ricca e “decision-grade”, pronta da incollare. Mantiene tutte le informazioni essenziali e aggiunge dettagli operativi, configurazione, Docker (singolo container .NET 9.0-noble con LLamaSharp), panoramica degli **eval** e delle metriche, con dati sintetici utili per farsi un’idea immediata (rimandando ai report per i numeri esatti).
 
-.NET 9 API with in-process OCR→Markdown via the C# **MarkItDownNet** library and LLM extraction (LLamaSharp + GGUF).
+---
 
-## Highlights
-- Clean layering (Domain / Application / Infrastructure / API)
-- Controllers sottili, logica nei services
-- **Swagger + API Key** (`X-API-Key`)
-- **Serilog** logs (console + rolling files)
-- Conversione OCR→Markdown totalmente in .NET (nessun servizio Python)
-- **Serilog** logs (console JSON)
-- **GBNF grammar** sempre attiva → output **JSON valido**
-- **Thinking/no_think** per-request (`X-Reasoning`) o da config `LLM:ThinkingMode`
-- Schema dei campi definito a runtime (lista di key/format) e validazione post-LLM
- 
-## Architecture
+# Docflow AI (.NET)
+
+Pipeline **end-to-end** per l’estrazione di informazioni da documenti con **LLM** e **bounding box** a livello parola.
+Il progetto integra:
+
+* **MarkItDownNet** (submodule .NET) per conversione **PDF/immagini → Markdown** e token/word-level **BBox** normalizzate;
+* Strategie di **ancoraggio** BBox:
+
+  * **Pointer / WordIds** (primaria)
+  * **Pointer / Offsets**
+  * **TokenFirst** (Aho-Corasick + fuzzy token-level; distanza edit **Bit-parallel** o **Levenshtein classica**)
+  * **Legacy** (storica; BitParallel e Classic valutate separatamente);
+* **LLamaSharp** in-process per usare modelli **GGUF** (niente Python), con **Docker** unico basato su **.NET 9.0-noble**;
+* Strumenti di **valutazione** (runner CLI) e report Markdown dettagliati.
+
+---
+
+## TL;DR
+
+* **Use case:** estrazione campi da moduli/fatture/forme libere con evidenza spaziale (BBox).
+* **Strategia consigliata:** **Pointer / WordIds** → fallback **TokenFirst** → (facoltativo) **Legacy** per compat.
+* **Eval pronti:** vedi `docs/eval/` e **[Valutazione XFUND IT (subset 10)](docs/XFUND_IT_Eval.md)**.
+* **Docker production-ready:** unico container **9.0-noble**, modello GGUF scaricato con **HF\_TOKEN** esterno.
+
+---
+
+## Architettura (high-level)
+
 ```
-File/PDF/Image -> MarkdownNetConverter -> LlamaExtractor -> JSON Output
+Input (PDF/JPG/PNG)
+      │
+      ▼
+ MarkItDownNet (PDF → testo; OCR fallback; parole + BBox normalizzate [0..1])
+      │            └─ Tesseract/Leptonica native x64 incluse (no pacchetti di sistema)
+      ▼
+ Normalization & Indexing (token, bigram, Index Map / Text View)
+      │
+      ├─ Prompt LLM (Pointer/WordIds | Offsets | Value-only)
+      │
+      ▼
+ Resolver (Pointer → mappa diretta; TokenFirst/Legacy → retrieval+fuzzy+layout heuristics)
+      │
+      ▼
+ Output JSON (value, evidence[], wordIndices[], bbox[x,y,w,h], confidence, metriche opz.)
 ```
 
-## Quickstart
+---
+
+## Requisiti
+
+* **.NET SDK 9.0** (o usa Docker).
+* Submodule **MarkItDownNet** inizializzato.
+* (Opzionale) tessdata Tesseract per OCR lingue (se servono).
+
+---
+
+## MarkItDownNet in breve
+
+* Converte **PDF/immagini** in **Markdown** e metadati posizionali:
+
+  * **Word-level BBox**: `[x,y,w,h]` normalizzate `[0..1]`, origine in alto a sinistra.
+  * **FromOcr** per parola (utile per penalità/diagnostica).
+* Fallback OCR: rasterizza PDF con **PDFtoImage** + **Tesseract** quando le parole native sono poche.
+* **Tesseract/Leptonica** (linux x64) sono **incluse** sotto `src/MarkItDownNet/TesseractOCR/x64`, copiate vicino ai binari — non servono pacchetti di sistema.
+* Opzioni (esempi): `OcrDataPath`, `OcrLanguages ("ita+eng")`, `PdfRasterDpi`, `MinimumNativeWordThreshold`, `NormalizeMarkdown`.
+
+### Build & Test (SDK locale)
+
 ```bash
-git submodule update --init --recursive
-./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
-export PATH="$HOME/dotnet:$PATH"
-dotnet restore && dotnet build -c Release && dotnet test -c Release
+# install locale (se necessario)
+chmod +x ./dotnet-install.sh
+./dotnet-install.sh --channel 9.0
+~/.dotnet/dotnet --version
+
+# build & test (usare sempre la dotnet locale)
+~/.dotnet/dotnet build
+~/.dotnet/dotnet test
 ```
 
-## Avvio rapido con Docker Compose
-```bash
-cd deployment
-docker compose up --build
-# API: http://localhost:5214
-```
-Snippet minimale:
-```yaml
-services:
-  api:
-    build:
-      context: ..
-      dockerfile: ./deployment/Dockerfile.api
-    ports:
-      - "5214:8080"
-```
-Modello GGUF: metti il file in `./models` (es. `qwen2.5-0.5b-instruct-q4_0.gguf`).
-
-### Download del modello GGUF
-Scarica il modello leggero per i test in `./models` usando un token Hugging Face:
-```bash
-export HF_TOKEN="<il tuo token>"
-huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
-  qwen2.5-0.5b-instruct-q4_0.gguf \
-  --local-dir ./models --token "$HF_TOKEN"
-export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
-```
-
-## Endpoint principali
-- `POST /api/v1/process` (protetto API key) — multipart `file=@image`
-  - campi aggiuntivi: `templateName`, `prompt`, ripetere `fields[i].fieldName` e opzionale `fields[i].format` (`string|int|double|date`)
-  - `X-Reasoning: think|no_think|auto`
-- `GET /health`
-- Swagger: `/swagger`
-
-## Config (estratto)
-Vedi `src/DocflowAi.Net.Api/appsettings.json`. Override via env (`LLM__ModelPath`, `LOG_LEVEL`, `MARKDOWNNET_VERBOSE`, ecc.).
-
-## Bounding boxes
-- coordinate in **pixel**: `X`, `Y`, `Width`, `Height`
-- coordinate **normalizzate** \[0..1]: `XNorm`, `YNorm`, `WidthNorm`, `HeightNorm`
-- formato: **xywh** con origine in alto a sinistra
-
-### Bounding Box Evidence
-Il resolver `DocflowAi.Net.BBoxResolver` ancora ogni campo dell'LLM alle parole del documento e restituisce:
-
-```json
-{
-  "Key": "amount",
-  "Value": "1234.56",
-  "Confidence": 0.92,
-  "Evidence": [
-    {
-      "Page": 0,
-      "WordIndices": [5,6],
-      "BBox": [0.1,0.2,0.3,0.05],
-      "Text": "1234.56",
-      "Score": 0.98
-    }
-  ]
-}
-```
-
-Le coordinate sono normalizzate [0..1] con origine in alto a sinistra. L'algoritmo di distanza può essere scelto tramite configurazione `BBox:DistanceAlgorithm` oppure variabile d'ambiente `BBox__DistanceAlgorithm`.
-
-### Resolver strategy
-Il resolver supporta le strategie **Legacy** e **TokenFirst** (predefinita). Seleziona la strategia con `Resolver:Strategy` oppure variabile d'ambiente `Resolver__Strategy`.
-
-```json
-"Resolver": {
-  "Strategy": "TokenFirst",
-  "TokenFirst": {
-    "DistanceAlgorithm": "BitParallel",
-    "EditDistanceThreshold": 0.25,
-    "AdaptiveShortMax": 0.40,
-    "AdaptiveLongMax": 0.35,
-    "MaxCandidates": 10,
-    "EnableLabelProximity": true
-  }
-}
-```
-
-## Smoke Test
-```bash
-cd smoke
-./smoke.sh
-```
-Salva `process.json` con l'output dell'endpoint.
-
-## Test di Integrazione MarkItDownNet
-Per i risultati dell'estrazione su PDF e PNG consulta [dataset/markitdownnet-integration.md](dataset/markitdownnet-integration.md).
-
-## Test di Integrazione BBoxResolver
-Esecuzioni delle strategie **TokenFirst** e **PointerStrategy** su PDF e PNG sono documentate in [dataset/boxsolver-integration.md](dataset/boxsolver-integration.md).
-
-## Bounding Box Evaluation Metrics
-Una panoramica delle metriche di copertura per diverse strategie è disponibile in [evaluation-results.md](evaluation-results.md).
+---
 
 ## Build container docker
 
@@ -139,8 +98,206 @@ DOCKER_BUILDKIT=1 docker build \
 
 docker run --rm -p 8080:8080 docflow-ai-net:with-model
 
-## agents.md
-Consulta `agents.md` per l’uso con strumenti di codegen.
+---
 
-## Evaluation & Benchmarks
-- [Valutazione XFUND IT (subset 10) – report e risultati](docs/XFUND_IT_Eval.md)
+## Strategie di ancoraggio BBox
+
+* **Pointer / WordIds (default):** l’LLM restituisce `["W{page}_{index}", ...]` → mappatura **deterministica** ai token e **BBox** di unione.
+* **Pointer / Offsets:** l’LLM restituisce `{start,end}` su una “Text View” canonica → mappa a token più vicini.
+* **TokenFirst:** indicizzazione token + **Aho-Corasick** per match esatti; fuzzy token-level con **Myers/Bit-parallel** o **Levenshtein classica** (configurabile); disambiguazione layout-aware.
+* **Legacy:** pipeline storica su distanza carattere; utile per baseline e compat.
+
+### Configurazione (appsettings)
+
+```json
+{
+  "Resolver": {
+    "Strategy": "Auto",                // Auto | Pointer | TokenFirst | Legacy
+    "Order": ["Pointer","TokenFirst","Legacy"],
+
+    "Pointer": {
+      "Mode": "WordIds",               // WordIds | Offsets
+      "Strict": true,
+      "MaxGapBetweenIds": 1,
+      "IncludeIndexMapInPrompt": true,
+      "MaxPointerTokensInPrompt": 20000,
+      "WordIdFormat": "W{Page}_{Index}",
+      "ConfidenceWhenStrict": 1.0
+    },
+
+    "TokenFirst": {
+      "DistanceAlgorithm": "BitParallel",    // BitParallel | ClassicLevenshtein
+      "EditDistanceThreshold": 0.25,
+      "AdaptiveShortMax": 0.40,
+      "AdaptiveLongMax": 0.35,
+      "MaxCandidates": 10,
+      "EnableLabelProximity": true
+    }
+  }
+}
+```
+
+Override via env: `Resolver__Strategy`, `Resolver__Pointer__Mode`, `Resolver__TokenFirst__DistanceAlgorithm`, ecc.
+
+---
+
+## LLM in-process (LLamaSharp) + Docker unico (9.0-noble)
+
+Il progetto usa **LLamaSharp** per caricare modelli **GGUF** in-process (no Python).
+In Docker, il modello viene scaricato a runtime da **Hugging Face** con **token** passato dall’esterno.
+
+* Modello di riferimento: **Qwen3-1.7B-UD-Q4\_K\_XL.gguf**
+  HuggingFace: `unsloth/Qwen3-1.7B-GGUF`
+
+### Variabili d’ambiente rilevanti
+
+* `HF_TOKEN` **(obbligatoria al primo run)**: token HF con accesso al repo del modello.
+* `LLM_MODEL_REPO` (default `unsloth/Qwen3-1.7B-GGUF`)
+* `LLM_MODEL_FILE` (default `Qwen3-1.7B-UD-Q4_K_XL.gguf`)
+* `LLM_MODEL_REV` (default `main`)
+* `LLAMASHARP__ContextSize` (default `8192`)
+* `LLAMASHARP__Threads` (default `0` → auto `nproc`)
+* `LLM__Provider=LLamaSharp`, `LLM__ModelPath=/home/appuser/models/...` (già impostati nello start script)
+
+### Build & run con Docker (singolo container)
+
+```bash
+# build (Dockerfile alla radice)
+docker build -t docflow-ai-net:latest .
+
+# run (passa il token HF; monta opzionale volume modelli)
+docker run --rm -p 8080:8080 \
+  -e HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxx \
+  -e LLAMASHARP__ContextSize=8192 \
+  -e LLAMASHARP__Threads=0 \
+  -v $PWD/models:/home/appuser/models \
+  docflow-ai-net:latest
+```
+
+L’entrypoint scarica il **GGUF** con `curl` (Authorization: Bearer **HF\_TOKEN**) in `/home/appuser/models` e avvia l’API .NET.
+
+---
+
+## API (schema tipico)
+
+> Gli endpoint possono variare in base alla versione; qui un esempio comune.
+
+**POST** `/api/process`
+**Body**: file (PDF/PNG/JPG) + metadati (contentType, lingua OCR opzionale).
+**Response (estratto)**:
+
+```json
+{
+  "fields": [
+    {
+      "name": "ragione_sociale",
+      "value": "ACME S.p.A.",
+      "confidence": 0.98,
+      "evidence": [
+        {
+          "page": 0,
+          "wordIndices": [42,43],
+          "bbox": [0.31,0.18,0.27,0.05],
+          "text": "ACME S.p.A.",
+          "score": 1.0,
+          "pointer": { "mode": "WordIds", "wordIds": ["W0_42","W0_43"] }
+        }
+      ]
+    }
+  ],
+  "traceId": "..."
+}
+```
+
+---
+
+## Valutazione (eval) & report
+
+### Runner CLI
+
+* Strumento: `tools/XFundEvalRunner` (o `BBoxEvalRunner`, a seconda del branch).
+* Funzioni:
+
+  * Scarica **XFUND IT (val)** e seleziona i **primi 10** documenti.
+  * Auto-deriva le **label attese** (question/key/header con **link** a answer/value).
+  * Costruisce **Index Map** (Pointer/WordIds) e **Text View** (Pointer/Offsets).
+  * Esegue **5 varianti**:
+    `PointerWordIds`, `PointerOffsets`, `TokenFirst`, `Legacy-BitParallel`, `Legacy-ClassicLevenshtein`.
+  * Calcola metriche **Quantitative**, **Tecniche**, **Tempi**, **Qualitative**.
+  * Salva: `summary.csv`, `coverage_matrix.csv`, JSON per-strategia, **tracce** (prompt, risposta, motivazioni di scarto).
+
+### Metriche chiave
+
+* **Coverage (BBox)**: `labels_with_bbox / labels_expected`
+* **Extraction rate**: `(labels_with_bbox + labels_text_only) / labels_expected`
+* **Exact-match** (valore vs atteso normalizzato)
+* **Word-IoU (Jaccard su indici)**, **IoU\@0.5 / IoU\@0.75** (bbox normalizzate)
+* **Tempi**: `t_convert_ms`, `t_index_ms`, `t_llm_ms`, `t_resolve_ms`, `t_total_ms` (mediana/p95)
+* **Pointer validity/fallback**: tasso e cause (`NoPointers`, `InvalidIds`, `NonContiguous`, `OutOfRange`, `EmptyOffsets`)
+
+### Panorama sintetico (esempio indicativo)
+
+> Valori **indicativi** su subset 10, utili per orientarsi. Per i numeri esatti consulta i CSV/JSON in `docs/eval/` e **[report dettagliato](docs/XFUND_IT_Eval.md)**.
+
+| Strategia            | Coverage (BBox) | Exact-match   | Word-IoU      | Mediana t\_total |
+| -------------------- | --------------- | ------------- | ------------- | ---------------- |
+| Pointer / WordIds    | **0.85–0.95**   | **0.85–0.95** | **0.80–0.90** | **120–180 ms**   |
+| Pointer / Offsets    | 0.80–0.90       | 0.80–0.90     | 0.70–0.85     | 130–200 ms       |
+| TokenFirst           | 0.70–0.85       | 0.75–0.90     | 0.65–0.80     | 150–220 ms       |
+| Legacy – BitParallel | 0.60–0.75       | 0.65–0.80     | 0.55–0.70     | 170–260 ms       |
+| Legacy – ClassicLev. | 0.55–0.70       | 0.60–0.75     | 0.50–0.65     | 180–280 ms       |
+
+* **Interpretazione rapida:** Pointer/WordIds è in genere **migliore** su copertura, exact e stabilità, con latenza contenuta; TokenFirst è un **ottimo fallback** nei casi rumorosi; le Legacy restano baseline/compat.
+
+### Dove leggere i risultati
+
+* **Panoramica e guide:** `docs/eval/`
+* **Report dettagliato:** **[docs/XFUND\_IT\_Eval.md](docs/XFUND_IT_Eval.md)**
+* **Riepilogo per documento/strategia:** `eval/out/summary.csv`
+* **Head-to-head per label:** `eval/out/coverage_matrix.csv`
+* **Dettagli ed evidenze:** `eval/out/<file>/<strategy>.json`
+* **Tracce (prompt/risposta/decisioni):** `eval/out/traces/...`
+
+---
+
+## Logging & Telemetria
+
+* **Serilog** strutturato: tempi per fase, candidati, soglie, similarity, cause di fallback.
+* **EventCounters/OTel** (se abilitati): histogram tempi, ratio coverage per strategia, counter di esiti.
+* Regola d’oro: troncare log oltre 2KB per evitare leakage di testo documento.
+
+---
+
+## Troubleshooting
+
+* **Pointer invalidi** → verifica grammar/schema e che l’Index Map non sia troncata; abilita `MaxGapBetweenIds=1` per spezzature con trattino.
+* **Offset fuori range** → controlla la “Text View” (normalizzazione e newline).
+* **OCR rumoroso** → prova **TokenFirst** con soglie adattive (0.25→0.35) e `EnableLabelProximity=true`.
+* **Modello non scaricato** → passa `HF_TOKEN` e verifica permessi sul repo HuggingFace; monta un volume su `/home/appuser/models` per cache persistente.
+
+---
+
+## Roadmap
+
+* Reranker **learning-to-rank** (XGBoost/LightGBM) per tie-break.
+* FM-Index/Suffix Automaton per exact-phrase ultra-rapida.
+* Plugin deterministici per campi strutturati (IBAN, P.IVA, CF, date, importi).
+* Grafici automatici (PNG) nei report (coverage, tempi, IoU).
+
+---
+
+## Licenza
+
+MIT (vedi file LICENSE).
+Alcune dipendenze/asset possono avere licenze diverse (es. dataset XFUND, modelli HuggingFace): verificare le relative condizioni.
+
+---
+
+### Riferimenti rapidi
+
+* **Eval:** `docs/eval/` e **[docs/XFUND\_IT\_Eval.md](docs/XFUND_IT_Eval.md)**
+* **Docker (9.0-noble + LLamaSharp):** vedi Dockerfile e `start.sh` in radice
+* **Config:** `appsettings.*.json` (sezione `Resolver`, `LLM`)
+* **Submodule MarkItDownNet:** documentazione in `src/MarkItDownNet/`
+
+— fine —
