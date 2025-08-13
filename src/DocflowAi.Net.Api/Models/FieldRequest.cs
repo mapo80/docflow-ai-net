@@ -1,3 +1,7 @@
 namespace DocflowAi.Net.Api.Models;
 
-public sealed record FieldRequest(string FieldName, string? Format);
+using System.ComponentModel.DataAnnotations;
+
+public sealed record FieldRequest(
+    [property: Required] string FieldName,
+    string? Format);

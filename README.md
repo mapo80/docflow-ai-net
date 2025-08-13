@@ -184,6 +184,24 @@ L’entrypoint scarica il **GGUF** con `curl` (Authorization: Bearer **HF\_TOKEN
 
 **POST** `/api/process`
 **Body**: file (PDF/PNG/JPG) + metadati (contentType, lingua OCR opzionale).
+
+### Esempio `curl`
+
+```bash
+curl -X POST 'https://cserd-docflowai.azurewebsites.net/api/v1/Process' \
+  -H 'X-API-Key: dev-secret-key-change-me' \
+  -F 'file=@sample_invoice.pdf;type=application/pdf' \
+  -F 'templateName=string' \
+  -F 'prompt=Estrarre dal testo fornito i seguenti campi di una fattura. Rispondi solo in formato JSON valido, senza testo aggiuntivo.  Campi richiesti: - company_name: string - document_type: string - invoice_number: string - invoice_date: string (YYYY-MM-DD)' \
+  -F 'fields[0].fieldName=company_name' \
+  -F 'fields[0].format=string' \
+  -F 'fields[1].fieldName=document_type' \
+  -F 'fields[1].format=string' \
+  -F 'fields[2].fieldName=invoice_number' \
+  -F 'fields[2].format=string' \
+  -F 'fields[3].fieldName=invoice_date' \
+  -F 'fields[3].format=date'
+```
 **Response (estratto)**:
 
 ```json
