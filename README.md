@@ -121,5 +121,8 @@ Per i risultati dell'estrazione su PDF e PNG consulta [dataset/markitdownnet-int
 ## Test di Integrazione BBoxResolver
 Esecuzioni delle strategie **TokenFirst** e **PointerStrategy** su PDF e PNG sono documentate in [dataset/boxsolver-integration.md](dataset/boxsolver-integration.md).
 
+## Bounding Box Evaluation Metrics
+Una panoramica delle metriche di copertura per diverse strategie è disponibile in [evaluation-results.md](evaluation-results.md).
+
 ## agents.md
 Consulta `agents.md` per l’uso con strumenti di codegen.
