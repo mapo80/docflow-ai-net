@@ -1,0 +1,17 @@
+{
+  "file": "./dataset/xfund_it_val/it_val_15.jpg",
+  "strategy": "PointerWordIds",
+  "metrics": {
+    "Expected": 0,
+    "WithBBox": 0,
+    "TextOnly": 0,
+    "Missing": 0,
+    "CoverageRate": 0,
+    "ExtractionRate": 0,
+    "PointerValidityRate": null,
+    "IoUMean": 0,
+    "IoUAt0_5": 0,
+    "IoUAt0_75": 0,
+    "PerLabelOutcome": {}
+  }
+}
