@@ -11,4 +11,8 @@ public sealed class BBoxOptions
     public int MaxCandidates { get; init; } = 10;
     /// <summary>Enable label proximity heuristic.</summary>
     public bool EnableLabelProximity { get; init; } = true;
+    /// <summary>Max adaptive threshold for short values (TokenFirst).</summary>
+    public double AdaptiveShortMax { get; init; } = 0.40;
+    /// <summary>Max adaptive threshold for long values (TokenFirst).</summary>
+    public double AdaptiveLongMax { get; init; } = 0.35;
 }

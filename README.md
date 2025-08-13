@@ -91,6 +91,23 @@ Il resolver `DocflowAi.Net.BBoxResolver` ancora ogni campo dell'LLM alle parole 
 
 Le coordinate sono normalizzate [0..1] con origine in alto a sinistra. L'algoritmo di distanza può essere scelto tramite configurazione `BBox:DistanceAlgorithm` oppure variabile d'ambiente `BBox__DistanceAlgorithm`.
 
+### Resolver strategy
+Il resolver supporta le strategie **Legacy** e **TokenFirst** (predefinita). Seleziona la strategia con `Resolver:Strategy` oppure variabile d'ambiente `Resolver__Strategy`.
+
+```json
+"Resolver": {
+  "Strategy": "TokenFirst",
+  "TokenFirst": {
+    "DistanceAlgorithm": "BitParallel",
+    "EditDistanceThreshold": 0.25,
+    "AdaptiveShortMax": 0.40,
+    "AdaptiveLongMax": 0.35,
+    "MaxCandidates": 10,
+    "EnableLabelProximity": true
+  }
+}
+```
+
 ## Smoke Test
 ```bash
 cd smoke

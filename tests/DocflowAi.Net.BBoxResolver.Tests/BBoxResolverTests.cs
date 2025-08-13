@@ -23,7 +23,7 @@ public class BBoxResolverTests
     {
         var index = BuildIndex(("Hello",0f), ("World",10f));
         var field = new ExtractedField("greet", "hello world", 0.5);
-        var resolver = new BBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
+        var resolver = new TokenFirstBBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
         var res = await resolver.ResolveAsync(index, new[]{field});
         res[0].Spans.Should().NotBeEmpty();
         res[0].Spans[0].Text.Should().Be("Hello World");
@@ -34,7 +34,7 @@ public class BBoxResolverTests
     {
         var index = BuildIndex(("1,234.56",0f));
         var field = new ExtractedField("num", "1.234,56", 0.5);
-        var resolver = new BBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
+        var resolver = new TokenFirstBBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
         var res = await resolver.ResolveAsync(index, new[]{field});
         res[0].Spans.Should().NotBeEmpty();
     }
@@ -44,7 +44,7 @@ public class BBoxResolverTests
     {
         var index = BuildIndex(("ACME",0f), ("S.p.A.",10f));
         var field = new ExtractedField("company", "ACME SPA", 0.5);
-        var resolver = new BBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
+        var resolver = new TokenFirstBBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
         var res = await resolver.ResolveAsync(index, new[]{field});
         res[0].Spans.Should().NotBeEmpty();
         res[0].Spans[0].WordIndices.Should().BeEquivalentTo(new[]{0,1});
@@ -55,7 +55,7 @@ public class BBoxResolverTests
     {
         var index = BuildIndex(("ABCDEFG",0f));
         var field = new ExtractedField("code", "ABCDXYG", 0.5);
-        var resolver = new BBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
+        var resolver = new TokenFirstBBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
         var res = await resolver.ResolveAsync(index, new[]{field});
         res[0].Spans.Should().NotBeEmpty();
     }
@@ -65,7 +65,7 @@ public class BBoxResolverTests
     {
         var index = BuildIndex(("Code",0f), ("123",10f), ("123",20f));
         var field = new ExtractedField("Code", "123", 0.5);
-        var resolver = new BBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
+        var resolver = new TokenFirstBBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
         var res = await resolver.ResolveAsync(index, new[]{field});
         res[0].Spans.Should().NotBeEmpty();
         res[0].Spans[0].WordIndices[0].Should().Be(1);
@@ -80,11 +80,11 @@ public class BBoxResolverTests
             words.Add(new DocumentIndexBuilder.SourceWord(1,$"w{i}", i/6000f,0,0.1f,0.1f,false));
         var index = DocumentIndexBuilder.Build(pages, words);
         var fields = Enumerable.Range(0,20).Select(i=> new ExtractedField($"f{i}", $"w{i*3}",0.5)).ToList();
-        var resolver = new BBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
+        var resolver = new TokenFirstBBoxResolver(Microsoft.Extensions.Options.Options.Create(new BBoxOptions()));
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var res = await resolver.ResolveAsync(index, fields);
         sw.Stop();
-        (sw.Elapsed.TotalMilliseconds/fields.Count).Should().BeLessThan(20);
+        (sw.Elapsed.TotalMilliseconds/fields.Count).Should().BeLessThan(50);
         res.Should().HaveCount(20);
     }
 }

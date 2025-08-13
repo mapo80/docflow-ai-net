@@ -25,7 +25,7 @@ internal sealed class CandidateRefiner
         var best = Evaluate(list, normValue, threshold, fieldName);
         if (best is null)
         {
-            threshold = normValue.Length <= 8 ? Math.Max(threshold, 0.40) : Math.Max(threshold, 0.35);
+            threshold = normValue.Length <= 8 ? Math.Max(threshold, _options.AdaptiveShortMax) : Math.Max(threshold, _options.AdaptiveLongMax);
             best = Evaluate(list, normValue, threshold, fieldName);
         }
         Log.Debug("BBox:Refine {@meta}", new { Alg = _options.DistanceAlgorithm.ToString(), Threshold = threshold, Candidates = list.Count, Similarity = best?.Score, ms = sw.ElapsedMilliseconds });
