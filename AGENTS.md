@@ -12,18 +12,29 @@
       --local-dir ./models --token "$HF_TOKEN"
   export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
   ```
-- Install the .NET 9 SDK locally if needed:
-  ```bash
-  ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
-  export PATH="$HOME/dotnet:$PATH"
-  ```
-- Initialize submodules:
-  ```bash
-  git submodule update --init --recursive
-  ```
 - Output is always **valid JSON** due to **GBNF grammar** at inference, then validated against **Extraction Profiles**.
 
 Prompts:
 - The server injects `/think` or `/no_think` automatically based on header/config.
 - Do not add explanations; responses must be pure JSON.
-- Dataset samples live under `/dataset`; run `LLM__ModelPath=./models/qwen2.5-0.5b-instruct-q4_0.gguf MSBUILDTERMINALLOGGER=false dotnet test -c Release` and `python -m pytest` to validate them.
+## Workflow
+
+- Initialize submodules:
+  ```bash
+  git submodule update --init --recursive
+  ```
+- Install the .NET 9 SDK locally if needed:
+  ```bash
+  ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
+  export PATH="$HOME/dotnet:$PATH"
+  ```
+- Build and test:
+  ```bash
+  dotnet build -c Release
+  dotnet test -c Release
+  ```
+- Dockerize:
+  ```bash
+  docker build -f deployment/Dockerfile.api -t docflow-api .
+  docker run --rm -p 8080:8080 docflow-api
+  ```

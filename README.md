@@ -18,6 +18,15 @@
 File/PDF/Image -> MarkdownNetConverter -> LlamaExtractor -> JSON Output
 ```
 
+## Quickstart
+```bash
+git submodule update --init --recursive
+./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
+export PATH="$HOME/dotnet:$PATH"
+dotnet build -c Release
+dotnet test -c Release
+```
+
 ## Avvio rapido con Docker Compose
 ```bash
 cd deployment
@@ -35,24 +44,6 @@ huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
   --local-dir ./models --token "$HF_TOKEN"
 export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
 ```
-
-### Dataset e test
-Nel repo è presente un dataset di esempio sotto `./dataset`.
-Per eseguire i test (inclusi quelli sul dataset):
-```bash
-export MSBUILDTERMINALLOGGER=false
-dotnet test
-python -m pytest
-```
-I test esercitano direttamente la libreria MarkItDownNet usando i PDF/PNG in `./dataset`.
-Il prompt dell'LLM e la lista dei campi sono passati alla chiamata di processo; i risultati per ogni file vengono stampati nei log dei test.
-
-Per il debug del PDF di esempio, i test impostano la variabile d'ambiente `DEBUG_DIR=./dataset/test-pdf` e salvano:
-- `markdown.txt` con l'output della conversione OCR→Markdown
-- `fields.txt` con i campi richiesti
-- `schema_prompt.txt` con il prompt generato dal template
-- `final_prompt.txt` con messaggio **system** (prompt + schema JSON) e messaggio **user** (solo markdown)
-- `llm_response.txt` con la risposta grezza dell'LLM
 
 ## Endpoint principali
 - `POST /api/v1/process` (protetto API key) — multipart `file=@image`
