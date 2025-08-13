@@ -124,6 +124,21 @@ Esecuzioni delle strategie **TokenFirst** e **PointerStrategy** su PDF e PNG son
 ## Bounding Box Evaluation Metrics
 Una panoramica delle metriche di copertura per diverse strategie è disponibile in [evaluation-results.md](evaluation-results.md).
 
+## Build container docker
+
+export HF_TOKEN=hf_************************
+
+DOCKER_BUILDKIT=1 docker build \
+  --secret id=hf_token,env=HF_TOKEN \
+  --build-arg LLM_MODEL_REPO=unsloth/Qwen3-1.7B-GGUF \
+  --build-arg LLM_MODEL_FILE=Qwen3-1.7B-UD-Q4_K_XL.gguf \
+  --build-arg LLM_MODEL_REV=main \
+  -t docflow-ai-net:with-model .
+
+# Esecuzione
+
+docker run --rm -p 8080:8080 docflow-ai-net:with-model
+
 ## agents.md
 Consulta `agents.md` per l’uso con strumenti di codegen.
 
