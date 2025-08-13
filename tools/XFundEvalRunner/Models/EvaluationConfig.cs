@@ -10,4 +10,8 @@ public sealed class EvaluationConfig
     public int Repeat { get; set; } = 1;
     public int Warmup { get; set; } = 0;
     public bool StrictPointer { get; set; }
+    public bool SavePrompts { get; set; }
+    public bool SaveResponses { get; set; }
+    public bool SavePerAlgorithmTrace { get; set; }
+    public int MaxLogChars { get; set; } = 20000;
 }
