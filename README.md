@@ -76,5 +76,8 @@ cd smoke
 ```
 Salva `process.json` con l'output dell'endpoint.
 
+## Test di Integrazione MarkItDownNet
+Per i risultati dell'estrazione su PDF e PNG consulta [dataset/markitdownnet-integration.md](dataset/markitdownnet-integration.md).
+
 ## agents.md
 Consulta `agents.md` per l’uso con strumenti di codegen.

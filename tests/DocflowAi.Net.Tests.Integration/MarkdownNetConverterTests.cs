@@ -10,6 +10,7 @@ using UglyToad.PdfPig.Core;
 using SkiaSharp;
 using BitMiracle.LibTiff.Classic;
 using Xunit;
+using Tesseract;
 
 namespace DocflowAi.Net.Tests.Integration;
 
@@ -21,11 +22,20 @@ public class MarkdownNetConverterTests
 
     private static bool CheckTesseract()
     {
-        bool lept = NativeLibrary.TryLoad("liblept.so.5", out var lh);
-        if (lept) NativeLibrary.Free(lh);
-        bool tess = NativeLibrary.TryLoad("libtesseract.so.5", out var th);
-        if (tess) NativeLibrary.Free(th);
-        return lept && tess;
+        try
+        {
+            bool lept = NativeLibrary.TryLoad("liblept.so.5", out var lh);
+            if (lept) NativeLibrary.Free(lh);
+            bool tess = NativeLibrary.TryLoad("libtesseract.so.5", out var th);
+            if (tess) NativeLibrary.Free(th);
+            if (!(lept && tess)) return false;
+            using var engine = new TesseractEngine("/usr/share/tesseract-ocr/4.00/tessdata", "eng", EngineMode.Default);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     [Fact]
