@@ -45,7 +45,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddProblemDetails(o => { o.IncludeExceptionDetails = (ctx, ex) => builder.Environment.IsDevelopment(); });
 
-builder.Services.AddScoped<IMarkdownConverter, MarkdownNetConverter>();
+builder.Services.AddSingleton<IMarkdownConverter, MarkdownNetConverter>();
 builder.Services.AddScoped<IReasoningModeAccessor, ReasoningModeAccessor>();
 builder.Services.AddScoped<ILlamaExtractor, LlamaExtractor>();
 builder.Services.AddScoped<IProcessingOrchestrator, ProcessingOrchestrator>();

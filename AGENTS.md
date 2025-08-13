@@ -38,3 +38,14 @@ Prompts:
   docker build -f deployment/Dockerfile.api -t docflow-api .
   docker run --rm -p 8080:8080 docflow-api
   ```
+
+## MarkItDownNet
+- Adapter: `src/DocflowAi.Net.Infrastructure/Markdown/MarkdownNetConverter.cs`
+- Dependency Injection: `src/DocflowAi.Net.Api/Program.cs`
+- Tests: `tests/DocflowAi.Net.Tests.Integration/MarkdownNetConverterTests.cs`
+
+## Pre-PR checklist
+- `rg --pcre2 -n -i 'markitdown(?!net)'` → **vuoto**
+- `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` → **vuoto**
+- `dotnet build -c Release`
+- `dotnet test -c Release`
