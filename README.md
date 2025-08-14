@@ -325,4 +325,6 @@ Alcune dipendenze/asset possono avere licenze diverse (es. dataset XFUND, modell
 * **Config:** `appsettings.*.json` (sezione `Resolver`, `LLM`)
 * **Submodule MarkItDownNet:** documentazione in `src/MarkItDownNet/`
 
+* **Real API Test Plan:** [docs/real-api-test-plan.md](docs/real-api-test-plan.md)
+* **Test Report:** [docs/test-report.md](docs/test-report.md)
 — fine —
