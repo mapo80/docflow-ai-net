@@ -28,6 +28,13 @@ Il progetto integra:
 
 ---
 
+## Job Queue
+
+- Passo 1: integrati **Hangfire** (MemoryStorage), **LiteDB** e **Rate Limiting** con endpoint `GET /v1/jobs` paginato.
+- Passo 2: aggiunto `POST /v1/jobs` per il submit (file base64/multipart), `GET /v1/jobs/{id}` e `DELETE /v1/jobs/{id}` con stato gestito solo da LiteDB e artefatti salvati su filesystem.
+
+---
+
 ## Architettura (high-level)
 
 ```
@@ -182,25 +189,12 @@ L’entrypoint scarica il **GGUF** con `curl` (Authorization: Bearer **HF\_TOKEN
 
 > Gli endpoint possono variare in base alla versione; qui un esempio comune.
 
-**POST** `/api/process`
-**Body**: file (PDF/PNG/JPG) + metadati (contentType, lingua OCR opzionale).
-
-### Esempio `curl`
+L'endpoint legacy `/api/process` è stato rimosso. Usa la coda lavori:
 
 ```bash
-curl -X POST 'http://localhost:5000/api/v1/Process' \
+curl -X POST 'http://localhost:5000/v1/jobs?mode=immediate' \
   -H 'X-API-Key: dev-secret-key-change-me' \
-  -F 'file=@dataset/sample_invoice.pdf;type=application/pdf' \
-  -F 'templateName=string' \
-  -F 'prompt=Estrarre dal testo fornito i seguenti campi di una fattura. Rispondi solo in formato JSON valido, senza testo aggiuntivo.  Campi richiesti: - company_name: string - document_type: string - invoice_number: string - invoice_date: string (YYYY-MM-DD)' \
-  -F 'fields[0].fieldName=company_name' \
-  -F 'fields[0].format=string' \
-  -F 'fields[1].fieldName=document_type' \
-  -F 'fields[1].format=string' \
-  -F 'fields[2].fieldName=invoice_number' \
-  -F 'fields[2].format=string' \
-  -F 'fields[3].fieldName=invoice_date' \
-  -F 'fields[3].format=date'
+  -F 'file=@dataset/sample_invoice.pdf;type=application/pdf'
 ```
 **Response:**
 

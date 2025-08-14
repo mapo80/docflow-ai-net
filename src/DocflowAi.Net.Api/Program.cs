@@ -6,12 +6,33 @@ using DocflowAi.Net.Infrastructure.Markdown;
 using DocflowAi.Net.Infrastructure.Orchestration;
 using DocflowAi.Net.Infrastructure.Reasoning;
 using DocflowAi.Net.BBoxResolver;
+using DocflowAi.Net.Api.Options;
+using DocflowAi.Net.Api.JobQueue.Abstractions;
+using DocflowAi.Net.Api.JobQueue.Services;
+using DocflowAi.Net.Api.JobQueue.Processing;
+using DocflowAi.Net.Api.JobQueue.Endpoints;
+using DocflowAi.Net.Api.JobQueue.Hosted;
+using DocflowAi.Net.Api.Contracts;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Hellang.Middleware.ProblemDetails;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Threading.RateLimiting;
+using DocflowAi.Net.Api.Health;
 using Microsoft.OpenApi.Models;
+using LiteDB;
+using Microsoft.Extensions.Options;
 using Serilog;
+using DocflowAi.Net.Api.Security;
+using System.Linq;
+using System.Collections.Generic;
+using Hangfire.Dashboard;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +49,8 @@ builder.Services.Configure<ResolverOptions>(builder.Configuration.GetSection("Re
 builder.Services.Configure<BBoxOptions>(builder.Configuration.GetSection("BBox"));
 builder.Services.PostConfigure<BBoxOptions>(o => builder.Configuration.GetSection("Resolver:TokenFirst").Bind(o));
 builder.Services.Configure<PointerOptions>(builder.Configuration.GetSection("Resolver:Pointer"));
+builder.Services.Configure<JobQueueOptions>(builder.Configuration.GetSection(JobQueueOptions.SectionName));
+builder.Services.Configure<HangfireDashboardAuthOptions>(builder.Configuration.GetSection(HangfireDashboardAuthOptions.SectionName));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
@@ -40,7 +63,14 @@ builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "docflow-ai-net API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "docflow-ai-net API",
+        Version = "v1",
+        Description = "Job queue and immediate processing API",
+        Contact = new OpenApiContact { Name = "docflow-ai", Url = new Uri("https://github.com/mapo80/docflow-ai-net") },
+        License = new OpenApiLicense { Name = "MIT" }
+    });
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
@@ -49,6 +79,78 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddProblemDetails(o => { o.IncludeExceptionDetails = (ctx, ex) => builder.Environment.IsDevelopment(); });
+
+builder.Services.AddSingleton<LiteDatabase>(sp =>
+{
+    var opts = sp.GetRequiredService<IOptions<JobQueueOptions>>().Value;
+    return new LiteDatabase(opts.LiteDb.Path);
+});
+builder.Services.AddSingleton<IJobStore, LiteDbJobStore>();
+builder.Services.AddSingleton<IFileSystemService, FileSystemService>();
+builder.Services.AddSingleton<IProcessService, ProcessService>();
+builder.Services.AddSingleton<IJobRunner, JobRunner>();
+builder.Services.AddSingleton<IConcurrencyGate, ConcurrencyGate>();
+builder.Services.AddHostedService<ReschedulerService>();
+builder.Services.AddSingleton<CleanupService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<CleanupService>());
+
+builder.Services.AddHangfire(config =>
+{
+    config.UseSimpleAssemblyNameTypeSerializer()
+          .UseRecommendedSerializerSettings()
+          .UseMemoryStorage();
+});
+var workerCount = builder.Configuration.GetSection("JobQueue:Concurrency:HangfireWorkerCount").Get<int>();
+if (workerCount > 0)
+{
+    builder.Services.AddHangfireServer((sp, opts) =>
+    {
+        var cfg = sp.GetRequiredService<IOptions<JobQueueOptions>>().Value;
+        opts.WorkerCount = cfg.Concurrency.HangfireWorkerCount;
+    });
+}
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.OnRejected = (context, token) =>
+    {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("RateLimiter");
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        int retry = 0;
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            retry = (int)Math.Ceiling(retryAfter.TotalSeconds);
+            context.HttpContext.Response.Headers["Retry-After"] = retry.ToString();
+        }
+        var policy = context.HttpContext.GetEndpoint()?.DisplayName ?? "unknown";
+        logger.LogWarning("RateLimited {Policy} {RetryAfterSeconds}", policy, retry);
+        return new ValueTask(context.HttpContext.Response.WriteAsJsonAsync(new ErrorResponse("rate_limited", null, retry), cancellationToken: token));
+    };
+    options.AddPolicy("General", context =>
+    {
+        var cfg = context.RequestServices.GetRequiredService<IOptions<JobQueueOptions>>().Value.RateLimit.General;
+        return RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "anon",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = cfg.PermitPerWindow,
+                Window = TimeSpan.FromSeconds(cfg.WindowSeconds),
+                QueueLimit = cfg.QueueLimit
+            });
+    });
+    options.AddPolicy("Submit", context =>
+    {
+        var cfg = context.RequestServices.GetRequiredService<IOptions<JobQueueOptions>>().Value.RateLimit.Submit;
+        return RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "anon",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = cfg.PermitPerWindow,
+                Window = TimeSpan.FromSeconds(cfg.WindowSeconds),
+                QueueLimit = cfg.QueueLimit
+            });
+    });
+});
 
 builder.Services.AddSingleton<IMarkdownConverter, MarkdownNetConverter>();
 builder.Services.AddScoped<IReasoningModeAccessor, ReasoningModeAccessor>();
@@ -61,21 +163,66 @@ builder.Services.AddSingleton<IPointerResolver, PointerResolver>();
 builder.Services.AddSingleton<IResolverOrchestrator, ResolverOrchestrator>();
 builder.Services.AddHttpClient<ILlmModelService, LlmModelService>();
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<JobQueueReadyHealthCheck>("jobqueue", tags: new[] { "ready" });
 
 var app = builder.Build();
 
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(opts =>
+{
+    opts.EnrichDiagnosticContext = (ctx, http) =>
+    {
+        ctx.Set("RequestId", http.TraceIdentifier);
+        ctx.Set("UserAgent", http.Request.Headers["User-Agent"].ToString());
+        ctx.Set("ClientIP", http.Connection.RemoteIpAddress?.ToString());
+    };
+});
 app.UseProblemDetails();
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
-app.MapHealthChecks("/health");
+var fs = app.Services.GetRequiredService<IFileSystemService>();
+var jqOpts = app.Services.GetRequiredService<IOptions<JobQueueOptions>>().Value;
+fs.EnsureDirectory(jqOpts.DataRoot);
+if (jqOpts.EnableDashboard)
+{
+    var dashOpts = app.Services.GetRequiredService<IOptions<HangfireDashboardAuthOptions>>().Value;
+    var dashboardOptions = new DashboardOptions();
+    if (dashOpts.Enabled)
+    {
+        dashboardOptions.Authorization = new[] { new BasicAuthDashboardFilter(app.Services.GetRequiredService<IOptions<HangfireDashboardAuthOptions>>()) };
+        Log.Information("HangfireDashboardAuthEnabled");
+    }
+    app.UseHangfireDashboard("/hangfire", dashboardOptions);
+}
+
+app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("ready"),
+    ResponseWriter = async (ctx, report) =>
+    {
+        ctx.Response.ContentType = "application/json";
+        var entry = report.Entries.First().Value;
+        if (entry.Status == HealthStatus.Healthy)
+        {
+            await ctx.Response.WriteAsync("{\"status\":\"healthy\"}");
+        }
+        else
+        {
+            var reasons = entry.Data.TryGetValue("reasons", out var val) && val is IEnumerable<string> arr ? arr : new List<string>();
+            await ctx.Response.WriteAsJsonAsync(new { status = "unhealthy", reasons });
+        }
+    }
+});
 app.MapControllers();
+app.MapJobEndpoints();
 app.MapFallbackToFile("index.html");
 app.Run();
 
