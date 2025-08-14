@@ -7,7 +7,8 @@ import App from './App';
 import { HashRouter } from 'react-router-dom';
 import { OpenAPI } from './generated';
 
-OpenAPI.BASE = import.meta.env.VITE_API_BASE_URL;
+// Use relative API paths when VITE_API_BASE_URL is not provided
+OpenAPI.BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
