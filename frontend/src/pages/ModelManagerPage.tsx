@@ -4,9 +4,17 @@ import ModelSwitchForm from '../components/ModelSwitchForm';
 import StatusCard from '../components/StatusCard';
 import PresetList from '../components/PresetList';
 import RetryAfterBanner from '../components/RetryAfterBanner';
-import { DefaultService, type ModelInfo, type ModelSwitchRequest } from '../generated';
-import { HttpError } from '../api/fetcher';
+import { ModelService, type SwitchModelRequest, ApiError, OpenAPI } from '../generated';
+import { request as __request } from '../generated/core/request';
 import dayjs from 'dayjs';
+
+type ModelInfo = {
+  name?: string | null;
+  repo?: string | null;
+  file?: string | null;
+  contextSize?: number | null;
+  loadedAt?: string | null;
+};
 
 export default function ModelManagerPage() {
   const [info, setInfo] = useState<ModelInfo | null>(null);
@@ -15,13 +23,15 @@ export default function ModelManagerPage() {
 
   const loadInfo = async () => {
     try {
-      const data = await DefaultService.getModelInfo();
+      const data = await __request<ModelInfo>(OpenAPI, {
+        method: 'GET',
+        url: '/api/v1/model',
+      });
       setInfo(data);
     } catch (e) {
-      if (e instanceof HttpError && e.status === 429) {
-        setRetryAfter(e.retryAfter ?? 0);
+      if (e instanceof ApiError && e.status === 429) {
+        setRetryAfter(e.body?.retry_after_seconds ?? 0);
       }
-    } finally {
     }
   };
 
@@ -29,15 +39,15 @@ export default function ModelManagerPage() {
     loadInfo();
   }, []);
 
-  const handleSwitch = async (req: ModelSwitchRequest) => {
+  const handleSwitch = async (req: SwitchModelRequest) => {
     try {
-      await DefaultService.switchModel({ requestBody: req });
+      await ModelService.modelSwitch({ requestBody: req });
       message.success('Switch avviato');
       setPolling(true);
     } catch (e) {
-      if (e instanceof HttpError) {
-        if (e.status === 429) setRetryAfter(e.retryAfter ?? 0);
-        else message.error(e.data.message || e.data.errorCode);
+      if (e instanceof ApiError) {
+        if (e.status === 429) setRetryAfter(e.body?.retry_after_seconds ?? 0);
+        else message.error(e.body?.message || e.body?.errorCode);
       }
     }
   };

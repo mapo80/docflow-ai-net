@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card, Progress, Result, Space, Button } from 'antd';
-import { DefaultService, type ModelStatus } from '../generated';
-import { HttpError } from '../api/fetcher';
+import { ModelService, type ModelDownloadStatus, ApiError } from '../generated';
 import RetryAfterBanner from './RetryAfterBanner';
+
+type ModelStatus = ModelDownloadStatus & { message?: string };
 
 type Props = {
   active: boolean;
@@ -15,12 +16,12 @@ export default function StatusCard({ active }: Props) {
 
   const fetchStatus = async () => {
     try {
-      const s = await DefaultService.getModelStatus();
+      const s = await ModelService.modelStatus();
       setStatus(s);
       setError(null);
     } catch (e) {
-      if (e instanceof HttpError && e.status === 429) {
-        setRetryAfter(e.retryAfter ?? 0);
+      if (e instanceof ApiError && e.status === 429) {
+        setRetryAfter(e.body?.retry_after_seconds ?? 0);
       } else {
         setError('Errore');
       }

@@ -2,7 +2,7 @@ import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { test, vi, expect } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import JobsList from './JobsList';
-import { DefaultService } from '../generated';
+import { JobsService } from '../generated';
 
 vi.mock('antd', () => ({
   Table: ({ dataSource, pagination, columns }: any) => (
@@ -26,9 +26,9 @@ vi.mock('antd', () => ({
 
 test('pagination and cancel', async () => {
   const getSpy = vi
-    .spyOn(DefaultService, 'getJobs')
+    .spyOn(JobsService, 'jobsList')
     .mockResolvedValue({ items: [{ id: '1', status: 'Running', createdAt: '', updatedAt: '' } as any], page: 1, pageSize: 10, total: 20 });
-  const cancelSpy = vi.spyOn(DefaultService, 'cancelJob').mockResolvedValue(undefined as any);
+  const cancelSpy = vi.spyOn(JobsService, 'jobsDelete').mockResolvedValue(undefined as any);
   render(
     <MemoryRouter>
       <JobsList />

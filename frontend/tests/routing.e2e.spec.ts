@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test('menu routing', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('apiKey', 'test'));
+  await page.evaluate(() =>
+    localStorage.setItem('apiKey', 'dev-secret-key-change-me')
+  );
   await page.reload();
   await page.getByRole('menuitem', { name: 'Jobs' }).click();
   await expect(page).toHaveURL(/\/jobs$/);
@@ -16,7 +18,9 @@ test('menu routing', async ({ page }) => {
 
 test('hangfire opens new window', async ({ page, context }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('apiKey', 'test'));
+  await page.evaluate(() =>
+    localStorage.setItem('apiKey', 'dev-secret-key-change-me')
+  );
   await page.reload();
   const [newPage] = await Promise.all([
     context.waitForEvent('page'),
@@ -30,7 +34,9 @@ test('health badge shows state', async ({ page }) => {
     route.fulfill({ json: { status: 'unhealthy', reasons: ['disk_full'] } });
   });
   await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('apiKey', 'test'));
+  await page.evaluate(() =>
+    localStorage.setItem('apiKey', 'dev-secret-key-change-me')
+  );
   await page.reload();
   await expect(
     page.getByRole('banner').locator('.ant-badge-status-dot'),

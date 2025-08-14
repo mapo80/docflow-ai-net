@@ -8,11 +8,16 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { ErrorResponse } from './models/ErrorResponse';
-export type { HealthResponse } from './models/HealthResponse';
-export type { Job } from './models/Job';
-export type { PagedListJob } from './models/PagedListJob';
-export type { ModelInfo } from './models/ModelInfo';
-export type { ModelStatus } from './models/ModelStatus';
-export type { ModelSwitchRequest } from './models/ModelSwitchRequest';
+export type { ImmediateJobResponse } from './models/ImmediateJobResponse';
+export type { JobDetailResponse } from './models/JobDetailResponse';
+export type { JobSummary } from './models/JobSummary';
+export type { MetricsInfo } from './models/MetricsInfo';
+export type { ModelDownloadStatus } from './models/ModelDownloadStatus';
+export type { PagedJobsResponse } from './models/PagedJobsResponse';
+export type { PathInfo } from './models/PathInfo';
+export type { SubmitAcceptedResponse } from './models/SubmitAcceptedResponse';
+export type { SwitchModelRequest } from './models/SwitchModelRequest';
+export type { Void } from './models/Void';
 
-export { DefaultService } from './services/DefaultService';
+export { JobsService } from './services/JobsService';
+export { ModelService } from './services/ModelService';

@@ -56,8 +56,10 @@ Per eseguire l'OCR è necessario fornire i file tessdata delle lingue e indicarl
 
 ## Frontend E2E
 - Imposta le variabili in `.env`:
-  - `VITE_API_BASE_URL` URL dell'API REST
+  - `VITE_API_BASE_URL` URL dell'API REST (non includere il prefisso `/api/v1`, già previsto dal client)
   - `VITE_HANGFIRE_PATH` percorso dell'interfaccia Hangfire (es. `/hangfire`)
+- Tutte le chiamate da FE ai servizi REST devono essere eseguite tramite il client generato automaticamente tramite swagger ad eccezione dei servizi di health.
+- I file generati automaticamente tramite swagger **non devono essere modificati manualmente**.
 - Per eseguire i test end-to-end:
   ```bash
   npm test -- --run

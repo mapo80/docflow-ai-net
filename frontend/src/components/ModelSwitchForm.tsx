@@ -1,10 +1,10 @@
 import { Button, Form, Input, InputNumber, Space, message } from 'antd';
 import { useEffect } from 'react';
-import type { ModelSwitchRequest } from '../generated';
+import type { SwitchModelRequest } from '../generated';
 import { savePreset, type ModelPreset } from './presetStore';
 
 type Props = {
-  onSubmit: (req: ModelSwitchRequest) => Promise<void>;
+  onSubmit: (req: SwitchModelRequest) => Promise<void>;
   disabled?: boolean;
 };
 
@@ -14,12 +14,11 @@ export default function ModelSwitchForm({ onSubmit, disabled }: Props) {
   const handleFinish = async () => {
     try {
       const values = await form.validateFields();
-      const req: ModelSwitchRequest = {
-        token: values.token,
-        repo: values.repo.trim(),
-        file: values.file.trim(),
+      const req: SwitchModelRequest = {
+        hfKey: values.token,
+        modelRepo: values.repo.trim(),
+        modelFile: values.file.trim(),
         contextSize: values.contextSize,
-        note: values.note?.trim(),
       };
       await onSubmit(req);
       form.resetFields(['token']);

@@ -1,20 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Button } from 'antd';
 import HealthBadge from '../components/HealthBadge';
-import { DefaultService, type HealthResponse } from '../generated';
+
+type HealthResponse = { status?: string; reasons?: string[] };
 
 export default function HealthPage() {
   const [ready, setReady] = useState<HealthResponse | null>(null);
   const [live, setLive] = useState<HealthResponse | null>(null);
 
   const load = async () => {
+    const api = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = api.replace(/\/api\/v1$/, '');
     try {
-      setReady(await DefaultService.getHealth());
+      const res = await fetch(`${base}/health/ready`);
+      setReady(await res.json());
     } catch {
       setReady(null);
     }
     try {
-      setLive(await DefaultService.getHealthLive());
+      const res = await fetch(`${base}/health/live`);
+      setLive(await res.json());
     } catch {
       setLive(null);
     }

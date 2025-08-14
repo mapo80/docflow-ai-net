@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Table, Space, Button, Progress, Badge, Alert, message } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { DefaultService, type Job } from '../generated';
+import { JobsService, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { HttpError } from '../api/fetcher';
 
 const terminal = ['Succeeded', 'Failed', 'Cancelled'];
 
 export default function JobsList() {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<JobDetailResponse[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(() => Number(localStorage.getItem('pageSize') || 10));
   const [total, setTotal] = useState(0);
@@ -20,15 +19,16 @@ export default function JobsList() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await DefaultService.getJobs({ page, pageSize });
-      setJobs(res.items);
-      setTotal(res.total);
-      if (res.items.some((j) => !terminal.includes(j.status))) {
+      const res = await JobsService.jobsList({ page, pageSize });
+      const items = (res.items || []) as JobDetailResponse[];
+      setJobs(items);
+      setTotal(res.total || 0);
+      if (items.some((j) => !terminal.includes(j.status!))) {
         // polling
       }
     } catch (e) {
-      if (e instanceof HttpError && e.status === 429 && e.retryAfter) {
-        setRetry(e.retryAfter);
+      if (e instanceof ApiError && e.status === 429 && e.body?.retry_after_seconds) {
+        setRetry(e.body.retry_after_seconds);
       }
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ export default function JobsList() {
 
   useEffect(() => {
     const id = setInterval(() => {
-      if (jobs.some((j) => !terminal.includes(j.status))) {
+      if (jobs.some((j) => !terminal.includes(j.status!))) {
         load();
       }
     }, 5000);
@@ -61,17 +61,17 @@ export default function JobsList() {
 
   const handleCancel = async (id: string) => {
     try {
-      await DefaultService.cancelJob({ id });
+      await JobsService.jobsDelete({ id });
       message.success('Job cancellato');
       load();
     } catch (e) {
-      if (e instanceof HttpError) {
-        message.error(e.data.errorCode);
+      if (e instanceof ApiError) {
+        message.error(e.body?.errorCode);
       }
     }
   };
 
-  const columns: ColumnsType<Job> = [
+  const columns: ColumnsType<JobDetailResponse> = [
     {
       title: 'ID',
       dataIndex: 'id',
@@ -80,7 +80,7 @@ export default function JobsList() {
     {
       title: 'Status',
       dataIndex: 'status',
-      render: (_: string, record: Job) => <JobStatusTag status={record.status} derived={record.derivedStatus} />,
+      render: (_: string, record: JobDetailResponse) => <JobStatusTag status={record.status!} derived={record.derivedStatus} />,
       filters: [
         { text: 'Queued', value: 'Queued' },
         { text: 'Running', value: 'Running' },
@@ -112,10 +112,10 @@ export default function JobsList() {
     },
     {
       title: 'Azioni',
-      render: (_: any, record: Job) => (
+      render: (_: any, record: JobDetailResponse) => (
         <Space>
           <Link to={`/jobs/${record.id}`}>View</Link>
-          <Button disabled={!['Queued', 'Running'].includes(record.status)} onClick={() => handleCancel(record.id)}>
+          <Button disabled={!['Queued', 'Running'].includes(record.status!)} onClick={() => handleCancel(record.id!)}>
             Cancel
           </Button>
           {record.paths?.output && (
@@ -146,13 +146,15 @@ export default function JobsList() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
         <Button
-          onClick={() =>
+          onClick={() => {
+            const api = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+            const base = api.replace(/\/api\/v1$/, '');
             window.open(
-              `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_HANGFIRE_PATH}`,
+              `${base}${import.meta.env.VITE_HANGFIRE_PATH}`,
               '_blank',
               'noopener,noreferrer',
-            )
-          }
+            );
+          }}
         >
           Apri Hangfire
         </Button>

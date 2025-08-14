@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('apiKey', 'test'));
+  await page.addInitScript(() =>
+    localStorage.setItem('apiKey', 'dev-secret-key-change-me')
+  );
 });
 
 test.skip('lista paginata', async ({ page }) => {

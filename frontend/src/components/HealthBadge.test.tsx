@@ -2,33 +2,25 @@ import { render, screen } from '@testing-library/react';
 import { afterEach, describe, it, vi } from 'vitest';
 import HealthBadge from './HealthBadge';
 
-vi.mock('../generated', () => ({
-  DefaultService: {
-    getHealth: vi.fn(),
-  },
-}));
-
-const { DefaultService } = await import('../generated');
-
 describe('HealthBadge', () => {
   afterEach(() => {
-    vi.resetAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('shows green on ok', async () => {
-    (DefaultService.getHealth as any).mockResolvedValue({ status: 'ok', reasons: [] });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ json: () => Promise.resolve({ status: 'ok', reasons: [] }) }));
     render(<HealthBadge />);
     await screen.findAllByText('Health');
   });
 
   it('shows red on unhealthy', async () => {
-    (DefaultService.getHealth as any).mockResolvedValue({ status: 'unhealthy', reasons: ['bad'] });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ json: () => Promise.resolve({ status: 'unhealthy', reasons: ['bad'] }) }));
     render(<HealthBadge />);
     await screen.findAllByText('Health');
   });
 
   it('shows orange on backpressure', async () => {
-    (DefaultService.getHealth as any).mockResolvedValue({ status: 'backpressure', reasons: ['busy'] });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ json: () => Promise.resolve({ status: 'backpressure', reasons: ['busy'] }) }));
     render(<HealthBadge />);
     await screen.findAllByText('Health');
   });

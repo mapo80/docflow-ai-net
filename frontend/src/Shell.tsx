@@ -26,12 +26,15 @@ export default function Shell() {
       key: 'hangfire',
       icon: <LinkOutlined />,
       label: 'Hangfire',
-      onClick: () =>
+      onClick: () => {
+        const api = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+        const base = api.replace(/\/api\/v1$/, '');
         window.open(
-          `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_HANGFIRE_PATH}`,
+          `${base}${import.meta.env.VITE_HANGFIRE_PATH}`,
           '_blank',
           'noopener,noreferrer',
-        ),
+        );
+      },
     },
   ];
   return (
