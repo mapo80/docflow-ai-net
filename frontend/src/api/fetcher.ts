@@ -17,8 +17,11 @@ export class HttpError extends Error {
   }
 }
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
 export async function fetcher(input: string, init: RequestInit): Promise<Response> {
-  const res = await fetch(input, init);
+  const url = input.startsWith('http') ? input : `${BASE_URL}${input}`;
+  const res = await fetch(url, init);
   if (res.ok) {
     return res;
   }
