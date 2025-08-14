@@ -1,33 +1,33 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import ModelManager from './pages/ModelManager';
-import Extract from './pages/Extract';
-import Preview from './pages/Preview';
+import Shell from './Shell';
+import JobsList from './pages/JobsList';
+import JobNew from './pages/JobNew';
+import JobDetail from './pages/JobDetail';
+import HealthPage from './pages/HealthPage';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('apiKey') || '');
-
   const handleLogin = (key: string) => {
     setApiKey(key);
     localStorage.setItem('apiKey', key);
   };
-
-  const handleLogout = () => {
-    setApiKey('');
-    localStorage.removeItem('apiKey');
-  };
-
   if (!apiKey) {
     return <Login onLogin={handleLogin} />;
   }
-
   return (
     <Routes>
-      <Route path="/" element={<Extract apiKey={apiKey} onLogout={handleLogout} />} />
-      <Route path="/models" element={<ModelManager apiKey={apiKey} onLogout={handleLogout} />} />
-      <Route path="/preview" element={<Preview />} />
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="/" element={<Shell />}>
+        <Route index element={<Navigate to="/jobs" />} />
+        <Route path="jobs" element={<JobsList />} />
+        <Route path="jobs/new" element={<JobNew />} />
+        <Route path="jobs/:id" element={<JobDetail />} />
+        <Route path="health" element={<HealthPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="*" element={<Navigate to="/jobs" />} />
+      </Route>
     </Routes>
   );
 }

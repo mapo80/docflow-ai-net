@@ -1,51 +1,76 @@
+import { useState, useEffect } from 'react';
 import { Button, Input, Select, Space } from 'antd';
-import type { FieldSpec } from '../api';
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
-interface FieldsEditorProps {
-  fields: FieldSpec[];
-  onChange: (fields: FieldSpec[]) => void;
+export interface FieldItem {
+  name: string;
+  type: string;
 }
 
-export default function FieldsEditor({ fields, onChange }: FieldsEditorProps) {
-  const handleFieldChange = (index: number, key: keyof FieldSpec, value: string) => {
-    const newFields = fields.map((f, i) => (i === index ? { ...f, [key]: value } : f));
-    onChange(newFields);
+export function fieldsToJson(fields: FieldItem[]): string {
+  return JSON.stringify({ fields }, null, 2);
+}
+
+export function jsonToFields(json: string): FieldItem[] {
+  const parsed = JSON.parse(json);
+  if (!parsed || !Array.isArray(parsed.fields)) return [];
+  return parsed.fields as FieldItem[];
+}
+
+interface Props {
+  value?: FieldItem[];
+  onChange?: (fields: FieldItem[]) => void;
+}
+
+export default function FieldsEditor({ value = [], onChange }: Props) {
+  const [fields, setFields] = useState<FieldItem[]>(value);
+
+  useEffect(() => {
+    setFields(value);
+  }, [value]);
+
+  const update = (next: FieldItem[]) => {
+    setFields(next);
+    onChange?.(next);
   };
 
-  const addField = () => {
-    onChange([...fields, { name: '', type: 'string' }]);
+  const add = () => update([...fields, { name: '', type: 'string' }]);
+
+  const remove = (index: number) => {
+    const next = fields.filter((_, i) => i !== index);
+    update(next);
   };
 
-  const removeField = (index: number) => {
-    const newFields = fields.filter((_, i) => i !== index);
-    onChange(newFields);
+  const change = (index: number, field: Partial<FieldItem>) => {
+    const next = fields.map((f, i) => (i === index ? { ...f, ...field } : f));
+    update(next);
   };
 
   return (
-    <div>
-      {fields.map((field, index) => (
-        <Space key={index} style={{ marginBottom: 8 }}>
+    <>
+      {fields.map((field, idx) => (
+        <Space key={idx} align="baseline" style={{ display: 'flex', marginBottom: 8 }}>
           <Input
-            placeholder="Field name"
+            placeholder="Nome"
             value={field.name}
-            onChange={(e) => handleFieldChange(index, 'name', e.target.value)}
+            onChange={(e) => change(idx, { name: e.target.value })}
           />
           <Select
-            value={field.type}
+            placeholder="Tipo"
             style={{ width: 120 }}
-            onChange={(value) => handleFieldChange(index, 'type', value)}
-          >
-            <Select.Option value="string">string</Select.Option>
-            <Select.Option value="number">number</Select.Option>
-          </Select>
-          <Button danger onClick={() => removeField(index)}>
-            Remove
-          </Button>
+            value={field.type}
+            onChange={(v) => change(idx, { type: v })}
+            options={[
+              { value: 'string' },
+              { value: 'number' },
+              { value: 'boolean' },
+              { value: 'date' },
+            ]}
+          />
+          <MinusCircleOutlined onClick={() => remove(idx)} />
         </Space>
       ))}
-      <Button type="dashed" onClick={addField}>
-        Add Field
-      </Button>
-    </div>
+      <Button type="dashed" onClick={add} block icon={<PlusOutlined />}>Aggiungi campo</Button>
+    </>
   );
 }

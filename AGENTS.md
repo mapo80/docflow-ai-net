@@ -53,3 +53,19 @@ Prompts:
 Le librerie native di Tesseract (libtesseract.so.5) e Leptonica (liblept.so.5) sono già presenti in src/MarkItDownNet/TesseractOCR/x64 e vengono copiate automaticamente accanto ai binari. Non è quindi necessario installare pacchetti di sistema o creare collegamenti simbolici.
 
 Per eseguire l'OCR è necessario fornire i file tessdata delle lingue e indicarli tramite OcrDataPath.
+
+## Frontend E2E
+- Imposta le variabili in `.env`:
+  - `VITE_API_BASE_URL` URL dell'API REST
+  - `VITE_HANGFIRE_PATH` percorso dell'interfaccia Hangfire (es. `/hangfire`)
+- Per eseguire i test end-to-end:
+  ```bash
+  npm test -- --run
+  npm run build
+  npm run e2e
+  ```
+- Playwright avvia `vite preview` sulla porta 4173: assicurarsi che la porta sia libera.
+- Per usare le API reali avviare l'API .NET (`dotnet run`) e puntare `VITE_API_BASE_URL` all'istanza in esecuzione.
+
+## Note
+- `MarkItDownNet` è un submodule git; eseguire `git submodule update --init --recursive` prima della build .NET.

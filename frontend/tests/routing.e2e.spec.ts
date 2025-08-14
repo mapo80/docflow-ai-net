@@ -1,0 +1,41 @@
+import { test, expect } from '@playwright/test';
+
+test('menu routing', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('apiKey', 'test'));
+  await page.reload();
+  await page.getByRole('menuitem', { name: 'Jobs' }).click();
+  await expect(page).toHaveURL(/\/jobs$/);
+  await page.getByRole('menuitem', { name: 'Nuovo Job' }).click();
+  await expect(page).toHaveURL(/\/jobs\/new$/);
+  await page.getByRole('menuitem', { name: 'Health' }).click();
+  await expect(page).toHaveURL(/\/health$/);
+  await page.getByRole('menuitem', { name: 'Settings' }).click();
+  await expect(page).toHaveURL(/\/settings$/);
+});
+
+test('hangfire opens new window', async ({ page, context }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('apiKey', 'test'));
+  await page.reload();
+  const [newPage] = await Promise.all([
+    context.waitForEvent('page'),
+    page.getByRole('menuitem', { name: 'Hangfire' }).click(),
+  ]);
+  await newPage.waitForLoadState();
+});
+
+test('health badge shows state', async ({ page }) => {
+  await page.route('**/health/ready', (route) => {
+    route.fulfill({ json: { status: 'unhealthy', reasons: ['disk_full'] } });
+  });
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('apiKey', 'test'));
+  await page.reload();
+  await expect(
+    page.getByRole('banner').locator('.ant-badge-status-dot'),
+  ).toHaveCSS('background-color', 'rgb(245, 34, 45)');
+  const badge = page.getByRole('banner').getByText('Health');
+  await badge.hover();
+  await expect(page.getByRole('tooltip')).toHaveText('disk_full');
+});

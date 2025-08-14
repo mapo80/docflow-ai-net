@@ -3,12 +3,12 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   use: {
-    baseURL: 'http://localhost:5000',
+    baseURL: 'http://localhost:4173',
     headless: true,
   },
   webServer: {
-    command: 'npm run build && rm -rf ../src/DocflowAi.Net.Api/wwwroot/* && cp -r dist/* ../src/DocflowAi.Net.Api/wwwroot/ && dotnet run --project ../src/DocflowAi.Net.Api --urls http://localhost:5000',
-    port: 5000,
+    command: 'npm run build && npm run preview -- --port 4173',
+    port: 4173,
     reuseExistingServer: true,
   },
 });
