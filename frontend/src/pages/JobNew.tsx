@@ -20,7 +20,7 @@ import FieldsEditor, {
   type FieldItem,
 } from '../components/FieldsEditor';
 import { HttpError } from '../api/fetcher';
-import { OpenAPI } from '../generated';
+import { OpenAPI, type Job } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,15 +60,15 @@ export async function submitFormData(
   form: FormData,
   immediate: boolean,
   idempotencyKey?: string
-) {
-  return await __request(OpenAPI, {
+): Promise<Job> {
+  return (await __request(OpenAPI, {
     method: 'POST',
     url: '/jobs',
     query: { mode: immediate ? 'immediate' : undefined },
     body: form,
     mediaType: 'multipart/form-data',
     headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
-  });
+  })) as Job;
 }
 
 export default function JobNew() {
