@@ -1,0 +1,170 @@
+{
+  "openapi": "3.0.1",
+  "info": { "title": "Docflow API", "version": "1.0.0" },
+  "paths": {
+    "/health/ready": {
+      "get": {
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Health",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } }
+            }
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "getHealthLive",
+        "responses": {
+          "200": {
+            "description": "Health",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } }
+            }
+          }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "operationId": "getJobs",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "pageSize", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "nullable": true } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paged Jobs",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PagedListJob" } }
+            }
+          },
+          "429": {
+            "description": "Queue full",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createJob",
+        "parameters": [
+          { "name": "mode", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "202": {
+            "description": "Job created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Job" } }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{id}": {
+      "get": {
+        "operationId": "getJob",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Job" } }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "cancelJob",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "202": { "description": "Accepted" },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Job": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string" },
+          "derivedStatus": { "type": "string", "nullable": true },
+          "progress": { "type": "number", "nullable": true },
+          "attempts": { "type": "integer", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "durationMs": { "type": "integer", "nullable": true },
+          "paths": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "manifest": { "type": "string", "nullable": true },
+              "prompt": { "type": "string", "nullable": true },
+              "fields": { "type": "string", "nullable": true },
+              "output": { "type": "string", "nullable": true },
+              "error": { "type": "string", "nullable": true }
+            }
+          }
+        },
+        "required": ["id", "status", "createdAt", "updatedAt"]
+      },
+      "PagedListJob": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Job" } },
+          "page": { "type": "integer" },
+          "pageSize": { "type": "integer" },
+          "total": { "type": "integer" }
+        },
+        "required": ["items", "page", "pageSize", "total"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "errorCode": { "type": "string" },
+          "message": { "type": "string" },
+          "retry_after_seconds": { "type": "integer", "nullable": true }
+        },
+        "required": ["errorCode"]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "reasons": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["status", "reasons"]
+      }
+    }
+  }
+}
+
