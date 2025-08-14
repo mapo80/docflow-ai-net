@@ -7,6 +7,7 @@ import JobNew from './pages/JobNew';
 import JobDetail from './pages/JobDetail';
 import HealthPage from './pages/HealthPage';
 import SettingsPage from './pages/SettingsPage';
+import ModelManagerPage from './pages/ModelManagerPage';
 
 function App() {
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('apiKey') || '');
@@ -26,6 +27,7 @@ function App() {
         <Route path="jobs/:id" element={<JobDetail />} />
         <Route path="health" element={<HealthPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="model" element={<ModelManagerPage />} />
         <Route path="*" element={<Navigate to="/jobs" />} />
       </Route>
     </Routes>

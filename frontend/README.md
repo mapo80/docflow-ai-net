@@ -67,3 +67,11 @@ export default tseslint.config([
   },
 ])
 ```
+
+## Gestione Modello
+
+La pagina **Modello** consente di avviare lo switch del modello e monitorarne lo stato.
+
+![model-manager](./docs/model-manager.png)
+
+In caso di risposta **429 Too Many Requests** l'interfaccia mostra un banner con il countdown basato sull'header `Retry-After`; durante l'attesa i pulsanti restano disabilitati.
