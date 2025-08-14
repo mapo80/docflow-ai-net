@@ -1,0 +1,61 @@
+using DocflowAi.Net.Api.JobQueue.Abstractions;
+using DocflowAi.Net.Api.JobQueue.Models;
+using DocflowAi.Net.Api.Tests.Fakes;
+using DocflowAi.Net.Api.Tests.Fixtures;
+using DocflowAi.Net.Api.Tests.Helpers;
+using System.Linq;
+
+namespace DocflowAi.Net.Api.Tests;
+
+public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
+{
+    private readonly TempDirFixture _fx;
+    public ConcurrencyRunnerTests(TempDirFixture fx) => _fx = fx;
+
+    private static JobDocument CreateQueued(Guid id, string dir, string input)
+        => new()
+        {
+            Id = id,
+            Status = "Queued",
+            Progress = 0,
+            Attempts = 0,
+            AvailableAt = DateTimeOffset.UtcNow,
+            Paths = new JobDocument.PathInfo
+            {
+                Dir = dir,
+                Input = input,
+                Output = Path.Combine(dir, "output.json"),
+                Error = Path.Combine(dir, "error.txt")
+            },
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Hash = "h",
+            Metrics = new JobDocument.MetricsInfo()
+        };
+
+    [Fact]
+    public async Task Respects_MaxParallelHeavyJobs()
+    {
+        await using var factory = new TestWebAppFactory_Step3B(_fx.RootPath, maxParallel:1);
+        var store = factory.GetService<IJobStore>();
+        var fs = factory.GetService<IFileSystemService>();
+        var runner = factory.GetService<IJobRunner>();
+        factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
+        factory.Fake.SlowDelay = TimeSpan.FromSeconds(1.5);
+
+        var id1 = Guid.NewGuid();
+        var id2 = Guid.NewGuid();
+        fs.CreateJobDirectory(id1); fs.CreateJobDirectory(id2);
+        var input1 = await fs.SaveTextAtomic(id1, "input.txt", "a");
+        var input2 = await fs.SaveTextAtomic(id2, "input.txt", "b");
+        store.Create(CreateQueued(id1, Path.GetDirectoryName(input1)!, input1));
+        store.Create(CreateQueued(id2, Path.GetDirectoryName(input2)!, input2));
+
+        var t1 = runner.Run(id1, CancellationToken.None);
+        var t2 = runner.Run(id2, CancellationToken.None);
+        await Task.WhenAll(t1, t2);
+        factory.Fake.MaxConcurrent.Should().Be(1);
+        store.Get(id1)!.Status.Should().Be("Succeeded");
+        store.Get(id2)!.Status.Should().Be("Succeeded");
+    }
+}
