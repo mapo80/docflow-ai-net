@@ -16,7 +16,7 @@ cd "${proj_root}/deployment"
 docker compose up -d --build
 for i in {1..60}; do curl -sf "${API_URL}/health" >/dev/null && break || sleep 1; done
 if [ -f "${proj_root}/models/$(basename "${MODEL_PATH}")" ]; then
-  curl -s -X POST "${API_URL}/api/v1/process" -H "X-API-Key: ${API_KEY}" -H "X-Reasoning: ${REASONING}" -F "file=@${here}/sample.png" | pretty | tee "${here}/process.json" >/dev/null
+  curl -s -X POST "${API_URL}/v1/jobs?mode=immediate" -H "X-API-Key: ${API_KEY}" -H "X-Reasoning: ${REASONING}" -F "file=@${here}/sample.png" | pretty | tee "${here}/process.json" >/dev/null
 else
-  echo "NOTE: Model not found in ./models — skipping /process E2E"
+  echo "NOTE: Model not found in ./models — skipping immediate job E2E"
 fi

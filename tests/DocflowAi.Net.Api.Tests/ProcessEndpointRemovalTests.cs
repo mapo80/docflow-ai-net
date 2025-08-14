@@ -16,5 +16,7 @@ public class ProcessEndpointRemovalTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         var res = await client.GetAsync("/api/v1/process");
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var post = await client.PostAsync("/api/v1/process", new MultipartFormDataContent());
+        post.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.MethodNotAllowed);
     }
 }

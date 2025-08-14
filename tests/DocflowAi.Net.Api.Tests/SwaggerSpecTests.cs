@@ -14,7 +14,7 @@ public class SwaggerSpecTests : IClassFixture<TempDirFixture>
     public SwaggerSpecTests(TempDirFixture fx) => _fx = fx;
 
     [Fact]
-    public async Task Swagger_Exposes_JobEndpoints_And_NoProcess()
+    public async Task Swagger_Exposes_JobEndpoints_And_NoProcess_WithExamples()
     {
         await using var factory = new TestWebAppFactory(_fx.RootPath);
         var client = factory.CreateClient();
@@ -24,5 +24,18 @@ public class SwaggerSpecTests : IClassFixture<TempDirFixture>
             .Should().Contain("/v1/jobs");
         doc.RootElement.GetProperty("paths").EnumerateObject().Select(p => p.Name)
             .Should().NotContain("/process");
+
+        var post = doc.RootElement.GetProperty("paths").GetProperty("/v1/jobs").GetProperty("post");
+        var modeParam = post.GetProperty("parameters").EnumerateArray().First(p => p.GetProperty("name").GetString()=="mode");
+        modeParam.GetProperty("schema").GetProperty("enum").EnumerateArray().Select(e=>e.GetString())
+            .Should().BeEquivalentTo(new[]{"queued","immediate"});
+        var responses = post.GetProperty("responses");
+        responses.GetProperty("202").GetProperty("content").GetProperty("application/json").TryGetProperty("example", out var example202).Should().BeTrue();
+        responses.GetProperty("200").GetProperty("content").GetProperty("application/json").GetProperty("examples").EnumerateObject().Select(o=>o.Name)
+            .Should().Contain(new[]{"succeeded","failed"});
+        responses.GetProperty("429").GetProperty("headers").GetProperty("Retry-After").Should().NotBeNull();
+        responses.GetProperty("429").GetProperty("content").GetProperty("application/json").GetProperty("examples").EnumerateObject().Select(o=>o.Name)
+            .Should().Contain(new[]{"queue_full","immediate_capacity"});
+        responses.GetProperty("413").GetProperty("content").GetProperty("application/json").GetProperty("example").Should().NotBeNull();
     }
 }

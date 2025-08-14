@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Threading;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Any;
 using Microsoft.AspNetCore.Http;
@@ -237,21 +238,57 @@ public static class JobEndpoints
                   ["status_url"] = new OpenApiString("/v1/jobs/{id}"),
                   ["dashboard_url"] = new OpenApiString("/hangfire")
               };
-              op.Responses["200"].Content["application/json"].Example = new OpenApiObject
+              op.Responses["200"].Content["application/json"].Examples = new Dictionary<string, OpenApiExample>
               {
-                  ["job_id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
-                  ["status"] = new OpenApiString("Succeeded")
+                  ["succeeded"] = new()
+                  {
+                      Value = new OpenApiObject
+                      {
+                          ["job_id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
+                          ["status"] = new OpenApiString("Succeeded"),
+                          ["duration_ms"] = new OpenApiInteger(1234)
+                      }
+                  },
+                  ["failed"] = new()
+                  {
+                      Value = new OpenApiObject
+                      {
+                          ["job_id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
+                          ["status"] = new OpenApiString("Failed"),
+                          ["error"] = new OpenApiString("boom")
+                      }
+                  }
               };
               op.Responses["429"].Headers["Retry-After"] = new OpenApiHeader
               {
                   Description = "Seconds to wait before retrying",
                   Schema = new OpenApiSchema { Type = "integer", Format = "int32" }
               };
-              op.Responses["429"].Content["application/json"].Example = new OpenApiObject
+              op.Responses["429"].Content["application/json"].Examples = new Dictionary<string, OpenApiExample>
               {
-                  ["error"] = new OpenApiString("queue_full"),
-                  ["message"] = new OpenApiString("queue is full"),
-                  ["retry_after_seconds"] = new OpenApiInteger(60)
+                  ["queue_full"] = new()
+                  {
+                      Value = new OpenApiObject
+                      {
+                          ["error"] = new OpenApiString("queue_full"),
+                          ["message"] = new OpenApiString("queue is full"),
+                          ["retry_after_seconds"] = new OpenApiInteger(60)
+                      }
+                  },
+                  ["immediate_capacity"] = new()
+                  {
+                      Value = new OpenApiObject
+                      {
+                          ["error"] = new OpenApiString("immediate_capacity"),
+                          ["message"] = new OpenApiString("immediate capacity reached"),
+                          ["retry_after_seconds"] = new OpenApiInteger(1)
+                      }
+                  }
+              };
+              op.Responses["413"].Content["application/json"].Example = new OpenApiObject
+              {
+                  ["error"] = new OpenApiString("payload_too_large"),
+                  ["message"] = new OpenApiString("payload too large")
               };
               return op;
           });
@@ -273,7 +310,34 @@ public static class JobEndpoints
         })
         .WithName("Jobs_GetById")
         .Produces<JobDetailResponse>(StatusCodes.Status200OK)
-        .Produces<ErrorResponse>(StatusCodes.Status404NotFound);
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
+        .WithOpenApi(op =>
+        {
+            op.Responses["200"].Content["application/json"].Example = new OpenApiObject
+            {
+                ["id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
+                ["status"] = new OpenApiString("Queued"),
+                ["derivedStatus"] = new OpenApiString("Pending"),
+                ["progress"] = new OpenApiInteger(0),
+                ["attempts"] = new OpenApiInteger(0),
+                ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
+                ["updatedAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
+                ["metrics"] = new OpenApiObject(),
+                ["paths"] = new OpenApiObject
+                {
+                    ["dir"] = new OpenApiString("/data/jobs/0000"),
+                    ["input"] = new OpenApiString("/data/jobs/0000/input.pdf"),
+                    ["output"] = new OpenApiString("/data/jobs/0000/output.json"),
+                    ["error"] = new OpenApiString("/data/jobs/0000/error.txt")
+                }
+            };
+            op.Responses["404"].Content["application/json"].Example = new OpenApiObject
+            {
+                ["error"] = new OpenApiString("not_found"),
+                ["message"] = new OpenApiString("job not found")
+            };
+            return op;
+        });
 
         group.MapDelete("/{id}", (Guid id, IJobStore store, ILoggerFactory lf) =>
         {
@@ -299,7 +363,31 @@ public static class JobEndpoints
         .WithName("Jobs_Delete")
         .Produces(StatusCodes.Status202Accepted)
         .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-        .Produces<ErrorResponse>(StatusCodes.Status409Conflict);
+        .Produces<ErrorResponse>(StatusCodes.Status409Conflict)
+        .WithOpenApi(op =>
+        {
+            op.Responses["202"].Content ??= new Dictionary<string, OpenApiMediaType>();
+            op.Responses["202"].Content["application/json"] = new OpenApiMediaType
+            {
+                Example = new OpenApiObject
+                {
+                    ["ok"] = new OpenApiBoolean(true),
+                    ["status"] = new OpenApiString("Cancelled")
+                }
+            };
+            op.Responses["404"].Content["application/json"].Example = new OpenApiObject
+            {
+                ["error"] = new OpenApiString("not_found"),
+                ["message"] = new OpenApiString("job not found")
+            };
+            op.Responses["409"].Content["application/json"].Example = new OpenApiObject
+            {
+                ["error"] = new OpenApiString("conflict"),
+                ["message"] = new OpenApiString("job already in terminal state"),
+                ["status"] = new OpenApiString("Succeeded")
+            };
+            return op;
+        });
 
         return builder;
     }
