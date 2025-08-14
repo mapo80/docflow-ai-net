@@ -15,9 +15,9 @@ using DocflowAi.Net.Api.JobQueue.Hosted;
 using DocflowAi.Net.Api.Contracts;
 using Hangfire;
 using Hangfire.MemoryStorage;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Hellang.Middleware.ProblemDetails;
+using FluentValidation;
+using DocflowAi.Net.Api.Model.Endpoints;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Http;
@@ -56,8 +56,6 @@ builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers().AddJsonOptions(o => { o.JsonSerializerOptions.PropertyNamingPolicy = null; });
-builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 builder.Services.AddEndpointsApiExplorer();
@@ -221,7 +219,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
         }
     }
 });
-app.MapControllers();
+app.MapModelEndpoints();
 app.MapJobEndpoints();
 app.MapFallbackToFile("index.html");
 app.Run();
