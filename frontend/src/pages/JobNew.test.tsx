@@ -1,25 +1,12 @@
-import { isValidJson, validateFile, buildFormData, submitFormData } from './JobNew';
+import { isValidJson, validateFile, buildPayload, submitPayload } from './JobNew';
 import { test, expect, vi } from 'vitest';
+import { ApiError } from '../generated';
 
-vi.mock('../api/fetcher', () => {
-  class MockHttpError extends Error {
-    status: number;
-    data: any;
-    retryAfter?: number;
-    constructor(status: number, data: any, retryAfter?: number) {
-      super();
-      this.status = status;
-      this.data = data;
-      this.retryAfter = retryAfter;
-    }
-  }
-  return {
-    fetcher: vi.fn(),
-    HttpError: MockHttpError,
-  };
-});
+vi.mock('../generated/core/request', () => ({
+  request: vi.fn(),
+}));
 
-import { fetcher, HttpError } from '../api/fetcher';
+import { request as __request } from '../generated/core/request';
 
 test('isValidJson', () => {
   expect(isValidJson('{}')).toBe(true);
@@ -27,34 +14,33 @@ test('isValidJson', () => {
 });
 
 test('validateFile', () => {
-  const ok = new File(['a'], 'a.txt', { type: 'text/plain' });
+  const ok = new File(['a'], 'a.pdf', { type: 'application/pdf' });
   expect(validateFile(ok)).toBeUndefined();
   const badExt = new File(['a'], 'a.exe');
   expect(validateFile(badExt)).toBe('Estensione non valida');
-  const big = new File([new Uint8Array(11 * 1024 * 1024)], 'b.txt');
+  const big = new File([new Uint8Array(11 * 1024 * 1024)], 'b.pdf');
   expect(validateFile(big)).toBe('File troppo grande');
 });
 
-test('submitFormData branches', async () => {
-  const form = buildFormData(new File(['a'], 'a.txt'), 'p', '{}');
-  (fetcher as any).mockResolvedValueOnce(
-    new Response(JSON.stringify({ id: '1', status: 'Succeeded' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    })
+test('submitPayload branches', async () => {
+  const payload = await buildPayload(new File(['a'], 'a.pdf'), 'p', '{}');
+  (__request as any).mockResolvedValueOnce({ job_id: '1', status: 'Succeeded' });
+  let res = await submitPayload(payload, true);
+  expect(res).toMatchObject({ job_id: '1', status: 'Succeeded' });
+  (__request as any).mockResolvedValueOnce({ job_id: '2', status: 'Pending' });
+  res = await submitPayload(payload, false);
+  expect(res).toMatchObject({ job_id: '2', status: 'Pending' });
+  (__request as any).mockRejectedValueOnce(
+    new ApiError(
+      { method: 'POST', url: '/jobs' } as any,
+      {
+        url: '',
+        status: 429,
+        statusText: 'Too Many Requests',
+        body: { errorCode: 'immediate_capacity', retry_after_seconds: 5 },
+      },
+      'Too Many Requests'
+    )
   );
-  let res = await submitFormData(form, true);
-  expect(res).toMatchObject({ id: '1', status: 'Succeeded' });
-  (fetcher as any).mockResolvedValueOnce(
-    new Response(JSON.stringify({ id: '2', status: 'Pending' }), {
-      status: 202,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  );
-  res = await submitFormData(form, false);
-  expect(res).toMatchObject({ id: '2', status: 'Pending' });
-  (fetcher as any).mockRejectedValueOnce(
-    new HttpError(429, { errorCode: 'immediate_capacity' }, 5)
-  );
-  await expect(submitFormData(form, true)).rejects.toBeInstanceOf(HttpError);
+  await expect(submitPayload(payload, true)).rejects.toBeInstanceOf(ApiError);
 });

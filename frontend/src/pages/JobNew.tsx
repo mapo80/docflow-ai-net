@@ -19,8 +19,7 @@ import FieldsEditor, {
   jsonToFields,
   type FieldItem,
 } from '../components/FieldsEditor';
-import { HttpError } from '../api/fetcher';
-import { OpenAPI, type Job } from '../generated';
+import { ApiError, OpenAPI } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,7 +35,7 @@ export function isValidJson(str: string): boolean {
 export function validateFile(
   file: File,
   maxSize = 10 * 1024 * 1024,
-  allowed = ['pdf', 'txt']
+  allowed = ['pdf', 'png', 'jpg', 'jpeg']
 ): string | undefined {
   const ext = file.name.split('.').pop()?.toLowerCase();
   if (!ext || !allowed.includes(ext)) return 'Estensione non valida';
@@ -44,31 +43,45 @@ export function validateFile(
   return undefined;
 }
 
-export function buildFormData(
+export async function fileToBase64(file: File): Promise<string> {
+  const buffer = await (file.arrayBuffer
+    ? file.arrayBuffer()
+    : new Response(file).arrayBuffer());
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+export async function buildPayload(
   file: File,
   prompt: string,
   fields: string
-): FormData {
-  const form = new FormData();
-  form.append('file', file);
-  form.append('prompt', prompt);
-  form.append('fields', fields);
-  return form;
+) {
+  return {
+    fileBase64: await fileToBase64(file),
+    fileName: file.name,
+    prompt,
+    fields,
+  };
 }
 
-export async function submitFormData(
-  form: FormData,
+export async function submitPayload(
+  payload: Awaited<ReturnType<typeof buildPayload>>,
   immediate: boolean,
   idempotencyKey?: string
-): Promise<Job> {
-  return (await __request(OpenAPI, {
+): Promise<any> {
+  const res = await __request(OpenAPI, {
     method: 'POST',
-    url: '/jobs',
+    url: '/api/v1/jobs',
     query: { mode: immediate ? 'immediate' : undefined },
-    body: form,
-    mediaType: 'multipart/form-data',
+    body: payload,
+    mediaType: 'application/json',
     headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
-  })) as Job;
+  });
+  return typeof res === 'string' ? JSON.parse(res) : res;
 }
 
 export default function JobNew() {
@@ -126,7 +139,7 @@ export default function JobNew() {
       message.error('Fields JSON non valido');
       return;
     }
-    const form = buildFormData(
+    const payload = await buildPayload(
       file,
       promptMode === 'json' ? promptJson : promptText,
       fieldsMode === 'json' ? jsonFields : fieldsToJson(visualFields)
@@ -134,8 +147,8 @@ export default function JobNew() {
     savePreset();
     setLoading(true);
     try {
-      const data = await submitFormData(
-        form,
+      const data = await submitPayload(
+        payload,
         immediate,
         idempotencyKey || undefined
       );
@@ -144,14 +157,14 @@ export default function JobNew() {
       } else {
         notification.success({
           message: 'Job creato',
-          description: data.id,
+          description: data.job_id,
         });
-        navigate(`/jobs/${data.id}`);
+        navigate(`/jobs/${data.job_id}`);
       }
     } catch (e) {
-      if (e instanceof HttpError) {
-        if (e.status === 429 && e.data.errorCode === 'immediate_capacity') {
-          setRetryAfter(e.retryAfter ?? 0);
+      if (e instanceof ApiError) {
+        if (e.status === 429 && e.body?.errorCode === 'immediate_capacity') {
+          setRetryAfter(e.body.retry_after_seconds ?? 0);
         } else if (e.status === 429) {
           notification.warning({ message: 'queue_full' });
         } else if (e.status === 413) {
@@ -159,7 +172,7 @@ export default function JobNew() {
         } else if (e.status === 507) {
           notification.error({ message: 'spazio insufficiente' });
         } else {
-          notification.error({ message: e.data.errorCode });
+          notification.error({ message: e.body?.errorCode });
         }
       } else {
         notification.error({ message: 'Errore' });

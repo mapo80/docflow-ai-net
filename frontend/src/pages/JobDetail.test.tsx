@@ -2,10 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { test, vi, expect } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import JobDetail from './JobDetail';
-import { DefaultService } from '../generated';
+import { JobsService } from '../generated';
 
 test('detail viewers render and have download', async () => {
-  vi.spyOn(DefaultService, 'getJob').mockResolvedValue({
+  vi.spyOn(JobsService, 'jobsGetById').mockResolvedValue({
     id: '1',
     status: 'Succeeded',
     createdAt: '',

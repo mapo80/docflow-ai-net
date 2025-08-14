@@ -2,9 +2,21 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+/**
+ * Uniform error payload returned by the API.
+ */
 export type ErrorResponse = {
-    errorCode: string;
-    message?: string;
-    retry_after_seconds?: number | null;
+    /**
+     * Short machine readable error code.
+     */
+    error?: string | null;
+    /**
+     * Human readable message.
+     */
+    message?: string | null;
+    /**
+     * Retry hint in seconds when applicable.
+     */
+    retryAfterSeconds?: number | null;
 };
 

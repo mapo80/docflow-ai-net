@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Badge, Tooltip } from 'antd';
-import { DefaultService, type HealthResponse } from '../generated';
+
+type HealthResponse = { status?: string; reasons?: string[] };
 
 type Status = 'loading' | 'ok' | 'unhealthy' | 'backpressure';
 
@@ -19,8 +20,11 @@ export default function HealthBadge() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await DefaultService.getHealth();
-        if (!cancelled) setHealth(res);
+        const api = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+        const base = api.replace(/\/api\/v1$/, '');
+        const res = await fetch(`${base}/health/ready`);
+        const data = (await res.json()) as HealthResponse;
+        if (!cancelled) setHealth(data);
       } catch {
         if (!cancelled) setHealth({ status: 'unhealthy', reasons: ['fetch_failed'] });
       }

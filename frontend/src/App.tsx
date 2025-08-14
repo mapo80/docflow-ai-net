@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Shell from './Shell';
@@ -8,9 +8,13 @@ import JobDetail from './pages/JobDetail';
 import HealthPage from './pages/HealthPage';
 import SettingsPage from './pages/SettingsPage';
 import ModelManagerPage from './pages/ModelManagerPage';
+import { OpenAPI } from './generated';
 
 function App() {
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('apiKey') || '');
+  useEffect(() => {
+    OpenAPI.HEADERS = apiKey ? { 'X-API-Key': apiKey } : undefined;
+  }, [apiKey]);
   const handleLogin = (key: string) => {
     setApiKey(key);
     localStorage.setItem('apiKey', key);

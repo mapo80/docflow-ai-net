@@ -14,6 +14,6 @@ describe('ModelSwitchForm', () => {
     fireEvent.change(screen.getByLabelText(/Context size/), { target: { value: 1024 } });
     fireEvent.click(screen.getByTestId('submit-switch'));
     await new Promise((r) => setTimeout(r, 0));
-    expect(fn).toHaveBeenCalledWith({ token: 't', repo: 'r', file: 'f', contextSize: 1024, note: undefined });
+    expect(fn).toHaveBeenCalledWith({ hfKey: 't', modelRepo: 'r', modelFile: 'f', contextSize: 1024 });
   });
 });

@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('apiKey', 'test'));
+  await page.addInitScript(() =>
+    localStorage.setItem('apiKey', 'dev-secret-key-change-me')
+  );
 });
 
 test.skip('lista paginata', async ({ page }) => {
@@ -99,5 +101,5 @@ test('hangfire button opens new window', async ({ page, context }) => {
     page.getByRole('button', { name: 'Apri Hangfire' }).click(),
   ]);
   await newPage.waitForLoadState();
-  expect(newPage.url()).toContain('api_key=test');
+  expect(newPage.url()).toContain('api_key=dev-secret-key-change-me');
 });

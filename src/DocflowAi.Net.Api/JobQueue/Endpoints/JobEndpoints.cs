@@ -106,7 +106,8 @@ public static class JobEndpoints
                 logger.LogWarning("UnsupportedFileType {FileExt}", ext);
                 return Results.Json(new ErrorResponse("bad_request", "unsupported file type"), statusCode: 400);
             }
-            var drive = new DriveInfo(Path.GetPathRoot(optsVal.DataRoot)!);
+            var dataRoot = Path.GetFullPath(optsVal.DataRoot);
+            var drive = new DriveInfo(Path.GetPathRoot(dataRoot)!);
             if (drive.AvailableFreeSpace < bytes.Length + 1_000_000)
             {
                 logger.LogWarning("InsufficientStorage {Bytes} {FreeBytes}", bytes.Length, drive.AvailableFreeSpace);
