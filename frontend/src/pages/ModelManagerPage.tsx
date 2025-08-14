@@ -10,12 +10,10 @@ import dayjs from 'dayjs';
 
 export default function ModelManagerPage() {
   const [info, setInfo] = useState<ModelInfo | null>(null);
-  const [loadingInfo, setLoadingInfo] = useState(false);
   const [polling, setPolling] = useState(false);
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
 
   const loadInfo = async () => {
-    setLoadingInfo(true);
     try {
       const data = await DefaultService.getModelInfo();
       setInfo(data);
@@ -24,7 +22,6 @@ export default function ModelManagerPage() {
         setRetryAfter(e.retryAfter ?? 0);
       }
     } finally {
-      setLoadingInfo(false);
     }
   };
 
