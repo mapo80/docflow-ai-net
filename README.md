@@ -1,7 +1,3 @@
-Ecco una proposta di **README.md** molto più ricca e “decision-grade”, pronta da incollare. Mantiene tutte le informazioni essenziali e aggiunge dettagli operativi, configurazione, Docker (singolo container .NET 9.0-noble con LLamaSharp), panoramica degli **eval** e delle metriche, con dati sintetici utili per farsi un’idea immediata (rimandando ai report per i numeri esatti).
-
----
-
 # Docflow AI (.NET)
 
 Pipeline **end-to-end** per l’estrazione di informazioni da documenti con **LLM** e **bounding box** a livello parola.
