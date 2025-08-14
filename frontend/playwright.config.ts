@@ -7,7 +7,7 @@ export default defineConfig({
     headless: true,
   },
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173',
+    command: 'VITE_API_BASE_URL="" npm run build && VITE_API_BASE_URL="" npm run preview -- --port 4173',
     port: 4173,
     reuseExistingServer: true,
   },
