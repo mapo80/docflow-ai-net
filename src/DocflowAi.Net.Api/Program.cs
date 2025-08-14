@@ -38,10 +38,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 var level = Environment.GetEnvironmentVariable("LOG_LEVEL") ?? "Information";
 var parsed = Enum.TryParse<Serilog.Events.LogEventLevel>(level, true, out var lvl) ? lvl : Serilog.Events.LogEventLevel.Information;
-builder.Host.UseSerilog((ctx, lc) => lc
-    .MinimumLevel.Is(parsed)
-    .ReadFrom.Configuration(ctx.Configuration)
-    .Enrich.FromLogContext());
+if (Log.Logger.GetType().Name == "SilentLogger")
+{
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Is(parsed)
+        .ReadFrom.Configuration(builder.Configuration)
+        .Enrich.FromLogContext()
+        .CreateLogger();
+}
+builder.Host.UseSerilog();
 
 builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection(ApiKeyOptions.SectionName));
 builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.SectionName));
@@ -55,6 +60,8 @@ builder.Services.Configure<HangfireDashboardAuthOptions>(builder.Configuration.G
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
 builder.Services.AddAuthorization();
+
+builder.Services.AddControllers();
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
@@ -172,7 +179,9 @@ app.UseSerilogRequestLogging(opts =>
     {
         ctx.Set("RequestId", http.TraceIdentifier);
         ctx.Set("UserAgent", http.Request.Headers["User-Agent"].ToString());
-        ctx.Set("ClientIP", http.Connection.RemoteIpAddress?.ToString());
+        var ip = http.Connection.RemoteIpAddress?.ToString();
+        if (!string.IsNullOrEmpty(ip))
+            ctx.Set("ClientIP", ip);
     };
 });
 app.UseProblemDetails();

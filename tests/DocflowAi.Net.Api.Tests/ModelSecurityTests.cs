@@ -6,6 +6,7 @@ using DocflowAi.Net.Application.Abstractions;
 
 namespace DocflowAi.Net.Api.Tests;
 
+[Trait("Category","ModelEndpoints")]
 public class ModelSecurityTests : IClassFixture<TempDirFixture>
 {
     private readonly TempDirFixture _fx;
@@ -15,7 +16,7 @@ public class ModelSecurityTests : IClassFixture<TempDirFixture>
     public async Task Requires_ApiKey()
     {
         await using var factory = new TestWebAppFactory(_fx.RootPath)
-            .WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton<ILlmModelService, FakeLlmModelService>()));
+            .WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton<ILlmModelService, ConfigurableFakeLlmModelService>()));
         var client = factory.CreateClient();
         var resp = await client.GetAsync("/api/v1/model/status");
         resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

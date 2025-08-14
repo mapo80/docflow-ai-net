@@ -13,7 +13,7 @@ public static class ModelEndpoints
     {
         var group = builder.MapGroup("/api/v1/model")
             .WithTags("Model")
-            .RequireAuthorization(ApiKeyDefaults.SchemeName)
+            .RequireAuthorization()
             .RequireRateLimiting("General");
 
         group.MapPost("/switch", async (SwitchModelRequest request, ILlmModelService service, ILoggerFactory lf, CancellationToken ct) =>

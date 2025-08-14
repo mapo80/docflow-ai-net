@@ -2,16 +2,25 @@ using DocflowAi.Net.Application.Abstractions;
 
 namespace DocflowAi.Net.Api.Tests.Fakes;
 
-public sealed class FakeLlmModelService : ILlmModelService
+public sealed class ConfigurableFakeLlmModelService : ILlmModelService
 {
     private double _pct = 100;
     private bool _completed = true;
     private bool _running;
+    private Exception? _next;
+
+    public void FailWith(Exception ex) => _next = ex;
 
     public Task SwitchModelAsync(string hfKey, string modelRepo, string modelFile, int contextSize, CancellationToken ct)
     {
         if (_running)
             throw new InvalidOperationException("switch in progress");
+        if (_next != null)
+        {
+            var ex = _next;
+            _next = null;
+            throw ex;
+        }
         _running = true;
         _completed = false;
         _pct = 0;
@@ -19,14 +28,15 @@ public sealed class FakeLlmModelService : ILlmModelService
         {
             for (var i = 1; i <= 5; i++)
             {
-                await Task.Delay(20);
+                await Task.Delay(20, ct);
                 _pct = i * 20;
             }
             _completed = true;
             _running = false;
-        });
+        }, ct);
         return Task.CompletedTask;
     }
 
     public ModelDownloadStatus GetStatus() => new(_completed, _pct);
 }
+
