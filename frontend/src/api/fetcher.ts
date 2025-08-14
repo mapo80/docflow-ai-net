@@ -18,8 +18,7 @@ export class HttpError extends Error {
 }
 
 const base = import.meta.env.VITE_API_BASE_URL || '';
-const normalized = base.replace(/\/$/, '');
-const BASE_URL = normalized.endsWith('/api/v1') ? normalized : `${normalized}/api/v1`;
+const BASE_URL = base.replace(/\/$/, '');
 
 export async function fetcher(input: string, init: RequestInit): Promise<Response> {
   const url = input.startsWith('http') ? input : `${BASE_URL}${input}`;

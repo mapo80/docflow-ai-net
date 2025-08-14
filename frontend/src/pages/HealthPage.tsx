@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Button } from 'antd';
 import HealthBadge from '../components/HealthBadge';
 import { DefaultService, type HealthResponse } from '../generated';
-import { fetcher } from '../api/fetcher';
 
 export default function HealthPage() {
   const [ready, setReady] = useState<HealthResponse | null>(null);
@@ -15,8 +14,7 @@ export default function HealthPage() {
       setReady(null);
     }
     try {
-      const res = await fetcher('/health/live', { method: 'GET' });
-      setLive(await res.json());
+      setLive(await DefaultService.getHealthLive());
     } catch {
       setLive(null);
     }

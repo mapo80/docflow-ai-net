@@ -19,8 +19,9 @@ import FieldsEditor, {
   jsonToFields,
   type FieldItem,
 } from '../components/FieldsEditor';
-import { fetcher, HttpError } from '../api/fetcher';
+import { HttpError } from '../api/fetcher';
 import { OpenAPI } from '../generated';
+import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 
 export function isValidJson(str: string): boolean {
@@ -60,16 +61,14 @@ export async function submitFormData(
   immediate: boolean,
   idempotencyKey?: string
 ) {
-  const res = await fetcher(
-    `${OpenAPI.BASE}/jobs${immediate ? '?mode=immediate' : ''}`,
-    {
-      method: 'POST',
-      body: form,
-      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
-    }
-  );
-  const data = await res.json();
-  return { status: res.status, data };
+  return await __request(OpenAPI, {
+    method: 'POST',
+    url: '/jobs',
+    query: { mode: immediate ? 'immediate' : undefined },
+    body: form,
+    mediaType: 'multipart/form-data',
+    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+  });
 }
 
 export default function JobNew() {
@@ -135,14 +134,14 @@ export default function JobNew() {
     savePreset();
     setLoading(true);
     try {
-      const { status, data } = await submitFormData(
+      const data = await submitFormData(
         form,
         immediate,
         idempotencyKey || undefined
       );
-      if (status === 200) {
+      if (data.status === 'Succeeded') {
         setResult(data);
-      } else if (status === 202) {
+      } else {
         notification.success({
           message: 'Job creato',
           description: data.id,

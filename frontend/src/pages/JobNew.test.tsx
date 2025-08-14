@@ -38,15 +38,21 @@ test('validateFile', () => {
 test('submitFormData branches', async () => {
   const form = buildFormData(new File(['a'], 'a.txt'), 'p', '{}');
   (fetcher as any).mockResolvedValueOnce(
-    new Response(JSON.stringify({ id: '1', status: 'Succeeded' }), { status: 200 })
+    new Response(JSON.stringify({ id: '1', status: 'Succeeded' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
   );
   let res = await submitFormData(form, true);
-  expect(res.status).toBe(200);
+  expect(res).toMatchObject({ id: '1', status: 'Succeeded' });
   (fetcher as any).mockResolvedValueOnce(
-    new Response(JSON.stringify({ id: '2' }), { status: 202 })
+    new Response(JSON.stringify({ id: '2', status: 'Pending' }), {
+      status: 202,
+      headers: { 'Content-Type': 'application/json' },
+    })
   );
   res = await submitFormData(form, false);
-  expect(res.status).toBe(202);
+  expect(res).toMatchObject({ id: '2', status: 'Pending' });
   (fetcher as any).mockRejectedValueOnce(
     new HttpError(429, { errorCode: 'immediate_capacity' }, 5)
   );
