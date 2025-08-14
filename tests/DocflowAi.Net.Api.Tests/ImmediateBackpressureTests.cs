@@ -26,6 +26,7 @@ public class ImmediateBackpressureTests : IClassFixture<TempDirFixture>
         {
             var resp = await client.PostAsJsonAsync("/v1/jobs?mode=immediate", payload);
             resp.StatusCode.Should().Be(System.Net.HttpStatusCode.TooManyRequests);
+            resp.Headers.Should().ContainKey("Retry-After");
             (await resp.Content.ReadAsStringAsync()).Should().Contain("queue_full");
             Directory.GetDirectories(factory.DataRootPath).Should().BeEmpty();
             using var db = LiteDbTestHelper.Open(factory.LiteDbPath);

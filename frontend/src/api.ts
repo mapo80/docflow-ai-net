@@ -49,7 +49,7 @@ export async function extractData(
   form.append('fields', JSON.stringify(params.fields));
   form.append('file', params.file);
 
-  const res = await fetch(`${API_BASE}/process`, {
+  const res = await fetch(`/v1/jobs?mode=immediate`, {
     method: 'POST',
     headers: { 'X-API-Key': apiKey },
     body: form,

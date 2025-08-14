@@ -25,6 +25,7 @@ public class ImmediateCapacityAndFallbackTests : IClassFixture<TempDirFixture>
         var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf" };
         var second = await client.PostAsJsonAsync("/v1/jobs?mode=immediate", secondPayload);
         second.StatusCode.Should().Be(System.Net.HttpStatusCode.TooManyRequests);
+        second.Headers.Should().ContainKey("Retry-After");
         (await second.Content.ReadAsStringAsync()).Should().Contain("immediate_capacity");
         await first; // cleanup
     }

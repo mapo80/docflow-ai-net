@@ -1,6 +1,6 @@
 # Agents (Codex) Guide
 
-- Call `POST /api/v1/process` with headers:
+- Call `POST /v1/jobs?mode=immediate` with headers:
   - `X-API-Key`
   - optional `X-Reasoning: think|no_think|auto`
 - Ensure a GGUF model is mounted at `/models` (compose does it).
