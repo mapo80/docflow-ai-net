@@ -21,11 +21,11 @@ public class SwaggerSpecTests : IClassFixture<TempDirFixture>
         var json = await client.GetStringAsync("/swagger/v1/swagger.json");
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.GetProperty("paths").EnumerateObject().Select(p => p.Name)
-            .Should().Contain("/v1/jobs");
+            .Should().Contain("/api/v1/jobs");
         doc.RootElement.GetProperty("paths").EnumerateObject().Select(p => p.Name)
             .Should().NotContain("/process");
 
-        var post = doc.RootElement.GetProperty("paths").GetProperty("/v1/jobs").GetProperty("post");
+        var post = doc.RootElement.GetProperty("paths").GetProperty("/api/v1/jobs").GetProperty("post");
         var modeParam = post.GetProperty("parameters").EnumerateArray().First(p => p.GetProperty("name").GetString()=="mode");
         modeParam.GetProperty("schema").GetProperty("enum").EnumerateArray().Select(e=>e.GetString())
             .Should().BeEquivalentTo(new[]{"queued","immediate"});

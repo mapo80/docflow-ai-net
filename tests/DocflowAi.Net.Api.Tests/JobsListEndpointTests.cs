@@ -23,7 +23,7 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fixture.RootPath);
         var client = factory.CreateClient();
-        var resp = await client.GetAsync("/v1/jobs");
+        var resp = await client.GetAsync("/api/v1/jobs");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var data = await resp.Content.ReadFromJsonAsync<JobListResponse>();
         data!.page.Should().Be(1);
@@ -43,17 +43,17 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
             .ToList();
         LiteDbTestHelper.SeedJobs(db, jobs);
 
-        var r1 = await client.GetFromJsonAsync<JobListResponse>("/v1/jobs?page=1&pageSize=10");
+        var r1 = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=1&pageSize=10");
         r1!.total.Should().Be(35);
         r1.items.Should().HaveCount(10);
         r1.items[0].id.Should().Be(jobs[34].Id);
         r1.items[9].id.Should().Be(jobs[25].Id);
 
-        var r2 = await client.GetFromJsonAsync<JobListResponse>("/v1/jobs?page=2&pageSize=10");
+        var r2 = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=2&pageSize=10");
         r2!.items[0].id.Should().Be(jobs[24].Id);
         r2.items[9].id.Should().Be(jobs[15].Id);
 
-        var r4 = await client.GetFromJsonAsync<JobListResponse>("/v1/jobs?page=4&pageSize=10");
+        var r4 = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=4&pageSize=10");
         r4!.items.Should().HaveCount(5);
         r4.items[0].id.Should().Be(jobs[4].Id);
         r4.items[4].id.Should().Be(jobs[0].Id);
@@ -64,7 +64,7 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fixture.RootPath);
         var client = factory.CreateClient();
-        var bad = await client.GetAsync("/v1/jobs?page=0");
+        var bad = await client.GetAsync("/api/v1/jobs?page=0");
         bad.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var err = await bad.Content.ReadFromJsonAsync<ErrorResponse>();
         err!.error.Should().Be("bad_request");
@@ -74,7 +74,7 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
             .Select(i => LiteDbTestHelper.CreateJob(Guid.NewGuid(), "Queued", _baseTime.AddMinutes(i)))
             .ToList();
         LiteDbTestHelper.SeedJobs(db, jobs);
-        var resp = await client.GetFromJsonAsync<JobListResponse>("/v1/jobs?page=1&pageSize=500");
+        var resp = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=1&pageSize=500");
         resp!.pageSize.Should().Be(100);
         resp.items.Should().HaveCount(100);
     }
@@ -88,7 +88,7 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
         var statuses = new[] { "Queued", "Running", "Succeeded", "Failed", "Cancelled" };
         var jobs = statuses.Select((s,i) => LiteDbTestHelper.CreateJob(Guid.NewGuid(), s, _baseTime.AddMinutes(i))).ToList();
         LiteDbTestHelper.SeedJobs(db, jobs);
-        var resp = await client.GetFromJsonAsync<JobListResponse>("/v1/jobs?page=1&pageSize=10");
+        var resp = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=1&pageSize=10");
         resp!.items.Should().HaveCount(5);
         var map = new Dictionary<string,string>{
             ["Queued"]="Pending",

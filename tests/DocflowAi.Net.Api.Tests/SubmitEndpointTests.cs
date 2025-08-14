@@ -23,7 +23,7 @@ public class SubmitEndpointTests : IClassFixture<TempDirFixture>
         new Random(1).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var resp = await client.PostAsJsonAsync("/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", prompt = "hi", fields = "{}" });
+        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", prompt = "hi", fields = "{}" });
         resp.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
         var id = json.GetProperty("job_id").GetGuid();

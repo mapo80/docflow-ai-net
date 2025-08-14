@@ -14,9 +14,9 @@ public class RateLimitTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fixture.RootPath, permit:2, windowSeconds:1);
         var client = factory.CreateClient();
-        await client.GetAsync("/v1/jobs");
-        await client.GetAsync("/v1/jobs");
-        var resp = await client.GetAsync("/v1/jobs");
+        await client.GetAsync("/api/v1/jobs");
+        await client.GetAsync("/api/v1/jobs");
+        var resp = await client.GetAsync("/api/v1/jobs");
         resp.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
         var json = await resp.Content.ReadFromJsonAsync<RateLimitResponse>();
         json!.error.Should().Be("rate_limited");

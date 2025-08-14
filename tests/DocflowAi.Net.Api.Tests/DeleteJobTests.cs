@@ -24,7 +24,7 @@ public class DeleteJobTests : IClassFixture<TempDirFixture>
         var store = factory.Services.GetRequiredService<IJobStore>();
         var job = LiteDbTestHelper.CreateJob(id, status, DateTimeOffset.UtcNow);
         store.Create(job);
-        var resp = await client.DeleteAsync($"/v1/jobs/{id}");
+        var resp = await client.DeleteAsync($"/api/v1/jobs/{id}");
         resp.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var updated = LiteDbTestHelper.GetJob(factory.LiteDbPath, id);
         updated!.Status.Should().Be("Cancelled");
@@ -41,7 +41,7 @@ public class DeleteJobTests : IClassFixture<TempDirFixture>
         var store = factory.Services.GetRequiredService<IJobStore>();
         var job = LiteDbTestHelper.CreateJob(id, status, DateTimeOffset.UtcNow);
         store.Create(job);
-        var resp = await client.DeleteAsync($"/v1/jobs/{id}");
+        var resp = await client.DeleteAsync($"/api/v1/jobs/{id}");
         resp.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 }

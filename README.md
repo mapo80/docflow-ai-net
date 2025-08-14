@@ -26,8 +26,8 @@ Il progetto integra:
 
 ## Job Queue
 
-- Passo 1: integrati **Hangfire** (MemoryStorage), **LiteDB** e **Rate Limiting** con endpoint `GET /v1/jobs` paginato.
-- Passo 2: aggiunto `POST /v1/jobs` per il submit (file base64/multipart), `GET /v1/jobs/{id}` e `DELETE /v1/jobs/{id}` con stato gestito solo da LiteDB e artefatti salvati su filesystem.
+- Passo 1: integrati **Hangfire** (MemoryStorage), **LiteDB** e **Rate Limiting** con endpoint `GET /api/v1/jobs` paginato.
+- Passo 2: aggiunto `POST /api/v1/jobs` per il submit (file base64/multipart), `GET /api/v1/jobs/{id}` e `DELETE /api/v1/jobs/{id}` con stato gestito solo da LiteDB e artefatti salvati su filesystem.
 
 ---
 
@@ -188,7 +188,7 @@ L’entrypoint scarica il **GGUF** con `curl` (Authorization: Bearer **HF\_TOKEN
 L'endpoint legacy `/api/process` è stato rimosso. Usa la coda lavori:
 
 ```bash
-curl -X POST 'http://localhost:5000/v1/jobs?mode=immediate' \
+curl -X POST 'http://localhost:5000/api/v1/jobs?mode=immediate' \
   -H 'X-API-Key: dev-secret-key-change-me' \
   -F 'file=@dataset/sample_invoice.pdf;type=application/pdf'
 ```

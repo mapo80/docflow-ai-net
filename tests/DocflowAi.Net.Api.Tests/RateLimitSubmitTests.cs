@@ -19,10 +19,10 @@ public class RateLimitSubmitTests : IClassFixture<TempDirFixture>
         using var factory = new TestWebAppFactory(_fx.RootPath, permit:1, windowSeconds:1);
         var client = factory.CreateClient();
         var body = new { fileBase64 = Convert.ToBase64String(new byte[10]), fileName = "a.pdf" };
-        await client.PostAsJsonAsync("/v1/jobs", body);
+        await client.PostAsJsonAsync("/api/v1/jobs", body);
         using (TestCorrelator.CreateContext())
         {
-            var resp = await client.PostAsJsonAsync("/v1/jobs", body);
+            var resp = await client.PostAsJsonAsync("/api/v1/jobs", body);
             resp.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
             resp.Headers.Should().ContainKey("Retry-After");
         }
