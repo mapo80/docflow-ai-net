@@ -25,7 +25,7 @@ Derived status is computed from the database status only:
 - `error.txt` (on error)
 
 ## Configuration
-See `appsettings.json` section `JobQueue` for paths, rate limits and cleanup schedule. Dashboard auth can be enabled with `HangfireDashboardAuth`.
+See `appsettings.json` section `JobQueue` for paths, rate limits and cleanup schedule. Dashboard auth can be enabled with `HangfireDashboardAuth` and uses the same API keys as the REST API.
 
 ### Immediate mode
 Jobs can be executed inline by calling `POST /api/v1/jobs?mode=immediate` when `JobQueue.Immediate.Enabled=true`.
@@ -46,4 +46,4 @@ curl /api/v1/jobs/{id}
 curl -X DELETE /api/v1/jobs/{id}
 ```
 
-The dashboard is exposed at `/hangfire` when enabled. Protect it with basic auth credentials via configuration. Only non-executable files up to the configured size are accepted. Logs omit sensitive data and include structured properties for observability.
+The dashboard is exposed at `/hangfire` when enabled. Protect it with an API key via configuration and supply it with the `api_key` query parameter or `X-API-Key` header. Only non-executable files up to the configured size are accepted. Logs omit sensitive data and include structured properties for observability.

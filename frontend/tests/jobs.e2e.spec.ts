@@ -99,4 +99,5 @@ test('hangfire button opens new window', async ({ page, context }) => {
     page.getByRole('button', { name: 'Apri Hangfire' }).click(),
   ]);
   await newPage.waitForLoadState();
+  expect(newPage.url()).toContain('api_key=test');
 });

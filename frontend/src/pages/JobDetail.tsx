@@ -4,6 +4,7 @@ import { DefaultService, type Job } from '../generated';
 import { Descriptions, Progress, Button, Collapse, message, Space } from 'antd';
 import JobStatusTag from '../components/JobStatusTag';
 import { HttpError } from '../api/fetcher';
+import { openHangfire } from '../hangfire';
 
 function Artifact({ path, label }: { path: string; label: string }) {
   const [content, setContent] = useState<string>('');
@@ -84,17 +85,7 @@ export default function JobDetail() {
         >
           Cancel
         </Button>
-        <Button
-          onClick={() =>
-            window.open(
-              `${import.meta.env.VITE_API_BASE_URL}${import.meta.env.VITE_HANGFIRE_PATH}`,
-              '_blank',
-              'noopener,noreferrer',
-            )
-          }
-        >
-          Apri Hangfire
-        </Button>
+        <Button onClick={openHangfire}>Apri Hangfire</Button>
       </Space>
       {artifacts.length > 0 && (
         <Collapse style={{ marginTop: 16 }}>

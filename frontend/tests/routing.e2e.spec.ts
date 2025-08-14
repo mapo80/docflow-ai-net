@@ -23,6 +23,7 @@ test('hangfire opens new window', async ({ page, context }) => {
     page.getByRole('menuitem', { name: 'Hangfire' }).click(),
   ]);
   await newPage.waitForLoadState();
+  expect(newPage.url()).toContain('api_key=test');
 });
 
 test('health badge shows state', async ({ page }) => {
