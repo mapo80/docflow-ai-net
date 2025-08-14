@@ -4,7 +4,7 @@ import { ConfigProvider, theme } from 'antd';
 import 'antd/dist/reset.css';
 import './index.css';
 import App from './App';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import { OpenAPI } from './generated';
 
 OpenAPI.BASE = import.meta.env.VITE_API_BASE_URL;
@@ -12,9 +12,9 @@ OpenAPI.BASE = import.meta.env.VITE_API_BASE_URL;
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider theme={{ algorithm: theme.defaultAlgorithm }}>
-      <BrowserRouter>
+      <HashRouter>
         <App />
-      </BrowserRouter>
+      </HashRouter>
     </ConfigProvider>
   </StrictMode>,
 );
