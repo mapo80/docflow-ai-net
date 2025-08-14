@@ -11,18 +11,32 @@ public class DashboardAuthTests : IClassFixture<TempDirFixture>
     public DashboardAuthTests(TempDirFixture fx) => _fx = fx;
 
     [Fact]
-    public async Task Dashboard_requires_auth_when_enabled()
+    public async Task Dashboard_requires_api_key_when_enabled()
     {
         var extra = new Dictionary<string,string?>
         {
             ["JobQueue:EnableDashboard"] = "true",
             ["HangfireDashboardAuth:Enabled"] = "true",
-            ["HangfireDashboardAuth:Username"] = "u",
-            ["HangfireDashboardAuth:Password"] = "p"
+            ["Api:Keys:0"] = "k"
         };
         using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
         var client = factory.CreateClient();
         var resp = await client.GetAsync("/hangfire");
-        resp.StatusCode.Should().BeOneOf(HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden);
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Dashboard_allows_request_with_valid_api_key()
+    {
+        var extra = new Dictionary<string,string?>
+        {
+            ["JobQueue:EnableDashboard"] = "true",
+            ["HangfireDashboardAuth:Enabled"] = "true",
+            ["Api:Keys:0"] = "k"
+        };
+        using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
+        var client = factory.CreateClient();
+        var resp = await client.GetAsync("/hangfire?api_key=k");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

@@ -5,6 +5,7 @@ import { JobsService, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { openHangfire } from '../hangfire';
 
 const terminal = ['Succeeded', 'Failed', 'Cancelled'];
 
@@ -98,7 +99,7 @@ export default function JobsList() {
     {
       title: 'Attempts',
       dataIndex: 'attempts',
-      render: (a?: number) => <Badge count={a || 0} showZero />, 
+      render: (a?: number) => <Badge count={a || 0} showZero />,
     },
     {
       title: 'Created',
@@ -145,19 +146,7 @@ export default function JobsList() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <Button
-          onClick={() => {
-            const api = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-            const base = api.replace(/\/api\/v1$/, '');
-            window.open(
-              `${base}${import.meta.env.VITE_HANGFIRE_PATH}`,
-              '_blank',
-              'noopener,noreferrer',
-            );
-          }}
-        >
-          Apri Hangfire
-        </Button>
+        <Button onClick={openHangfire}>Apri Hangfire</Button>
       </div>
       {retry !== null && <Alert banner message={`Coda piena. Riprova tra ${retry}s`} />}
       <Table columns={columns} dataSource={jobs} rowKey="id" pagination={pagination} loading={loading} />

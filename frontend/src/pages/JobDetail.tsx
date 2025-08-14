@@ -4,6 +4,7 @@ import { JobsService, type JobDetailResponse, OpenAPI, ApiError } from '../gener
 import { request as __request } from '../generated/core/request';
 import { Descriptions, Progress, Button, Collapse, message, Space } from 'antd';
 import JobStatusTag from '../components/JobStatusTag';
+import { openHangfire } from '../hangfire';
 
 function Artifact({ path, label }: { path: string; label: string }) {
   const [content, setContent] = useState<string>('');
@@ -43,11 +44,11 @@ export default function JobDetail() {
     load();
   }, [id]);
 
-    useEffect(() => {
-      if (!job || ['Succeeded', 'Failed', 'Cancelled'].includes(job.status!)) return;
-      const t = setInterval(load, 3000);
-      return () => clearInterval(t);
-    }, [job]);
+  useEffect(() => {
+    if (!job || ['Succeeded', 'Failed', 'Cancelled'].includes(job.status!)) return;
+    const t = setInterval(load, 3000);
+    return () => clearInterval(t);
+  }, [job]);
 
   const handleCancel = async () => {
     if (!id) return;
@@ -88,19 +89,7 @@ export default function JobDetail() {
         >
           Cancel
         </Button>
-        <Button
-          onClick={() => {
-            const api = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-            const base = api.replace(/\/api\/v1$/, '');
-            window.open(
-              `${base}${import.meta.env.VITE_HANGFIRE_PATH}`,
-              '_blank',
-              'noopener,noreferrer',
-            );
-          }}
-        >
-          Apri Hangfire
-        </Button>
+        <Button onClick={openHangfire}>Apri Hangfire</Button>
       </Space>
       {artifacts.length > 0 && (
         <Collapse style={{ marginTop: 16 }}>

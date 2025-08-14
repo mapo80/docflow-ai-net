@@ -209,7 +209,8 @@ if (jqOpts.EnableDashboard)
     var dashboardOptions = new DashboardOptions();
     if (dashOpts.Enabled)
     {
-        dashboardOptions.Authorization = new[] { new BasicAuthDashboardFilter(app.Services.GetRequiredService<IOptions<HangfireDashboardAuthOptions>>()) };
+        var apiOpts = app.Services.GetRequiredService<IOptions<ApiKeyOptions>>();
+        dashboardOptions.Authorization = new[] { new ApiKeyDashboardFilter(apiOpts) };
         Log.Information("HangfireDashboardAuthEnabled");
     }
     app.UseHangfireDashboard("/hangfire", dashboardOptions);
