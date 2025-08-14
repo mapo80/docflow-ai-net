@@ -109,6 +109,52 @@
         }
       }
     }
+    ,"/model/switch": {
+      "post": {
+        "operationId": "switchModel",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ModelSwitchRequest" } }
+          }
+        },
+        "responses": {
+          "202": { "description": "Accepted" }
+        }
+      },
+      "delete": {
+        "operationId": "cancelModelSwitch",
+        "responses": {
+          "202": { "description": "Accepted" }
+        }
+      }
+    },
+    "/model/status": {
+      "get": {
+        "operationId": "getModelStatus",
+        "responses": {
+          "200": {
+            "description": "Status",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ModelStatus" } }
+            }
+          }
+        }
+      }
+    },
+    "/model/info": {
+      "get": {
+        "operationId": "getModelInfo",
+        "responses": {
+          "200": {
+            "description": "Model info",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ModelInfo" } }
+            }
+          }
+        }
+      }
+    }
   },
   "components": {
     "schemas": {
@@ -163,6 +209,36 @@
           "reasons": { "type": "array", "items": { "type": "string" } }
         },
         "required": ["status", "reasons"]
+      },
+      "ModelSwitchRequest": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "repo": { "type": "string" },
+          "file": { "type": "string" },
+          "contextSize": { "type": "integer" },
+          "note": { "type": "string", "nullable": true }
+        },
+        "required": ["token", "repo", "file", "contextSize"]
+      },
+      "ModelStatus": {
+        "type": "object",
+        "properties": {
+          "completed": { "type": "boolean" },
+          "percentage": { "type": "number" },
+          "message": { "type": "string", "nullable": true }
+        },
+        "required": ["completed", "percentage"]
+      },
+      "ModelInfo": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "nullable": true },
+          "repo": { "type": "string", "nullable": true },
+          "file": { "type": "string", "nullable": true },
+          "contextSize": { "type": "integer", "nullable": true },
+          "loadedAt": { "type": "string", "format": "date-time", "nullable": true }
+        }
       }
     }
   }
