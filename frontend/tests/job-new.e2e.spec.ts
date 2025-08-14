@@ -56,13 +56,13 @@ test.skip('immediate capacity 429', async ({ page }) => {
   await expect(page.getByText(/Riprova tra/)).toBeVisible();
 });
 
-test('queued 202', async ({ page }) => {
+test('queued job completes and shows detail', async ({ page }) => {
   await page.route('**/jobs', (route) => {
     if (route.request().method() === 'OPTIONS') {
       route.fulfill({ status: 200 });
       return;
     }
-    if (route.request().url().includes('mode=immediate')) {
+    if (route.request().method() !== 'POST') {
       route.fallback();
       return;
     }
@@ -71,10 +71,52 @@ test('queued 202', async ({ page }) => {
       body: JSON.stringify({ id: '42' }),
     });
   });
+
+  await page.route('**/jobs/42', (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      route.fulfill({ status: 200 });
+      return;
+    }
+    route.fulfill({
+      status: 200,
+      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: '42',
+        status: 'Succeeded',
+        attempts: 1,
+        createdAt: '',
+        updatedAt: '',
+        paths: {
+          output: '/files/output.json',
+          fields: '/files/fields.json',
+        },
+      }),
+    });
+  });
+
+  await page.route('**/files/output.json', (route) => {
+    route.fulfill({
+      status: 200,
+      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ok: true }),
+    });
+  });
+  await page.route('**/files/fields.json', (route) => {
+    route.fulfill({
+      status: 200,
+      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: [{ name: 'a', value: '1' }] }),
+    });
+  });
+
   await page.goto('/jobs/new');
   await page.setInputFiles('input[type="file"]', uploadFile);
   await page.getByRole('button', { name: 'Submit' }).click();
   await expect(page).toHaveURL(/\/jobs\/42$/);
+
+  await page.locator('text=output').first().waitFor();
+  await expect(page.locator('text=output')).toBeVisible();
+  await expect(page.locator('text=fields')).toBeVisible();
 });
 
 test.skip('413 file too large', async ({ page }) => {
