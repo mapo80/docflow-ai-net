@@ -20,10 +20,10 @@ public class ImmediateCapacityAndFallbackTests : IClassFixture<TempDirFixture>
         factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
         var client = factory.CreateClient();
         var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
-        var first = client.PostAsJsonAsync("/v1/jobs?mode=immediate", payload); // running
+        var first = client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload); // running
         await Task.Delay(100); // ensure started
         var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf" };
-        var second = await client.PostAsJsonAsync("/v1/jobs?mode=immediate", secondPayload);
+        var second = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", secondPayload);
         second.StatusCode.Should().Be(System.Net.HttpStatusCode.TooManyRequests);
         second.Headers.Should().ContainKey("Retry-After");
         (await second.Content.ReadAsStringAsync()).Should().Contain("immediate_capacity");
@@ -37,10 +37,10 @@ public class ImmediateCapacityAndFallbackTests : IClassFixture<TempDirFixture>
         factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
         var client = factory.CreateClient();
         var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
-        var first = client.PostAsJsonAsync("/v1/jobs?mode=immediate", payload);
+        var first = client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);
         await Task.Delay(100);
         var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf" };
-        var second = await client.PostAsJsonAsync("/v1/jobs?mode=immediate", secondPayload);
+        var second = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", secondPayload);
         second.StatusCode.Should().Be(System.Net.HttpStatusCode.Accepted);
         var body = await second.Content.ReadFromJsonAsync<JsonElement>();
         var id = body.GetProperty("job_id").GetGuid();

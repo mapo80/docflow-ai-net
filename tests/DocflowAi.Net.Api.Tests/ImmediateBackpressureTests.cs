@@ -24,7 +24,7 @@ public class ImmediateBackpressureTests : IClassFixture<TempDirFixture>
         var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
         using (TestCorrelator.CreateContext())
         {
-            var resp = await client.PostAsJsonAsync("/v1/jobs?mode=immediate", payload);
+            var resp = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);
             resp.StatusCode.Should().Be(System.Net.HttpStatusCode.TooManyRequests);
             resp.Headers.Should().ContainKey("Retry-After");
             (await resp.Content.ReadAsStringAsync()).Should().Contain("queue_full");

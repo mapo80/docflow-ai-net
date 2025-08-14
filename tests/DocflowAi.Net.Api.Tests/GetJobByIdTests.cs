@@ -36,7 +36,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
             Metrics = new JobDocument.MetricsInfo()
         };
         store.Create(job);
-        var resp = await client.GetAsync($"/v1/jobs/{id}");
+        var resp = await client.GetAsync($"/api/v1/jobs/{id}");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
         json.GetProperty("status").GetString().Should().Be("Running");
@@ -50,7 +50,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fx.RootPath);
         var client = factory.CreateClient();
-        var resp = await client.GetAsync($"/v1/jobs/{Guid.NewGuid()}");
+        var resp = await client.GetAsync($"/api/v1/jobs/{Guid.NewGuid()}");
         resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

@@ -23,7 +23,7 @@ public class ImmediateJobCancelTests : IClassFixture<TempDirFixture>
         using var cts = new CancellationTokenSource();
         using (TestCorrelator.CreateContext())
         {
-            var post = client.PostAsJsonAsync("/v1/jobs?mode=immediate", payload, cts.Token);
+            var post = client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload, cts.Token);
             await Task.Delay(100);
             cts.Cancel();
             try { await post; } catch (TaskCanceledException) { }

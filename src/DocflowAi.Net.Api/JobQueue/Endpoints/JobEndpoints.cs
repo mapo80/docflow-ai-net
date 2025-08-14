@@ -25,7 +25,7 @@ public static class JobEndpoints
 
     public static IEndpointRouteBuilder MapJobEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/v1/jobs")
+        var group = builder.MapGroup("/api/v1/jobs")
             .WithTags("Jobs")
             .RequireRateLimiting("General");
 
@@ -132,7 +132,7 @@ public static class JobEndpoints
                 if (existing != null)
                 {
                     logger.LogInformation("IdempotencyHit {JobId}", existing.Id);
-                    return Results.Accepted($"/v1/jobs/{existing.Id}", new SubmitAcceptedResponse(existing.Id, $"/v1/jobs/{existing.Id}", optsVal.EnableDashboard ? "/hangfire" : null));
+                    return Results.Accepted($"/api/v1/jobs/{existing.Id}", new SubmitAcceptedResponse(existing.Id, $"/api/v1/jobs/{existing.Id}", optsVal.EnableDashboard ? "/hangfire" : null));
                 }
             }
 
@@ -140,7 +140,7 @@ public static class JobEndpoints
             if (dup != null)
             {
                 logger.LogInformation("HashDedupeHit {JobId}", dup.Id);
-                return Results.Accepted($"/v1/jobs/{dup.Id}", new SubmitAcceptedResponse(dup.Id, $"/v1/jobs/{dup.Id}", optsVal.EnableDashboard ? "/hangfire" : null));
+                return Results.Accepted($"/api/v1/jobs/{dup.Id}", new SubmitAcceptedResponse(dup.Id, $"/api/v1/jobs/{dup.Id}", optsVal.EnableDashboard ? "/hangfire" : null));
             }
 
             var jobId = Guid.NewGuid();
@@ -171,7 +171,7 @@ public static class JobEndpoints
             {
                 jobs.Enqueue<IJobRunner>(r => r.Run(jobId, CancellationToken.None, true, null));
                 logger.LogInformation("SubmitJobCompleted {JobId} {ElapsedMs}", jobId, sw.ElapsedMilliseconds);
-                return Results.Accepted($"/v1/jobs/{jobId}", new SubmitAcceptedResponse(jobId, $"/v1/jobs/{jobId}", optsVal.EnableDashboard ? "/hangfire" : null));
+                return Results.Accepted($"/api/v1/jobs/{jobId}", new SubmitAcceptedResponse(jobId, $"/api/v1/jobs/{jobId}", optsVal.EnableDashboard ? "/hangfire" : null));
             }
 
             var gate = req.HttpContext.RequestServices.GetRequiredService<IConcurrencyGate>();
@@ -183,7 +183,7 @@ public static class JobEndpoints
                     jobs.Enqueue<IJobRunner>(r => r.Run(jobId, CancellationToken.None, true, null));
                     logger.LogWarning("ImmediateFallbackQueued {JobId}", jobId);
                     logger.LogInformation("SubmitJobCompleted {JobId} {ElapsedMs}", jobId, sw.ElapsedMilliseconds);
-                    return Results.Accepted($"/v1/jobs/{jobId}", new SubmitAcceptedResponse(jobId, $"/v1/jobs/{jobId}", optsVal.EnableDashboard ? "/hangfire" : null));
+                    return Results.Accepted($"/api/v1/jobs/{jobId}", new SubmitAcceptedResponse(jobId, $"/api/v1/jobs/{jobId}", optsVal.EnableDashboard ? "/hangfire" : null));
                 }
                 req.HttpContext.Response.Headers["Retry-After"] = "1";
                 return Results.Json(new ErrorResponse("immediate_capacity", null, 1), statusCode: 429);
@@ -235,7 +235,7 @@ public static class JobEndpoints
               op.Responses["202"].Content["application/json"].Example = new OpenApiObject
               {
                   ["job_id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
-                  ["status_url"] = new OpenApiString("/v1/jobs/{id}"),
+                  ["status_url"] = new OpenApiString("/api/v1/jobs/{id}"),
                   ["dashboard_url"] = new OpenApiString("/hangfire")
               };
               op.Responses["200"].Content["application/json"].Examples = new Dictionary<string, OpenApiExample>
@@ -355,7 +355,7 @@ public static class JobEndpoints
                 store.MarkCancelled(id, "cancelled by user");
                 logger.LogWarning("JobCancelled {JobId}", id);
                 logger.LogInformation("DeleteJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
-                return Results.Accepted($"/v1/jobs/{id}", new { ok = true, status = "Cancelled" });
+                return Results.Accepted($"/api/v1/jobs/{id}", new { ok = true, status = "Cancelled" });
             }
             logger.LogWarning("CancelConflict {JobId} {Status}", id, job.Status);
             return Results.Json(new ErrorResponse("conflict", "job already in terminal state"), statusCode: 409);

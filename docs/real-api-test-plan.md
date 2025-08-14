@@ -2,10 +2,10 @@
 
 Obiettivo: eseguire **test end-to-end reali** contro le API esposte (nessun mock), usando file e servizi reali. I test **non** modificano il backend e verificano il comportamento osservabile via REST.
 Ambito endpoint:
-- POST /v1/jobs (queued | ?mode=immediate)
-- GET  /v1/jobs (lista paginata)
-- GET  /v1/jobs/{id}
-- DELETE /v1/jobs/{id}
+- POST /api/v1/jobs (queued | ?mode=immediate)
+- GET  /api/v1/jobs (lista paginata)
+- GET  /api/v1/jobs/{id}
+- DELETE /api/v1/jobs/{id}
 - GET  /health/live
 - GET  /health/ready
 - (Hangfire dashboard: solo verifica raggiungibilità via URL pubblico, non API)
@@ -40,14 +40,14 @@ A2. **Ready_OK_or_Reasons** – GET /health/ready → 200 **oppure** 503 con `re
 A3. **Hangfire_Accessible** (facoltativo) – Se `DOCFLOW_HANGFIRE_PATH` definito: fare una **HEAD/GET** all’URL pubblico; aspettarsi 200/401/403/redirect (non deve essere 404/5xx persistente).
 
 ### B) SUBMIT — QUEUED (202)
-B1. **Submit_Queued_202_Minimal** – POST /v1/jobs con `sample.pdf`, `prompt_text`, `fields_json` → 202 `{ job_id, status_url }`. Verifica che GET {id} ritorni status `Queued` o `Running`.
+B1. **Submit_Queued_202_Minimal** – POST /api/v1/jobs con `sample.pdf`, `prompt_text`, `fields_json` → 202 `{ job_id, status_url }`. Verifica che GET {id} ritorni status `Queued` o `Running`.
 
 B2. **Submit_Queued_202_IdempotencyKey** – Ripeti lo stesso POST con header `Idempotency-Key: <K>` → 202 **stesso** `job_id`.
 
 B3. **Submit_Queued_202_DedupeHash** – Due POST in sequenza **senza** Idempotency-Key con **stesso** file/prompt/fields → 202 **stesso** `job_id` (dedupe entro finestra).
 
 ### C) SUBMIT — IMMEDIATE (200)
-C1. **Immediate_200_Success** – POST /v1/jobs?mode=immediate con `sample.pdf` + `prompt_text` + `fields_json` → 200 `{ job_id, status="Succeeded", duration_ms, result_path? }`. GET {id} → `Succeeded`. Se `result_path` pubblico: GET file → 200 (facoltativo).
+C1. **Immediate_200_Success** – POST /api/v1/jobs?mode=immediate con `sample.pdf` + `prompt_text` + `fields_json` → 200 `{ job_id, status="Succeeded", duration_ms, result_path? }`. GET {id} → `Succeeded`. Se `result_path` pubblico: GET file → 200 (facoltativo).
 
 C2. **Immediate_200_Failed** (se riproducibile) – Usare un input che generi failure (es. payload volutamente inconsistente) → 200 `{ status="Failed", error }`. GET {id} → `Failed`.
 
@@ -55,19 +55,19 @@ C3. **Immediate_429_Capacity** (se ambiente con capacità limitata) – Avvia un
 
 C4. **Immediate_200_Cancelled** (opzionale) – Avvia immediate e **annulla** la richiesta client (CancellationToken) durante l’elaborazione. GET {id} → `Cancelled` (se supportato dal backend).
 
-### D) LISTA PAGINATA — GET /v1/jobs
-D1. **List_Default_Paged_Desc** – GET /v1/jobs?page=1&pageSize=20 → 200 { page, pageSize, total, items }. Verifica `items` ordinati per `createdAt` DESC (confronto `createdAt` dei primi 3).
+### D) LISTA PAGINATA — GET /api/v1/jobs
+D1. **List_Default_Paged_Desc** – GET /api/v1/jobs?page=1&pageSize=20 → 200 { page, pageSize, total, items }. Verifica `items` ordinati per `createdAt` DESC (confronto `createdAt` dei primi 3).
 
 D2. **List_Pagination_NextPage** – Se `total` > pageSize, GET page=2 → elementi diversi e coerenza col totale.
 
 D3. **List_Filters_ClientSide** (solo FE) – (Il BE non espone filtri dedicati) — validare localmente che il subset filtrato da FE corrisponda ai `status` attesi (non serve chiamata extra al BE).
 
-### E) DETTAGLIO — GET /v1/jobs/{id}
+### E) DETTAGLIO — GET /api/v1/jobs/{id}
 E1. **Get_ById_Existing** – Dal job creato in B1: GET {id} → 200; assert: campi base (status, derivedStatus, progress, timestamps). Se paths presenti: **non** dedurre stato dai file, ma verificare solo la **presenza** dei path.
 
 E2. **Get_ById_NotFound** – GET guid random → 404 `{ error:"not_found" }`.
 
-### F) CANCEL — DELETE /v1/jobs/{id}
+### F) CANCEL — DELETE /api/v1/jobs/{id}
 F1. **Cancel_Queued_202** – Su un job in `Queued`: DELETE → 202, GET {id} → `Cancelled`.
 
 F2. **Cancel_Running_202** (se possibile) – Se un job è `Running`: DELETE → 202, GET {id} → `Cancelled` (o `Running` per breve, poi `Cancelled`).
