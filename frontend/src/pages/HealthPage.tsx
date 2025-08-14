@@ -26,15 +26,18 @@ export default function HealthPage() {
     load();
   }, []);
 
+  const readyReasons = ready?.reasons ?? [];
+  const liveReasons = live?.reasons ?? [];
+
   return (
     <div>
       <h2>Health</h2>
       <HealthBadge />
       <Button onClick={load}>Riprova</Button>
       <h3>Ready: {ready?.status}</h3>
-      <ul>{ready?.reasons.map((r) => (<li key={r}>{r}</li>))}</ul>
+      <ul>{readyReasons.map((r) => (<li key={r}>{r}</li>))}</ul>
       <h3>Live: {live?.status}</h3>
-      <ul>{live?.reasons.map((r) => (<li key={r}>{r}</li>))}</ul>
+      <ul>{liveReasons.map((r) => (<li key={r}>{r}</li>))}</ul>
     </div>
   );
 }
