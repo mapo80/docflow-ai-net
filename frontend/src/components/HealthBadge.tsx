@@ -34,7 +34,7 @@ export default function HealthBadge() {
   }, []);
 
   return (
-    <Tooltip title={health?.reasons.join(', ') || ''}>
+    <Tooltip title={health?.reasons?.join(', ') || ''}>
       <Badge color={colorMap[status]} text="Health" />
     </Tooltip>
   );
