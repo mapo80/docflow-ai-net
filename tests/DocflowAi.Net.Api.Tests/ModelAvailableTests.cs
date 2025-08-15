@@ -3,6 +3,7 @@ using DocflowAi.Net.Api.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.IO;
 using System;
+using System.Collections.Generic;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -34,6 +35,33 @@ public class ModelAvailableTests : IClassFixture<TempDirFixture>
             var client = CreateClient(factory);
             var resp = await client.GetFromJsonAsync<string[]>("/api/v1/model/available");
             resp.Should().Contain("a.gguf");
+            resp.Should().HaveCount(1);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("MODELS_DIR", prev);
+        }
+    }
+
+    [Fact]
+    public async Task Available_Uses_ModelPath_Directory()
+    {
+        var modelsDir = Path.Combine(_fx.RootPath, "models2");
+        Directory.CreateDirectory(modelsDir);
+        var modelPath = Path.Combine(modelsDir, "default.gguf");
+        File.WriteAllText(modelPath, "");
+        var prev = Environment.GetEnvironmentVariable("MODELS_DIR");
+        Environment.SetEnvironmentVariable("MODELS_DIR", null);
+        try
+        {
+            var extra = new Dictionary<string, string?>
+            {
+                ["Llm:ModelPath"] = modelPath
+            };
+            await using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
+            var client = CreateClient(factory);
+            var resp = await client.GetFromJsonAsync<string[]>("/api/v1/model/available");
+            resp.Should().Contain("default.gguf");
             resp.Should().HaveCount(1);
         }
         finally

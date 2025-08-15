@@ -55,12 +55,21 @@ Le librerie native di Tesseract (libtesseract.so.5) e Leptonica (liblept.so.5) s
 Per eseguire l'OCR è necessario fornire i file tessdata delle lingue e indicarli tramite OcrDataPath.
 
 ## Frontend E2E
+- Assicurati che l'ambiente sia pronto:
+  ```bash
+  git submodule update --init --recursive
+  ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
+  export PATH="$HOME/dotnet:$PATH"
+  dotnet build -c Release
+  npx playwright install
+  npx playwright install-deps   # necessario su Linux
+  ```
 - Imposta le variabili in `.env`:
   - `VITE_API_BASE_URL` URL dell'API REST (non includere il prefisso `/api/v1`, già previsto dal client)
   - `VITE_HANGFIRE_PATH` percorso dell'interfaccia Hangfire (es. `/hangfire`)
 - Tutte le chiamate da FE ai servizi REST devono essere eseguite tramite il client generato automaticamente tramite swagger ad eccezione dei servizi di health.
 - I file generati automaticamente tramite swagger **non devono essere modificati manualmente**.
-- Per eseguire i test end-to-end:
+- Esegui e verifica sempre i test end-to-end (devono **tutti** passare):
   ```bash
   npm test -- --run
   npm run build
@@ -68,6 +77,7 @@ Per eseguire l'OCR è necessario fornire i file tessdata delle lingue e indicarl
   ```
 - Playwright avvia `vite preview` sulla porta 4173: assicurarsi che la porta sia libera.
 - Per usare le API reali avviare l'API .NET (`dotnet run`) e puntare `VITE_API_BASE_URL` all'istanza in esecuzione.
+- Definition of Done: ogni modifica al frontend deve includere test E2E adeguati.
 
 ## Note
 - `MarkItDownNet` è un submodule git; eseguire `git submodule update --init --recursive` prima della build .NET.
