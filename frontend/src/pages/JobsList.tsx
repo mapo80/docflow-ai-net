@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Table, Space, Button, Progress, Badge, Alert, message } from 'antd';
+import { FileAddOutlined } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { JobsService, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
@@ -145,7 +146,17 @@ export default function JobsList() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginBottom: 16,
+          gap: 8,
+        }}
+      >
+        <Link to="/jobs/new">
+          <Button aria-label="Nuovo Job" icon={<FileAddOutlined />} />
+        </Link>
         <Button onClick={openHangfire}>Apri Hangfire</Button>
       </div>
       {retry !== null && <Alert banner message={`Coda piena. Riprova tra ${retry}s`} />}
