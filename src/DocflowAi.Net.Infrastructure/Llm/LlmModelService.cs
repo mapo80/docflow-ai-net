@@ -16,6 +16,7 @@ public sealed class LlmModelService : ILlmModelService
     private readonly HttpClient _httpClient;
     private readonly LlmOptions _options;
     private readonly ILogger<LlmModelService> _logger;
+    private readonly string _modelsDir;
 
     private Task? _downloadTask;
     private long _totalBytes;
@@ -28,8 +29,11 @@ public sealed class LlmModelService : ILlmModelService
         _options = options.Value;
         _logger = logger;
 
-        var modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR") ?? Path.Combine(AppContext.BaseDirectory, "models");
-        Directory.CreateDirectory(modelsDir);
+        _modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR")
+            ?? (!string.IsNullOrEmpty(_options.ModelPath)
+                ? Path.GetDirectoryName(_options.ModelPath)!
+                : Path.Combine(AppContext.BaseDirectory, "models"));
+        Directory.CreateDirectory(_modelsDir);
 
         string? fileName = null;
         var configured = _options.ModelPath;
@@ -39,7 +43,7 @@ public sealed class LlmModelService : ILlmModelService
         }
         else
         {
-            var first = Directory.EnumerateFiles(modelsDir, "*.gguf").FirstOrDefault();
+            var first = Directory.EnumerateFiles(_modelsDir, "*.gguf").FirstOrDefault();
             if (first != null)
             {
                 _options.ModelPath = first;
@@ -56,9 +60,8 @@ public sealed class LlmModelService : ILlmModelService
         if (_downloadTask != null && !_downloadTask.IsCompleted)
             throw new InvalidOperationException("download in progress");
 
-        var modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR") ?? Path.Combine(AppContext.BaseDirectory, "models");
-        Directory.CreateDirectory(modelsDir);
-        var dest = Path.Combine(modelsDir, modelFile);
+        Directory.CreateDirectory(_modelsDir);
+        var dest = Path.Combine(_modelsDir, modelFile);
         if (File.Exists(dest))
         {
             _downloadTask = null;
@@ -83,8 +86,7 @@ public sealed class LlmModelService : ILlmModelService
 
     public Task SwitchModelAsync(string modelFile, int contextSize)
     {
-        var modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR") ?? Path.Combine(AppContext.BaseDirectory, "models");
-        var dest = Path.Combine(modelsDir, modelFile);
+        var dest = Path.Combine(_modelsDir, modelFile);
         if (!File.Exists(dest))
             throw new FileNotFoundException($"Model {modelFile} not found");
         _options.ModelPath = dest;
@@ -96,9 +98,8 @@ public sealed class LlmModelService : ILlmModelService
 
     public IEnumerable<string> ListAvailableModels()
     {
-        var modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR") ?? Path.Combine(AppContext.BaseDirectory, "models");
-        if (!Directory.Exists(modelsDir)) return Enumerable.Empty<string>();
-        return Directory.EnumerateFiles(modelsDir, "*.gguf").Select(Path.GetFileName) ?? Enumerable.Empty<string>();
+        if (!Directory.Exists(_modelsDir)) return Enumerable.Empty<string>();
+        return Directory.EnumerateFiles(_modelsDir, "*.gguf").Select(f => Path.GetFileName(f)!);
     }
 
     private async Task DownloadAsync(string url, string hfKey, string dest, CancellationToken ct)

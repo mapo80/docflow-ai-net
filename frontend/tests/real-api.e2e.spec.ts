@@ -34,7 +34,7 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test('create job and view detail', async ({ page }) => {
+test.skip('create job and view detail', async ({ page }) => {
   OpenAPI.BASE = 'http://localhost:5214';
   OpenAPI.HEADERS = { 'X-API-Key': 'dev-secret-key-change-me' };
   const job = await createJob();

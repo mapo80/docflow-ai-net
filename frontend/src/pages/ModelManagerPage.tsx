@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Row, Col, Card, Descriptions, Alert, message, Grid } from 'antd';
+import {
+  Row,
+  Col,
+  Card,
+  Descriptions,
+  Alert,
+  message,
+  Grid,
+  Progress,
+  Result,
+  Space,
+} from 'antd';
 import ModelDownloadForm from '../components/ModelDownloadForm';
-import StatusCard from '../components/StatusCard';
 import RetryAfterBanner from '../components/RetryAfterBanner';
 import ModelSwitchSelect from '../components/ModelSwitchSelect';
 import {
@@ -9,14 +19,18 @@ import {
   type DownloadModelRequest,
   ApiError,
   type ModelInfo,
+  type ModelDownloadStatus,
 } from '../generated';
 import dayjs from 'dayjs';
 
+type ModelStatus = ModelDownloadStatus & { message?: string };
+
 export default function ModelManagerPage() {
   const [info, setInfo] = useState<ModelInfo | null>(null);
-  const [polling, setPolling] = useState(false);
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const [available, setAvailable] = useState<string[]>([]);
+  const [polling, setPolling] = useState(false);
+  const [status, setStatus] = useState<ModelStatus | null>(null);
   const screens = Grid.useBreakpoint();
 
   const loadInfo = async () => {
@@ -61,6 +75,7 @@ export default function ModelManagerPage() {
     try {
       await ModelService.modelDownload({ requestBody: req });
       message.success('Download avviato');
+      setStatus(null);
       setPolling(true);
     } catch (e) {
       if (e instanceof ApiError) {
@@ -69,6 +84,32 @@ export default function ModelManagerPage() {
       }
     }
   };
+
+  const fetchStatus = async () => {
+    try {
+      const s = (await ModelService.modelStatus()) as ModelStatus;
+      setStatus(s);
+      if (s.completed) {
+        setPolling(false);
+        message.success('Download completato');
+        await loadAvailable();
+      }
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 429) {
+        setRetryAfter(e.body?.retry_after_seconds ?? 0);
+      } else {
+        message.error('Errore stato');
+        setPolling(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!polling) return;
+    fetchStatus();
+    const id = setInterval(fetchStatus, 2000);
+    return () => clearInterval(id);
+  }, [polling]);
 
   return (
     <Row gutter={[16, 16]}>
@@ -107,6 +148,7 @@ export default function ModelManagerPage() {
           <ModelSwitchSelect
             models={available}
             onSwitch={handleSwitch}
+            onReload={loadAvailable}
             disabled={retryAfter !== null}
           />
         </Card>
@@ -115,9 +157,20 @@ export default function ModelManagerPage() {
           style={{ marginBottom: 16 }}
           size={screens.xs ? 'small' : undefined}
         >
-          <ModelDownloadForm onSubmit={handleDownload} disabled={retryAfter !== null} />
+          <ModelDownloadForm
+            onSubmit={handleDownload}
+            disabled={retryAfter !== null || polling}
+          />
+          {polling && status && !status.completed && (
+            <Space direction="vertical" style={{ width: '100%', marginTop: 16 }}>
+              <Progress percent={status.percentage} />
+              {status.message}
+            </Space>
+          )}
+          {!polling && status && status.completed && (
+            <Result status="success" title="Completato" />
+          )}
         </Card>
-        <StatusCard active={polling} />
       </Col>
     </Row>
   );

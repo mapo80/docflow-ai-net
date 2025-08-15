@@ -17,6 +17,13 @@ test('menu routing', async ({ page }) => {
 });
 
 test('hangfire opens new window', async ({ page, context }) => {
+  await page.route('**/hangfire**', async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({ status: 200 });
+      return;
+    }
+    await route.fulfill({ status: 200, body: '<html></html>' });
+  });
   await page.goto('/');
   await page.evaluate(() =>
     localStorage.setItem('apiKey', 'dev-secret-key-change-me')
