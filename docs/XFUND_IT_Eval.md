@@ -1,10 +1,10 @@
-# Valutazione XFUND IT (subset 10)
+# XFUND IT Evaluation (subset 10)
 
-Questo report descrive la pipeline di valutazione applicata al sottoinsieme di 10 documenti del dataset **XFUND** italiano (split *val*). Il runner `XFundEvalRunner` scarica l'archivio ufficiale, seleziona le prime 10 immagini in ordine alfabetico e auto‑deriva i campi da estrarre tramite i collegamenti `question/key/header → answer` presenti negli annotati XFUND.
+This report describes the evaluation pipeline applied to a subset of ten documents from the Italian **XFUND** dataset (*val* split). The `XFundEvalRunner` downloads the official archive, selects the first ten images alphabetically, and auto-derives the fields to extract through the `question/key/header → answer` links contained in the XFUND annotations.
 
-## Strategie confrontate
+## Compared strategies
 
-Sono state eseguite cinque strategie di estrazione e ancoraggio:
+Five extraction and anchoring strategies were executed:
 
 - **Pointer / WordIds**
 - **Pointer / Offsets**
@@ -12,11 +12,11 @@ Sono state eseguite cinque strategie di estrazione e ancoraggio:
 - **Legacy – BitParallel**
 - **Legacy – ClassicLevenshtein**
 
-Tutte le strategie sono selezionabili via `appsettings.json` o tramite CLI (`--strategies`).
+All strategies can be enabled via `appsettings.json` or through the CLI (`--strategies`).
 
 ## Prompt
 
-Per ogni documento vengono generati prompt specifici. A titolo di esempio, i file sotto mostrano un template reale:
+A specific prompt is generated for each document. For example:
 
 ```
 # Pointer / WordIds
@@ -28,22 +28,22 @@ Per ogni documento vengono generati prompt specifici. A titolo di esempio, i fil
 - response: eval/out/prompts/doc001/PointerOffsets.response.json
 ```
 
-## Metriche
+## Metrics
 
-Le metriche tecniche calcolate includono:
+The technical metrics calculated include:
 
-- **Coverage** e **Extraction rate**
+- **Coverage** and **Extraction rate**
 - **Exact value match rate**
-- **IoU@0.5** e **IoU@0.75** tra bbox previste e attese
+- **IoU@0.5** and **IoU@0.75** between predicted and expected boxes
 - **Word‑IoU**
-- **Pointer validity rate** e **pointer fallback rate**
-- Tempi mediani di conversione, indexing, LLM e risoluzione
+- **Pointer validity rate** and **pointer fallback rate**
+- Median times for conversion, indexing, LLM, and resolution
 
-Le formule seguono le convenzioni standard (IoU = Area Intersezione / Area Unione, Word‑IoU = Jaccard degli indici parola, ecc.).
+Formulas follow standard conventions (IoU = Intersection Area / Union Area, Word‑IoU = Jaccard over word indices, etc.).
 
-## Risultati sintetici
+## Summary results
 
-| Strategia | Coverage | Exact match | IoU@0.5 | IoU@0.75 | Mediana t_total_ms |
+| Strategy | Coverage | Exact match | IoU@0.5 | IoU@0.75 | Median t_total_ms |
 |-----------|----------|-------------|---------|----------|--------------------|
 | PointerWordIds | 1.00 | 1.00 | 1.00 | 1.00 | 0 |
 | PointerOffsets | 1.00 | 1.00 | 1.00 | 1.00 | 0 |
@@ -51,27 +51,27 @@ Le formule seguono le convenzioni standard (IoU = Area Intersezione / Area Union
 | Legacy-BitParallel | 1.00 | 1.00 | 1.00 | 1.00 | 0 |
 | Legacy-ClassicLevenshtein | 1.00 | 1.00 | 1.00 | 1.00 | 0 |
 
-*Nota: i tempi sono campi segnaposto in questa versione di riferimento.*
+*Note: timings are placeholders in this reference version.*
 
 ## Leaderboard
 
 - 🥇 **Best Coverage:** PointerWordIds
-- 🎯 **Highest Exact Match:** tutte le strategie (parità)
-- ⚡ **Fastest Median Total Time:** tutte le strategie (parità)
+- 🎯 **Highest Exact Match:** all strategies (tie)
+- ⚡ **Fastest Median Total Time:** all strategies (tie)
 
-## Head‑to‑Head per label
+## Head-to-Head per label
 
-La matrice `eval/out/coverage_matrix.csv` riporta l'esito per ogni campo (WithBBox, TextOnly, Missing) nelle varie strategie, permettendo un confronto diretto.
+The matrix `eval/out/coverage_matrix.csv` reports the outcome for each field (WithBBox, TextOnly, Missing) across strategies, allowing direct comparison.
 
-## Casi studio e analisi errori
+## Case studies and error analysis
 
-I file di traccia per documento/strategia (`eval/out/traces/<doc>/<strategy>.txt`) contengono dettagli su prompt, risposta, decisioni del resolver e anomalie (`HugeBBoxArea`, `PointerInvalid`, ecc.). Questi log facilitano l'analisi qualitativa e la categorizzazione degli errori.
+Trace files per document/strategy (`eval/out/traces/<doc>/<strategy>.txt`) contain details on prompts, responses, resolver decisions, and anomalies (`HugeBBoxArea`, `PointerInvalid`, etc.), assisting qualitative analysis and error categorization.
 
-## Reproducibilità
+## Reproducibility
 
 - Commit: `$(git rev-parse --short HEAD)`
-- Modello LLM: qwen2.5-0.5b-instruct-q4_0.gguf
+- LLM model: qwen2.5-0.5b-instruct-q4_0.gguf
 - Seed: 42
-- Ripetizioni: 3 (1 warm‑up)
-- Ambiente: CPU/RAM standard container
+- Repetitions: 3 (1 warm‑up)
+- Environment: standard container CPU/RAM
 

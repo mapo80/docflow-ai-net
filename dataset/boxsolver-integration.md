@@ -1,14 +1,14 @@
 # BBox Resolver Integration Tests
 
-Questo documento riassume l'esecuzione delle strategie **TokenFirst** e **PointerStrategy** del `BBoxResolver` sui file `sample_invoice.pdf` e `sample_invoice.png`.
+This document summarizes the execution of the **TokenFirst** and **PointerStrategy** approaches of the `BBoxResolver` on `sample_invoice.pdf` and `sample_invoice.png`.
 
 ## TokenFirst
 
-Risultati salvati in:
+Results are stored in:
 - [`test-pdf-boxsolver2/`](test-pdf-boxsolver2)
 - [`test-png-boxsolver2/`](test-png-boxsolver2)
 
-Per ciascun file sono stati eseguiti i due algoritmi di distanza disponibili: `BitParallel` e `ClassicLevenshtein`.
+For each file the two available distance algorithms were executed: `BitParallel` and `ClassicLevenshtein`.
 
 ## PDF
 - File: `dataset/sample_invoice.pdf`
@@ -17,14 +17,14 @@ Per ciascun file sono stati eseguiti i due algoritmi di distanza disponibili: `B
   - [`test-pdf-boxsolver2/bitparallel.json`](test-pdf-boxsolver2/bitparallel.json)
   - [`test-pdf-boxsolver2/classiclevenshtein.json`](test-pdf-boxsolver2/classiclevenshtein.json)
 
-| Algoritmo | Tempo (ms) | Campi risolti / totali | Confidenza media |
-|-----------|-----------:|-----------------------:|-----------------:|
+| Algorithm | Time (ms) | Fields resolved / total | Avg confidence |
+|-----------|-----------:|-----------------------:|---------------:|
 | BitParallel | 266 | 6 / 8 | 0.92 |
 | ClassicLevenshtein | 276 | 6 / 8 | 0.92 |
 
-Entrambi gli algoritmi ancorano correttamente "ACME S.p.A.", le due righe "Prodotto A"/"Prodotto B" e i valori monetari. `invoice_date` e `invoice_number` restano senza evidenze.
+Both algorithms correctly anchor "ACME S.p.A.", the lines "Prodotto A"/"Prodotto B", and the monetary values. `invoice_date` and `invoice_number` remain without evidence.
 
-Esempio di record con span:
+Example record with span:
 
 ```json
 {
@@ -45,17 +45,17 @@ Esempio di record con span:
 
 ## PNG
 - File: `dataset/sample_invoice.png`
-- Output LLM originale: [`test-png/llm_response.json`](test-png/llm_response.json)
-- Output resolver (parsing dal JSON MarkItDownNet preesistente):
+- Original LLM output: [`test-png/llm_response.json`](test-png/llm_response.json)
+- Resolver output (parsed from the existing MarkItDownNet JSON):
   - [`test-png-boxsolver2/bitparallel.json`](test-png-boxsolver2/bitparallel.json)
   - [`test-png-boxsolver2/classiclevenshtein.json`](test-png-boxsolver2/classiclevenshtein.json)
 
-| Algoritmo | Tempo (ms) | Campi risolti / totali | Confidenza media |
-|-----------|-----------:|-----------------------:|-----------------:|
+| Algorithm | Time (ms) | Fields resolved / total | Avg confidence |
+|-----------|-----------:|-----------------------:|---------------:|
 | BitParallel | 277 | 2 / 4 | 0.93 |
 | ClassicLevenshtein | 279 | 2 / 4 | 0.93 |
 
-Esempio di record:
+Example record:
 
 ```json
 {
@@ -76,20 +76,20 @@ Esempio di record:
 
 ## PointerStrategy
 
-Risultati salvati in:
+Results are stored in:
 - [`test-pdf-boxsolver-pointerstrategy/result.json`](test-pdf-boxsolver-pointerstrategy/result.json)
 - [`test-png-boxsolver-pointerstrategy/result.json`](test-png-boxsolver-pointerstrategy/result.json)
 
 ### PDF
 - File: `dataset/sample_invoice.pdf`
-- Output LLM con puntatori: [`test-pdf/llm_response.json`](test-pdf/llm_response.json)
-- Output resolver: [`test-pdf-boxsolver-pointerstrategy/result.json`](test-pdf-boxsolver-pointerstrategy/result.json)
+- LLM output with pointers: [`test-pdf/llm_response.json`](test-pdf/llm_response.json)
+- Resolver output: [`test-pdf-boxsolver-pointerstrategy/result.json`](test-pdf-boxsolver-pointerstrategy/result.json)
 
-| Strategia | Campi risolti / totali | Confidenza media |
-|-----------|-----------------------:|-----------------:|
+| Strategy | Fields resolved / total | Avg confidence |
+|-----------|-----------------------:|---------------:|
 | PointerStrategy | 8 / 8 | 1.00 |
 
-Esempio di record:
+Example record:
 
 ```json
 {
@@ -103,14 +103,14 @@ Esempio di record:
 
 ### PNG
 - File: `dataset/sample_invoice.png`
-- Output LLM con puntatori: [`test-png/llm_response.json`](test-png/llm_response.json)
-- Output resolver: [`test-png-boxsolver-pointerstrategy/result.json`](test-png-boxsolver-pointerstrategy/result.json)
+- LLM output with pointers: [`test-png/llm_response.json`](test-png/llm_response.json)
+- Resolver output: [`test-png-boxsolver-pointerstrategy/result.json`](test-png-boxsolver-pointerstrategy/result.json)
 
-| Strategia | Campi risolti / totali | Confidenza media |
-|-----------|-----------------------:|-----------------:|
+| Strategy | Fields resolved / total | Avg confidence |
+|-----------|-----------------------:|---------------:|
 | PointerStrategy | 4 / 4 | 1.00 |
 
-Esempio di record:
+Example record:
 
 ```json
 {
@@ -122,8 +122,8 @@ Esempio di record:
 }
 ```
 
-## Confronto con `test-pdf` e `test-png`
-Gli output originali (`test-pdf` e `test-png`) contenevano solo i campi estratti dall'LLM senza informazioni spaziali. La strategia **TokenFirst** fornisce evidenze bbox su 6 campi del PDF e su 2 campi del PNG, mentre **PointerStrategy** raggiunge il 100% dei campi (8/8 per il PDF e 4/4 per il PNG) con confidenza piena grazie ai puntatori dell'LLM.
+## Comparison with `test-pdf` and `test-png`
+The original outputs (`test-pdf` and `test-png`) contained only the fields extracted by the LLM without spatial information. The **TokenFirst** strategy provides bbox evidence for 6 fields in the PDF and 2 fields in the PNG, while **PointerStrategy** reaches 100% of fields (8/8 for the PDF and 4/4 for the PNG) with full confidence thanks to the LLM pointers.
 
-## Note
-- Il tempo include l'indicizzazione e la risoluzione TokenFirst; il parsing PNG utilizza il JSON MarkItDownNet già presente a causa di dipendenze OCR mancanti.
+## Notes
+- Timing includes TokenFirst indexing and resolution; PNG parsing uses the existing MarkItDownNet JSON because OCR dependencies are missing.

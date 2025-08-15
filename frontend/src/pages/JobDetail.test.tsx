@@ -27,5 +27,5 @@ test('detail viewers render and have download', async () => {
     </MemoryRouter>,
   );
   await screen.findByText('Job 1');
-  await waitFor(() => expect(screen.getAllByText('Scarica')).toHaveLength(2));
+  await waitFor(() => expect(screen.getAllByText('Download')).toHaveLength(2));
 });

@@ -51,18 +51,18 @@ export default function ModelDownloadForm({ onSubmit, disabled }: Props) {
           data-testid="submit-download"
           block={screens.xs}
         >
-          Scarica
+          Download
         </Button>
         <Button
           onClick={() => form.resetFields()}
           data-testid="reset-download"
           block={screens.xs}
         >
-          Reset campi
+          Reset fields
         </Button>
       </Space>
       <div style={{ marginTop: 16, fontSize: 12 }}>
-        Il token non viene salvato.
+        The token is not saved.
       </div>
     </Form>
   );

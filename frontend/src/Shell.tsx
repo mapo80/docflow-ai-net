@@ -17,8 +17,8 @@ export default function Shell() {
   const location = useLocation();
   const items = [
     { key: '/jobs', icon: <AppstoreOutlined />, label: 'Jobs' },
-    { key: '/jobs/new', icon: <FileAddOutlined />, label: 'Nuovo Job' },
-    { key: '/model', icon: <ExperimentOutlined />, label: 'Modello' },
+    { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
+    { key: '/model', icon: <ExperimentOutlined />, label: 'Model' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
     {
       key: 'hangfire',

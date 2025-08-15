@@ -17,9 +17,9 @@ test('validateFile', () => {
   const ok = new File(['a'], 'a.pdf', { type: 'application/pdf' });
   expect(validateFile(ok)).toBeUndefined();
   const badExt = new File(['a'], 'a.exe');
-  expect(validateFile(badExt)).toBe('Estensione non valida');
+  expect(validateFile(badExt)).toBe('Invalid extension');
   const big = new File([new Uint8Array(11 * 1024 * 1024)], 'b.pdf');
-  expect(validateFile(big)).toBe('File troppo grande');
+  expect(validateFile(big)).toBe('File too large');
 });
 
 test('submitPayload branches', async () => {

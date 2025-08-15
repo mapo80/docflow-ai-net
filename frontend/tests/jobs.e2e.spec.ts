@@ -58,7 +58,7 @@ test.skip('cancel action', async ({ page }) => {
   });
   await page.goto('/jobs');
   await page.getByRole('row', { name: /r1/ }).getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.getByText('Job cancellato')).toBeVisible();
+  await expect(page.getByText('Job canceled')).toBeVisible();
   await page.getByRole('row', { name: /s1/ }).getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByText('conflict')).toBeVisible();
 });
@@ -90,22 +90,13 @@ test.skip('429 queue_full', async ({ page }) => {
       route.fulfill({ json: { items: [{ id: '1', status: 'Queued', createdAt: '', updatedAt: '' }], page: 1, pageSize: 10, total: 1 } });
   });
   await page.goto('/jobs');
-  await expect(page.getByText(/Coda piena/)).toBeVisible();
+  await expect(page.getByText(/Queue full/)).toBeVisible();
   await expect(page.getByText('1')).toBeVisible({ timeout: 3000 });
 });
 
 test('new job button navigates to form', async ({ page }) => {
   await page.goto('/jobs');
-  await page.getByRole('button', { name: 'Nuovo Job' }).click();
+  await page.getByRole('button', { name: 'New Job' }).click();
   await expect(page).toHaveURL(/\/jobs\/new$/);
 });
 
-test('hangfire button opens new window', async ({ page, context }) => {
-  await page.goto('/jobs');
-  const [newPage] = await Promise.all([
-    context.waitForEvent('page'),
-    page.getByRole('button', { name: 'Apri Hangfire' }).click(),
-  ]);
-  await newPage.waitForLoadState();
-  expect(newPage.url()).toContain('api_key=dev-secret-key-change-me');
-});

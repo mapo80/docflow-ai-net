@@ -43,7 +43,7 @@ export default function ModelSwitchSelect({
       <Space.Compact style={{ width: screens.xs ? '100%' : 200 }}>
         <Select
           style={{ width: '100%' }}
-          placeholder="Seleziona modello"
+          placeholder="Select model"
           value={file}
           onChange={setFile}
           options={models.map((m) => ({ value: m, label: m }))}
