@@ -17,7 +17,7 @@ public class TestWebAppFactory_Step3A : WebApplicationFactory<Program>
 
     public FakeProcessService Fake { get; } = new();
     public string DataRootPath { get; private set; } = string.Empty;
-    public string LiteDbPath { get; private set; } = string.Empty;
+    public string DbPath { get; private set; } = string.Empty;
 
     public TestWebAppFactory_Step3A(string root, int timeoutSeconds = 2)
     {
@@ -33,12 +33,13 @@ public class TestWebAppFactory_Step3A : WebApplicationFactory<Program>
             var guid = Guid.NewGuid().ToString();
             var basePath = Path.Combine(_root, guid);
             DataRootPath = Path.Combine(basePath, "data", "jobs");
-            LiteDbPath = Path.Combine(basePath, "data", "app.db");
+            DbPath = Path.Combine(basePath, "data", "app.db");
             Directory.CreateDirectory(DataRootPath);
             var dict = new Dictionary<string, string?>
             {
                 ["JobQueue:DataRoot"] = DataRootPath,
-                ["JobQueue:LiteDb:Path"] = LiteDbPath,
+                ["JobQueue:Database:Provider"] = "sqlite",
+                ["JobQueue:Database:ConnectionString"] = $"Data Source={DbPath}",
                 ["JobQueue:Timeouts:JobTimeoutSeconds"] = _timeoutSeconds.ToString(),
                 ["JobQueue:Concurrency:HangfireWorkerCount"] = "1",
                 ["Serilog:WriteTo:0:Name"] = "TestCorrelator",

@@ -20,8 +20,8 @@ End-to-end pipeline for extracting information from documents with **LLMs** and 
 
 ## Job Queue
 
-1. Integrated **Hangfire** (MemoryStorage), **LiteDB** and **Rate Limiting** with paged `GET /api/v1/jobs`.
-2. Added `POST /api/v1/jobs` for submission (base64/multipart), `GET /api/v1/jobs/{id}` and `DELETE /api/v1/jobs/{id}` with state managed exclusively by LiteDB and artifacts stored on disk.
+1. Integrated **Hangfire** (MemoryStorage), **SQLite** via **Entity Framework Core** and **Rate Limiting** with paged `GET /api/v1/jobs`.
+2. Added `POST /api/v1/jobs` for submission (base64/multipart), `GET /api/v1/jobs/{id}` and `DELETE /api/v1/jobs/{id}` with state managed exclusively by the database and artifacts stored on disk.
 
 ## High-level Architecture
 

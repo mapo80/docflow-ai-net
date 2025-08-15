@@ -4,6 +4,8 @@ using System.IO;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Fixtures;
+using DocflowAi.Net.Api.JobQueue.Data;
+using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using Serilog.Sinks.TestCorrelator;
 
@@ -28,7 +30,9 @@ public class ImmediateJobSuccessTests : IClassFixture<TempDirFixture>
         var body = await res.Content.ReadFromJsonAsync<JsonElement>();
         var id = body.GetProperty("job_id").GetGuid();
         body.GetProperty("status").GetString().Should().Be("Succeeded");
-        var job = LiteDbTestHelper.GetJob(factory.LiteDbPath, id)!;
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
+        var job = DbTestHelper.GetJob(db, id)!;
         job.Status.Should().Be("Succeeded");
         job.Progress.Should().Be(100);
         job.Metrics.EndedAt.Should().NotBeNull();

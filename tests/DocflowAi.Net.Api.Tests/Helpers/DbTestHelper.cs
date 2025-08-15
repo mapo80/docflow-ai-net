@@ -1,35 +1,28 @@
 using Bogus;
+using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.JobQueue.Models;
-using LiteDB;
 
 namespace DocflowAi.Net.Api.Tests.Helpers;
 
-public static class LiteDbTestHelper
+public static class DbTestHelper
 {
-    static LiteDbTestHelper()
+    static DbTestHelper()
     {
         Randomizer.Seed = new Random(123);
     }
 
-    public static LiteDatabase Open(string path) => new LiteDatabase(path);
-
-    public static void InsertJob(string path, JobDocument doc)
+    public static void InsertJob(JobDbContext db, JobDocument doc)
     {
-        using var db = Open(path);
-        var col = db.GetCollection<JobDocument>("jobs");
-        col.Insert(doc);
+        db.Jobs.Add(doc);
+        db.SaveChanges();
     }
 
-    public static JobDocument? GetJob(string path, Guid id)
-    {
-        using var db = Open(path);
-        return db.GetCollection<JobDocument>("jobs").FindById(id);
-    }
+    public static JobDocument? GetJob(JobDbContext db, Guid id) => db.Jobs.Find(id);
 
-    public static void SeedJobs(LiteDatabase db, IEnumerable<JobDocument> jobs)
+    public static void SeedJobs(JobDbContext db, IEnumerable<JobDocument> jobs)
     {
-        var col = db.GetCollection<JobDocument>("jobs");
-        col.InsertBulk(jobs);
+        db.Jobs.AddRange(jobs);
+        db.SaveChanges();
     }
 
     public static JobDocument CreateJob(Guid id, string status, DateTimeOffset createdAt, int progress = 0)

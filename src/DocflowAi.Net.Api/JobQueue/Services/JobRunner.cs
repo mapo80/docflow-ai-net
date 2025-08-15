@@ -16,16 +16,18 @@ public class JobRunner : IJobRunner
 {
     private readonly IProcessService _process;
     private readonly IFileSystemService _fs;
-    private readonly IJobStore _store;
+    private readonly IJobRepository _store;
+    private readonly IUnitOfWork _uow;
     private readonly JobQueueOptions _options;
     private readonly Serilog.ILogger _logger;
     private readonly IConcurrencyGate _gate;
 
-    public JobRunner(IProcessService process, IFileSystemService fs, IJobStore store, IOptions<JobQueueOptions> options, IConcurrencyGate gate)
+    public JobRunner(IProcessService process, IFileSystemService fs, IJobRepository store, IUnitOfWork uow, IOptions<JobQueueOptions> options, IConcurrencyGate gate)
     {
         _process = process;
         _fs = fs;
         _store = store;
+        _uow = uow;
         _options = options.Value;
         _logger = Log.ForContext<JobRunner>();
         _gate = gate;
@@ -49,8 +51,10 @@ public class JobRunner : IJobRunner
 
                 _store.UpdateStatus(jobId, "Running");
                 _store.UpdateProgress(jobId, 0);
+                _uow.SaveChanges();
                 var started = DateTimeOffset.UtcNow;
                 _store.TouchLease(jobId, started.AddSeconds(_options.Queue.LeaseWindowSeconds));
+                _uow.SaveChanges();
                 _logger.Information("JobStarted {JobId}", jobId);
 
                 var leaseCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -62,6 +66,7 @@ public class JobRunner : IJobRunner
                         {
                             await Task.Delay(TimeSpan.FromSeconds(10), leaseCts.Token);
                             _store.TouchLease(jobId, DateTimeOffset.UtcNow.AddSeconds(_options.Queue.LeaseWindowSeconds));
+                            _uow.SaveChanges();
                         }
                         catch (OperationCanceledException) { }
                     }
@@ -81,6 +86,7 @@ public class JobRunner : IJobRunner
                 {
                     await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), "cancelled by user");
                     _store.MarkCancelled(jobId, "cancelled by user");
+                    _uow.SaveChanges();
                     _logger.Warning("JobCancelled {JobId}", jobId);
                     return;
                 }
@@ -88,6 +94,7 @@ public class JobRunner : IJobRunner
                 {
                     await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), "timeout");
                     _store.MarkFailed(jobId, "timeout");
+                    _uow.SaveChanges();
                     _logger.Warning("JobTimeout {JobId}", jobId);
                     return;
                 }
@@ -95,6 +102,7 @@ public class JobRunner : IJobRunner
                 {
                     await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), ex.Message);
                     _store.MarkFailed(jobId, ex.Message);
+                    _uow.SaveChanges();
                     _logger.Error(ex, "JobFailed {JobId}", jobId);
                     return;
                 }
@@ -110,6 +118,7 @@ public class JobRunner : IJobRunner
                     var ended = DateTimeOffset.UtcNow;
                     _store.MarkSucceeded(jobId, ended, (long)(ended - started).TotalMilliseconds);
                     _store.UpdateProgress(jobId, 100);
+                    _uow.SaveChanges();
                     _logger.Information("JobCompleted {JobId}", jobId);
                 }
                 else
@@ -117,6 +126,7 @@ public class JobRunner : IJobRunner
                     var msg = result.ErrorMessage ?? "unknown error";
                     await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), msg);
                     _store.MarkFailed(jobId, msg);
+                    _uow.SaveChanges();
                     _logger.Warning("JobFailed {JobId} {Error}", jobId, msg);
                 }
             }

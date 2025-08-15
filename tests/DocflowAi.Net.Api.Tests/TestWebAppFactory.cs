@@ -18,7 +18,7 @@ public class TestWebAppFactory : WebApplicationFactory<Program>
     private readonly Dictionary<string,string?>? _extra;
 
     public string DataRootPath { get; private set; } = string.Empty;
-    public string LiteDbPath { get; private set; } = string.Empty;
+    public string DbPath { get; private set; } = string.Empty;
 
     public TestWebAppFactory(
         string root,
@@ -46,12 +46,13 @@ public class TestWebAppFactory : WebApplicationFactory<Program>
             var guid = Guid.NewGuid().ToString();
             var basePath = Path.Combine(_root, guid);
             DataRootPath = Path.Combine(basePath, "data", "jobs");
-            LiteDbPath = Path.Combine(basePath, "data", "app.db");
+            DbPath = Path.Combine(basePath, "data", "app.db");
             Directory.CreateDirectory(DataRootPath);
             var dict = new Dictionary<string, string?>
             {
                 ["JobQueue:DataRoot"] = DataRootPath,
-                ["JobQueue:LiteDb:Path"] = LiteDbPath,
+                ["JobQueue:Database:Provider"] = "sqlite",
+                ["JobQueue:Database:ConnectionString"] = $"Data Source={DbPath}",
                 ["JobQueue:RateLimit:General:PermitPerWindow"] = _permit.ToString(),
                 ["JobQueue:RateLimit:General:WindowSeconds"] = _windowSeconds.ToString(),
                 ["JobQueue:RateLimit:General:QueueLimit"] = "0",

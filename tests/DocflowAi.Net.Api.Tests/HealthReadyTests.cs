@@ -43,9 +43,12 @@ public class HealthReadyTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fixture.RootPath, maxQueueLength:1);
         var client = factory.CreateClient();
-        var store = factory.Services.GetRequiredService<IJobStore>();
-        store.Create(LiteDbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow));
-        store.Create(LiteDbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow));
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        store.Create(DbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow));
+        store.Create(DbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow));
+        uow.SaveChanges();
         var resp = await client.GetAsync("/health/ready");
         resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
         var json = await resp.Content.ReadFromJsonAsync<ReadyResp>();

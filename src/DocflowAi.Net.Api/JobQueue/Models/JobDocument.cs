@@ -1,10 +1,7 @@
-using LiteDB;
-
 namespace DocflowAi.Net.Api.JobQueue.Models;
 
 public class JobDocument
 {
-    [BsonId]
     public Guid Id { get; set; }
     public string Status { get; set; } = "Queued";
     public int Progress { get; set; }

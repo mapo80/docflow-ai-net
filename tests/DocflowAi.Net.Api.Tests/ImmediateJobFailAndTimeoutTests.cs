@@ -4,6 +4,8 @@ using System.IO;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Fixtures;
+using DocflowAi.Net.Api.JobQueue.Data;
+using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 
 namespace DocflowAi.Net.Api.Tests;
@@ -25,7 +27,9 @@ public class ImmediateJobFailAndTimeoutTests : IClassFixture<TempDirFixture>
         var body = await res.Content.ReadFromJsonAsync<JsonElement>();
         var id = body.GetProperty("job_id").GetGuid();
         body.GetProperty("status").GetString().Should().Be("Failed");
-        var job = LiteDbTestHelper.GetJob(factory.LiteDbPath, id)!;
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
+        var job = DbTestHelper.GetJob(db, id)!;
         job.Status.Should().Be("Failed");
         File.Exists(Path.Combine(factory.DataRootPath, id.ToString("N"), "error.txt")).Should().BeTrue();
     }
@@ -42,7 +46,9 @@ public class ImmediateJobFailAndTimeoutTests : IClassFixture<TempDirFixture>
         var body = await res.Content.ReadFromJsonAsync<JsonElement>();
         var id = body.GetProperty("job_id").GetGuid();
         body.GetProperty("status").GetString().Should().Be("Failed");
-        var job = LiteDbTestHelper.GetJob(factory.LiteDbPath, id)!;
+        using var scope2 = factory.Services.CreateScope();
+        var db2 = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
+        var job = DbTestHelper.GetJob(db2, id)!;
         job.Status.Should().Be("Failed");
         File.ReadAllText(Path.Combine(factory.DataRootPath, id.ToString("N"), "error.txt")).Should().Contain("timeout");
     }

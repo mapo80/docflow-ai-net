@@ -3,8 +3,8 @@ using System.Net.Http.Json;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.JobQueue.Models;
+using DocflowAi.Net.Api.JobQueue.Data;
 using Microsoft.Extensions.DependencyInjection;
-using LiteDB;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -37,11 +37,12 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fixture.RootPath);
         var client = factory.CreateClient();
-        var db = factory.Services.GetRequiredService<LiteDatabase>();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
         var jobs = Enumerable.Range(0,35)
-            .Select(i => LiteDbTestHelper.CreateJob(Guid.NewGuid(), "Queued", _baseTime.AddMinutes(i)))
+            .Select(i => DbTestHelper.CreateJob(Guid.NewGuid(), "Queued", _baseTime.AddMinutes(i)))
             .ToList();
-        LiteDbTestHelper.SeedJobs(db, jobs);
+        DbTestHelper.SeedJobs(db, jobs);
 
         var r1 = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=1&pageSize=10");
         r1!.total.Should().Be(35);
@@ -69,11 +70,12 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
         var err = await bad.Content.ReadFromJsonAsync<ErrorResponse>();
         err!.error.Should().Be("bad_request");
 
-        var db = factory.Services.GetRequiredService<LiteDatabase>();
+        using var scope2 = factory.Services.CreateScope();
+        var db = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
         var jobs = Enumerable.Range(0,150)
-            .Select(i => LiteDbTestHelper.CreateJob(Guid.NewGuid(), "Queued", _baseTime.AddMinutes(i)))
+            .Select(i => DbTestHelper.CreateJob(Guid.NewGuid(), "Queued", _baseTime.AddMinutes(i)))
             .ToList();
-        LiteDbTestHelper.SeedJobs(db, jobs);
+        DbTestHelper.SeedJobs(db, jobs);
         var resp = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=1&pageSize=500");
         resp!.pageSize.Should().Be(100);
         resp.items.Should().HaveCount(100);
@@ -84,10 +86,11 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fixture.RootPath);
         var client = factory.CreateClient();
-        var db = factory.Services.GetRequiredService<LiteDatabase>();
+        using var scope3 = factory.Services.CreateScope();
+        var db = scope3.ServiceProvider.GetRequiredService<JobDbContext>();
         var statuses = new[] { "Queued", "Running", "Succeeded", "Failed", "Cancelled" };
-        var jobs = statuses.Select((s,i) => LiteDbTestHelper.CreateJob(Guid.NewGuid(), s, _baseTime.AddMinutes(i))).ToList();
-        LiteDbTestHelper.SeedJobs(db, jobs);
+        var jobs = statuses.Select((s,i) => DbTestHelper.CreateJob(Guid.NewGuid(), s, _baseTime.AddMinutes(i))).ToList();
+        DbTestHelper.SeedJobs(db, jobs);
         var resp = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=1&pageSize=10");
         resp!.items.Should().HaveCount(5);
         var map = new Dictionary<string,string>{

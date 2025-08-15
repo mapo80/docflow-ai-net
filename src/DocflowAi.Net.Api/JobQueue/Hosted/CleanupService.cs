@@ -1,5 +1,6 @@
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,13 +11,13 @@ namespace DocflowAi.Net.Api.JobQueue.Hosted;
 
 public class CleanupService : BackgroundService
 {
-    private readonly IJobStore _store;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly IOptions<JobQueueOptions> _options;
     private readonly ILogger<CleanupService> _logger;
 
-    public CleanupService(IJobStore store, IOptions<JobQueueOptions> options, ILogger<CleanupService> logger)
+    public CleanupService(IServiceScopeFactory scopeFactory, IOptions<JobQueueOptions> options, ILogger<CleanupService> logger)
     {
-        _store = store;
+        _scopeFactory = scopeFactory;
         _options = options;
         _logger = logger;
     }
@@ -40,10 +41,15 @@ public class CleanupService : BackgroundService
 
     public async Task RunOnceAsync(CancellationToken ct)
     {
+        using var scope = _scopeFactory.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
         var sw = Stopwatch.StartNew();
         var cutoff = DateTimeOffset.UtcNow.AddDays(-_options.Value.JobTTLDays);
         _logger.LogInformation("CleanupStarted {Cutoff}", cutoff);
-        var removed = _store.DeleteOlderThan(cutoff).ToList();
+        var removed = store.DeleteOlderThan(cutoff).ToList();
+        uow.SaveChanges();
         _logger.LogInformation("CleanupDbDeleted {DeletedCount}", removed.Count);
         foreach (var doc in removed)
         {

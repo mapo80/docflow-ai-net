@@ -4,7 +4,7 @@ public class JobQueueOptions
 {
     public const string SectionName = "JobQueue";
     public string DataRoot { get; set; } = "./data/jobs";
-    public LiteDbOptions LiteDb { get; set; } = new();
+    public DatabaseOptions Database { get; set; } = new();
     public QueueOptions Queue { get; set; } = new();
     public RateLimitOptions RateLimit { get; set; } = new();
     public ConcurrencyOptions Concurrency { get; set; } = new();
@@ -15,9 +15,10 @@ public class JobQueueOptions
     public int JobTTLDays { get; set; } = 14;
     public bool EnableDashboard { get; set; } = true;
 
-    public class LiteDbOptions
+    public class DatabaseOptions
     {
-        public string Path { get; set; } = "./data/app.db";
+        public string Provider { get; set; } = "sqlite";
+        public string ConnectionString { get; set; } = string.Empty;
     }
 
     public class QueueOptions

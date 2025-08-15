@@ -1,6 +1,6 @@
 using DocflowAi.Net.Api.Options;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
-using LiteDB;
+using DocflowAi.Net.Api.JobQueue.Data;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
@@ -12,13 +12,15 @@ namespace DocflowAi.Net.Api.Health;
 public class JobQueueReadyHealthCheck : IHealthCheck
 {
     private readonly IOptions<JobQueueOptions> _options;
-    private readonly IJobStore _store;
+    private readonly IJobRepository _store;
+    private readonly JobDbContext _db;
     private readonly ILogger<JobQueueReadyHealthCheck> _logger;
 
-    public JobQueueReadyHealthCheck(IOptions<JobQueueOptions> options, IJobStore store, ILogger<JobQueueReadyHealthCheck> logger)
+    public JobQueueReadyHealthCheck(IOptions<JobQueueOptions> options, IJobRepository store, JobDbContext db, ILogger<JobQueueReadyHealthCheck> logger)
     {
         _options = options;
         _store = store;
+        _db = db;
         _logger = logger;
     }
 
@@ -45,17 +47,13 @@ public class JobQueueReadyHealthCheck : IHealthCheck
                     reasons.Add("data_root_not_writable");
                 }
             }
-            try
+            if (!_db.Database.CanConnect())
             {
-                using var db = new LiteDatabase(opts.LiteDb.Path);
-            }
-            catch
-            {
-                reasons.Add("litedb_unavailable");
+                reasons.Add("db_unavailable");
             }
             var pending = 0;
             try { pending = _store.CountPending(); }
-            catch { reasons.Add("litedb_unavailable"); }
+            catch { reasons.Add("db_unavailable"); }
             if (reasons.Count == 0 && pending >= opts.Queue.MaxQueueLength * 2)
                 reasons.Add("backpressure");
         }

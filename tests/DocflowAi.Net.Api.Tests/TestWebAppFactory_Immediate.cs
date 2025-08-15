@@ -17,10 +17,11 @@ public class TestWebAppFactory_Immediate : WebApplicationFactory<Program>
     private readonly int _timeout;
     private readonly int _maxParallel;
     private readonly int _maxQueueLength;
+    private AsyncServiceScope? _scope;
 
     public FakeProcessService Fake { get; } = new();
     public string DataRootPath { get; private set; } = string.Empty;
-    public string LiteDbPath { get; private set; } = string.Empty;
+    public string DbPath { get; private set; } = string.Empty;
 
     public TestWebAppFactory_Immediate(string root, bool fallback = false, int timeoutSeconds = 3, int maxParallel = 1, int maxQueueLength = 100)
     {
@@ -39,12 +40,13 @@ public class TestWebAppFactory_Immediate : WebApplicationFactory<Program>
             var guid = Guid.NewGuid().ToString();
             var basePath = Path.Combine(_root, guid);
             DataRootPath = Path.Combine(basePath, "data", "jobs");
-            LiteDbPath = Path.Combine(basePath, "data", "app.db");
+            DbPath = Path.Combine(basePath, "data", "app.db");
             Directory.CreateDirectory(DataRootPath);
             var dict = new Dictionary<string, string?>
             {
                 ["JobQueue:DataRoot"] = DataRootPath,
-                ["JobQueue:LiteDb:Path"] = LiteDbPath,
+                ["JobQueue:Database:Provider"] = "sqlite",
+                ["JobQueue:Database:ConnectionString"] = $"Data Source={DbPath}",
                 ["JobQueue:Immediate:Enabled"] = "true",
                 ["JobQueue:Immediate:FallbackToQueue"] = _fallback.ToString().ToLowerInvariant(),
                 ["JobQueue:Immediate:TimeoutSeconds"] = _timeout.ToString(),
@@ -63,5 +65,16 @@ public class TestWebAppFactory_Immediate : WebApplicationFactory<Program>
         });
     }
 
-    public T GetService<T>() where T : notnull => Services.GetRequiredService<T>();
+    public T GetService<T>() where T : notnull
+    {
+        _scope ??= Services.CreateAsyncScope();
+        return _scope.Value.ServiceProvider.GetRequiredService<T>();
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        if (_scope.HasValue)
+            await _scope.Value.DisposeAsync();
+        await base.DisposeAsync();
+    }
 }

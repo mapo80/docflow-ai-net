@@ -1,6 +1,8 @@
 using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
+using DocflowAi.Net.Api.JobQueue.Data;
+using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
@@ -35,7 +37,9 @@ public class SubmitEndpointTests : IClassFixture<TempDirFixture>
         File.Exists(Path.Combine(dir, "fields.json")).Should().BeTrue();
         File.Exists(Path.Combine(dir, "manifest.json")).Should().BeTrue();
 
-        var job = LiteDbTestHelper.GetJob(factory.LiteDbPath, id);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
+        var job = DbTestHelper.GetJob(db, id);
         job.Should().NotBeNull();
         job!.Status.Should().BeOneOf("Queued","Succeeded","Running");
     }

@@ -1,5 +1,6 @@
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Models;
+using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fixtures;
@@ -17,9 +18,11 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
     {
         await using var factory = new TestWebAppFactory_Step3A(_fx.RootPath);
         factory.Fake.CurrentMode = FakeProcessService.Mode.Success;
-        var sp = factory.Services;
+        using var scope = factory.Services.CreateScope();
+        var sp = scope.ServiceProvider;
         var fs = sp.GetRequiredService<IFileSystemService>();
-        var store = sp.GetRequiredService<IJobStore>();
+        var store = sp.GetRequiredService<IJobRepository>();
+        var uow = sp.GetRequiredService<IUnitOfWork>();
         var runner = sp.GetRequiredService<IJobRunner>();
 
         var id = Guid.NewGuid();
@@ -42,10 +45,13 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
             }
         };
         store.Create(doc);
+        uow.SaveChanges();
 
         await runner.Run(id, CancellationToken.None);
 
-        var job = LiteDbTestHelper.GetJob(factory.LiteDbPath, id)!;
+        using var scope2 = factory.Services.CreateScope();
+        var db = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
+        var job = DbTestHelper.GetJob(db, id)!;
         job.Status.Should().Be("Succeeded");
         job.Progress.Should().Be(100);
         job.Metrics.EndedAt.Should().NotBeNull();

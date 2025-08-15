@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DocflowAi.Net.Api.JobQueue.Abstractions;
 
-public interface IJobStore
+public interface IJobRepository
 {
     JobDocument? Get(Guid id);
     (IReadOnlyList<JobDocument> items, int total) ListPaged(int page, int pageSize);

@@ -36,7 +36,7 @@ public class FakeProcessService : IProcessService
                 case Mode.Success:
                     return new ProcessResult(true, "{\"ok\":true}", null);
                 case Mode.Fail:
-                    return new ProcessResult(false, null, "boom");
+                    return new ProcessResult(false, string.Empty, "boom");
                 case Mode.Slow:
                     await Task.Delay(SlowDelay, ct);
                     return new ProcessResult(true, "{}", null);

@@ -3,6 +3,8 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.JobQueue.Models;
+using DocflowAi.Net.Api.JobQueue.Data;
+using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using Serilog.Sinks.TestCorrelator;
 
@@ -28,8 +30,9 @@ public class ImmediateJobCancelTests : IClassFixture<TempDirFixture>
             cts.Cancel();
             try { await post; } catch (TaskCanceledException) { }
             await Task.Delay(100); // allow runner to finish
-            using var db = LiteDbTestHelper.Open(factory.LiteDbPath);
-            var job = db.GetCollection<JobDocument>("jobs").FindAll().FirstOrDefault();
+            using var scope = factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
+            var job = db.Jobs.FirstOrDefault();
             if (job != null)
             {
                 job.Status.Should().Be("Cancelled");
