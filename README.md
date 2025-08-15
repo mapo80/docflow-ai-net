@@ -23,6 +23,21 @@ End-to-end pipeline for extracting information from documents with **LLMs** and 
 1. Integrated **Hangfire** (MemoryStorage), **SQLite** via **Entity Framework Core** and **Rate Limiting** with paged `GET /api/v1/jobs`.
 2. Added `POST /api/v1/jobs` for submission (base64/multipart), `GET /api/v1/jobs/{id}` and `DELETE /api/v1/jobs/{id}` with state managed exclusively by the database and artifacts stored on disk.
 
+### Database Providers
+
+The job queue persistence layer uses Entity Framework Core and supports the following providers:
+
+- **InMemory** — convenient for tests and temporary runs.
+- **SQLite** — default lightweight storage.
+
+Switch the provider through `JobQueue:Database` in `appsettings.*.json`.
+
+#### Adding a new provider
+
+1. Add the appropriate EF Core package for the target database.
+2. Extend the `switch` statement in `Program.cs` to call `Use<Provider>()`.
+3. Configure `JobQueue:Database:Provider` and `ConnectionString` with the new settings.
+
 ## High-level Architecture
 
 ```
