@@ -1,12 +1,12 @@
 # MarkItDownNet Integration Test
 
-Questo documento riassume l'estrazione effettuata su `sample_invoice.pdf` e `sample_invoice.png` tramite la libreria **MarkItDownNet**.
+This document summarizes the extraction performed on `sample_invoice.pdf` and `sample_invoice.png` using the **MarkItDownNet** library.
 
 ## PDF
 - File: `dataset/sample_invoice.pdf`
 - Output JSON: [`test-pdf-markitdownnet/result.json`](test-pdf-markitdownnet/result.json)
-- Confronto: il markdown estratto coincide con `dataset/test-pdf/markitdown.txt`.
-- Box: 36 parole individuate.
+- Comparison: the extracted markdown matches `dataset/test-pdf/markitdown.txt`.
+- Boxes: 36 words detected.
 
 ### Estratto JSON
 ```json
@@ -63,7 +63,7 @@ Questo documento riassume l'estrazione effettuata su `sample_invoice.pdf` e `sam
 ## PNG
 - File: `dataset/sample_invoice.png`
 - Output JSON: [`test-png-markitdownnet/result.json`](test-png-markitdownnet/result.json)
-- Confronto: numero di parole/box (`31`) identico a `dataset/test-png/markitdown.txt`.
+- Comparison: word/box count (`31`) matches `dataset/test-png/markitdown.txt`.
 
 ### Estratto JSON
 ```json

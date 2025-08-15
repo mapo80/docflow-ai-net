@@ -20,7 +20,7 @@ function Artifact({ path, label }: { path: string; label: string }) {
   }, [path]);
   const isJson = path.endsWith('.json');
   return (
-    <Collapse.Panel key={label} header={label} extra={<Button href={path} target="_blank">Scarica</Button>}>
+    <Collapse.Panel key={label} header={label} extra={<Button href={path} target="_blank">Download</Button>}>
       <pre>{isJson ? JSON.stringify(JSON.parse(content || '{}'), null, 2) : content}</pre>
     </Collapse.Panel>
   );
@@ -54,7 +54,7 @@ export default function JobDetail() {
     if (!id) return;
     try {
       await JobsService.jobsDelete({ id });
-      message.success('Job cancellato');
+      message.success('Job canceled');
       load();
     } catch (e) {
       if (e instanceof ApiError) message.error(e.body?.errorCode);
@@ -89,7 +89,7 @@ export default function JobDetail() {
         >
           Cancel
         </Button>
-        <Button onClick={openHangfire}>Apri Hangfire</Button>
+        <Button onClick={openHangfire}>Open Hangfire</Button>
       </Space>
       {artifacts.length > 0 && (
         <Collapse style={{ marginTop: 16 }}>

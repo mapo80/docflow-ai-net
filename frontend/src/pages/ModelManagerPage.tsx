@@ -61,7 +61,7 @@ export default function ModelManagerPage() {
   const handleSwitch = async (file: string, ctx: number) => {
     try {
       await ModelService.modelSwitch({ requestBody: { modelFile: file, contextSize: ctx } });
-      message.success('Modello attivato');
+      message.success('Model activated');
       await loadInfo();
     } catch (e) {
       if (e instanceof ApiError) {
@@ -74,7 +74,7 @@ export default function ModelManagerPage() {
   const handleDownload = async (req: DownloadModelRequest) => {
     try {
       await ModelService.modelDownload({ requestBody: req });
-      message.success('Download avviato');
+      message.success('Download started');
       setStatus(null);
       setPolling(true);
     } catch (e) {
@@ -91,14 +91,14 @@ export default function ModelManagerPage() {
       setStatus(s);
       if (s.completed) {
         setPolling(false);
-        message.success('Download completato');
+        message.success('Download completed');
         await loadAvailable();
       }
     } catch (e) {
       if (e instanceof ApiError && e.status === 429) {
         setRetryAfter(e.body?.retry_after_seconds ?? 0);
       } else {
-        message.error('Errore stato');
+        message.error('Status error');
         setPolling(false);
       }
     }
@@ -118,7 +118,7 @@ export default function ModelManagerPage() {
           <RetryAfterBanner seconds={retryAfter} onFinish={() => setRetryAfter(null)} />
         )}
         <Card
-          title="Modello corrente"
+          title="Current model"
           style={{ marginBottom: 16 }}
           size={screens.xs ? 'small' : undefined}
         >
@@ -137,11 +137,11 @@ export default function ModelManagerPage() {
               )}
             </Descriptions>
           ) : (
-            <Alert type="info" message="Nessuna informazione disponibile" />
+            <Alert type="info" message="No information available" />
           )}
         </Card>
         <Card
-          title="Cambia modello"
+          title="Switch model"
           style={{ marginBottom: 16 }}
           size={screens.xs ? 'small' : undefined}
         >
@@ -153,7 +153,7 @@ export default function ModelManagerPage() {
           />
         </Card>
         <Card
-          title="Scarica modello"
+          title="Download model"
           style={{ marginBottom: 16 }}
           size={screens.xs ? 'small' : undefined}
         >
@@ -168,7 +168,7 @@ export default function ModelManagerPage() {
             </Space>
           )}
           {!polling && status && status.completed && (
-            <Result status="success" title="Completato" />
+            <Result status="success" title="Completed" />
           )}
         </Card>
       </Col>

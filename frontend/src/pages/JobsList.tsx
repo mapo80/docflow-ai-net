@@ -64,7 +64,7 @@ export default function JobsList() {
   const handleCancel = async (id: string) => {
     try {
       await JobsService.jobsDelete({ id });
-      message.success('Job cancellato');
+      message.success('Job canceled');
       load();
     } catch (e) {
       if (e instanceof ApiError) {
@@ -113,7 +113,7 @@ export default function JobsList() {
       render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
     },
     {
-      title: 'Azioni',
+      title: 'Actions',
       render: (_: any, record: JobDetailResponse) => (
         <Space>
           <Link to={`/jobs/${record.id}`}>View</Link>
@@ -155,11 +155,11 @@ export default function JobsList() {
         }}
       >
         <Link to="/jobs/new">
-          <Button aria-label="Nuovo Job" icon={<FileAddOutlined />} />
+          <Button aria-label="New Job" icon={<FileAddOutlined />} />
         </Link>
-        <Button onClick={openHangfire}>Apri Hangfire</Button>
+        <Button onClick={openHangfire}>Open Hangfire</Button>
       </div>
-      {retry !== null && <Alert banner message={`Coda piena. Riprova tra ${retry}s`} />}
+      {retry !== null && <Alert banner message={`Queue full. Retry in ${retry}s`} />}
       <Table columns={columns} dataSource={jobs} rowKey="id" pagination={pagination} loading={loading} />
     </div>
   );

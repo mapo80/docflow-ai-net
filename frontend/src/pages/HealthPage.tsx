@@ -36,7 +36,7 @@ export default function HealthPage() {
     <div>
       <h2>Health</h2>
       <HealthBadge />
-      <Button onClick={load}>Riprova</Button>
+      <Button onClick={load}>Retry</Button>
       <h3>Ready: {ready?.status}</h3>
       <ul>{readyReasons.map((r) => (<li key={r}>{r}</li>))}</ul>
       <h3>Live: {live?.status}</h3>

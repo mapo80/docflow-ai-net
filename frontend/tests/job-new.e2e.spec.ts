@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function fillBasic(page) {
-  await page.getByRole('menuitem', { name: 'Nuovo Job' }).click();
+  await page.getByRole('menuitem', { name: 'New Job' }).click();
   await page.setInputFiles('input[type="file"]', uploadFile);
   await page.getByRole('textbox').first().fill('hi');
 }
@@ -34,10 +34,10 @@ test.skip('immediate success', async ({ page }) => {
   );
   await page.reload();
   await fillBasic(page);
-  await page.getByRole('checkbox', { name: /Esegui immediatamente/ }).check();
+  await page.getByRole('checkbox', { name: /Run immediately/ }).check();
   await page.getByRole('button', { name: 'Submit' }).click();
   await expect(page.getByText('Status: Succeeded')).toBeVisible();
-  await page.getByRole('button', { name: 'Vai al dettaglio' }).click();
+  await page.getByRole('button', { name: 'Go to detail' }).click();
   await expect(page).toHaveURL(/\/jobs\/1$/);
 });
 
@@ -55,9 +55,9 @@ test.skip('immediate capacity 429', async ({ page }) => {
   });
   await page.goto('/');
   await fillBasic(page);
-  await page.getByRole('checkbox', { name: /Esegui immediatamente/ }).check();
+  await page.getByRole('checkbox', { name: /Run immediately/ }).check();
   await page.getByRole('button', { name: 'Submit' }).click();
-  await expect(page.getByText(/Riprova tra/)).toBeVisible();
+  await expect(page.getByText(/Retry in/)).toBeVisible();
 });
 
 test.skip('queued job completes and shows detail', async ({ page }) => {
@@ -134,22 +134,22 @@ test.skip('413 file too large', async ({ page }) => {
   await page.goto('/');
   await fillBasic(page);
   await page.getByRole('button', { name: 'Submit' }).click();
-  await expect(page.getByText('File troppo grande')).toBeVisible();
+  await expect(page.getByText('File too large')).toBeVisible();
 });
 
 test.skip('fields round trip', async ({ page }) => {
   await page.goto('/jobs/new');
-  await page.getByRole('tab', { name: 'Visuale' }).click();
+  await page.getByRole('tab', { name: 'Visual' }).click();
   await page.getByText('Aggiungi campo').click();
   await page.getByPlaceholder('Nome').fill('a');
   await page.getByRole('tab', { name: 'JSON' }).nth(1).click();
   const val = await page.getByRole('textbox').nth(1).inputValue();
-  await page.getByRole('tab', { name: 'Visuale' }).click();
+  await page.getByRole('tab', { name: 'Visual' }).click();
   await expect(page.getByPlaceholder('Nome')).toHaveValue('a');
   await page.getByRole('tab', { name: 'JSON' }).nth(1).click();
   await page.getByRole('textbox').nth(1).fill(val.replace('a', 'b'));
-  await page.getByRole('button', { name: 'Esporta in Visuale' }).click();
-  await page.getByRole('tab', { name: 'Visuale' }).click();
+  await page.getByRole('button', { name: 'Export to Visual' }).click();
+  await page.getByRole('tab', { name: 'Visual' }).click();
   await expect(page.getByPlaceholder('Nome')).toHaveValue('b');
 });
 

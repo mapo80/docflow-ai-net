@@ -6,7 +6,7 @@
 - Ensure a GGUF model is mounted at `/models` (compose does it).
 - For local tests download `qwen2.5-0.5b-instruct-q4_0.gguf` into `./models`:
   ```bash
-  export HF_TOKEN="<il tuo token>"
+  export HF_TOKEN="<your token>"
     huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
       qwen2.5-0.5b-instruct-q4_0.gguf \
       --local-dir ./models --token "$HF_TOKEN"
@@ -45,39 +45,45 @@ Prompts:
 - Tests: `tests/DocflowAi.Net.Tests.Integration/MarkdownNetConverterTests.cs`
 
 ## Pre-PR checklist
-- `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` → **vuoto**
+- `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` should return empty
 - `dotnet build -c Release`
 - `dotnet test -c Release`
 
-# Operations
-Le librerie native di Tesseract (libtesseract.so.5) e Leptonica (liblept.so.5) sono già presenti in src/MarkItDownNet/TesseractOCR/x64 e vengono copiate automaticamente accanto ai binari. Non è quindi necessario installare pacchetti di sistema o creare collegamenti simbolici.
+## Language constraints
 
-Per eseguire l'OCR è necessario fornire i file tessdata delle lingue e indicarli tramite OcrDataPath.
+- Frontend and backend code, including error messages, must not contain Italian words.
+- All Markdown files must be in English.
+- Files related to prompts and fields must remain in Italian.
+
+# Operations
+The native libraries of Tesseract (libtesseract.so.5) and Leptonica (liblept.so.5) are already present in `src/MarkItDownNet/TesseractOCR/x64` and are copied automatically next to the binaries. Installing system packages or creating symbolic links is not required.
+
+To run OCR, provide the language tessdata files and set `OcrDataPath` accordingly.
 
 ## Frontend E2E
-- Assicurati che l'ambiente sia pronto:
+- Ensure the environment is ready:
   ```bash
   git submodule update --init --recursive
   ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
   export PATH="$HOME/dotnet:$PATH"
   dotnet build -c Release
   npx playwright install
-  npx playwright install-deps   # necessario su Linux
+  npx playwright install-deps   # required on Linux
   ```
-- Imposta le variabili in `.env`:
-  - `VITE_API_BASE_URL` URL dell'API REST (non includere il prefisso `/api/v1`, già previsto dal client)
-  - `VITE_HANGFIRE_PATH` percorso dell'interfaccia Hangfire (es. `/hangfire`)
-- Tutte le chiamate da FE ai servizi REST devono essere eseguite tramite il client generato automaticamente tramite swagger ad eccezione dei servizi di health.
-- I file generati automaticamente tramite swagger **non devono essere modificati manualmente**.
-- Esegui e verifica sempre i test end-to-end (devono **tutti** passare):
+- Set variables in `.env`:
+  - `VITE_API_BASE_URL` REST API URL (do not include the `/api/v1` prefix, the client adds it)
+  - `VITE_HANGFIRE_PATH` path of the Hangfire UI (e.g. `/hangfire`)
+- All calls from the frontend to REST services must use the swagger-generated client, except for health services.
+- Swagger-generated files **must not be modified manually**.
+- Always run and verify end-to-end tests (all must pass):
   ```bash
   npm test -- --run
   npm run build
   npm run e2e
   ```
-- Playwright avvia `vite preview` sulla porta 4173: assicurarsi che la porta sia libera.
-- Per usare le API reali avviare l'API .NET (`dotnet run`) e puntare `VITE_API_BASE_URL` all'istanza in esecuzione.
-- Definition of Done: ogni modifica al frontend deve includere test E2E adeguati.
+- Playwright starts `vite preview` on port 4173: ensure the port is free.
+- To use the real APIs, run the .NET API (`dotnet run`) and point `VITE_API_BASE_URL` to the running instance.
+- Definition of Done: every frontend change must include appropriate E2E tests.
 
 ## Note
-- `MarkItDownNet` è un submodule git; eseguire `git submodule update --init --recursive` prima della build .NET.
+- `MarkItDownNet` is a git submodule; run `git submodule update --init --recursive` before the .NET build.

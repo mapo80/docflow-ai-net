@@ -3,9 +3,9 @@
 Generated on Thu Aug 14 11:42:53 UTC 2025.
 
 ## Key File Results
-- DatasetTests.DatasetFilesExist verifica la presenza di `sample_invoice.pdf` e `sample_invoice.png`.
-- DatasetMarkdownNetTests.SamplePdf_ConversionMatchesReference estrae "ACME" e 36 box dal PDF.
-- DatasetMarkdownNetTests.SamplePng_ContainsExpectedWords conferma che l'OCR del PNG contiene le parole attese.
+- DatasetTests.DatasetFilesExist checks that `sample_invoice.pdf` and `sample_invoice.png` are present.
+- DatasetMarkdownNetTests.SamplePdf_ConversionMatchesReference extracts "ACME" and 36 boxes from the PDF.
+- DatasetMarkdownNetTests.SamplePng_ContainsExpectedWords confirms that the PNG OCR contains the expected words.
 
 ## Build
 ```

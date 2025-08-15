@@ -38,8 +38,8 @@ export function validateFile(
   allowed = ['pdf', 'png', 'jpg', 'jpeg']
 ): string | undefined {
   const ext = file.name.split('.').pop()?.toLowerCase();
-  if (!ext || !allowed.includes(ext)) return 'Estensione non valida';
-  if (file.size > maxSize) return 'File troppo grande';
+  if (!ext || !allowed.includes(ext)) return 'Invalid extension';
+  if (file.size > maxSize) return 'File too large';
   return undefined;
 }
 
@@ -123,7 +123,7 @@ export default function JobNew() {
 
   const handleSubmit = async () => {
     if (!file) {
-      message.error('File obbligatorio');
+      message.error('File is required');
       return;
     }
     const err = validateFile(file);
@@ -132,11 +132,11 @@ export default function JobNew() {
       return;
     }
     if (promptMode === 'json' && !isValidJson(promptJson)) {
-      message.error('Prompt JSON non valido');
+      message.error('Invalid prompt JSON');
       return;
     }
     if (fieldsMode === 'json' && !isValidJson(jsonFields)) {
-      message.error('Fields JSON non valido');
+      message.error('Invalid fields JSON');
       return;
     }
     const payload = await buildPayload(
@@ -156,7 +156,7 @@ export default function JobNew() {
         setResult(data);
       } else {
         notification.success({
-          message: 'Job creato',
+          message: 'Job created',
           description: data.job_id,
         });
         navigate(`/jobs/${data.job_id}`);
@@ -168,14 +168,14 @@ export default function JobNew() {
         } else if (e.status === 429) {
           notification.warning({ message: 'queue_full' });
         } else if (e.status === 413) {
-          message.error('File troppo grande');
+          message.error('File too large');
         } else if (e.status === 507) {
-          notification.error({ message: 'spazio insufficiente' });
+          notification.error({ message: 'insufficient storage' });
         } else {
           notification.error({ message: e.body?.errorCode });
         }
       } else {
-        notification.error({ message: 'Errore' });
+        notification.error({ message: 'Error' });
       }
     } finally {
       setLoading(false);
@@ -198,7 +198,7 @@ export default function JobNew() {
         <Alert
           banner
           type="warning"
-          message={`Capacità immediata esaurita. Riprova tra ${retryAfter}s`}
+          message={`Immediate capacity exhausted. Retry in ${retryAfter}s`}
         />
       )}
       <Form layout="vertical">
@@ -219,7 +219,7 @@ export default function JobNew() {
               <InboxOutlined />
             </p>
             <p className="ant-upload-text">
-              Trascina o clicca per caricare
+              Drag or click to upload
             </p>
             {file && (
               <p>
@@ -235,7 +235,7 @@ export default function JobNew() {
             items={[
               {
                 key: 'text',
-                label: 'Testo',
+                label: 'Text',
                 children: (
                   <Input.TextArea
                     rows={4}
@@ -265,7 +265,7 @@ export default function JobNew() {
             items={[
               {
                 key: 'visual',
-                label: 'Visuale',
+                label: 'Visual',
                 children: (
                   <FieldsEditor
                     value={visualFields}
@@ -288,18 +288,18 @@ export default function JobNew() {
                     />
                     <Space style={{ marginTop: 8 }}>
                       <Button onClick={() => setJsonFields(fieldsToJson(visualFields))}>
-                        Importa da Visuale
+                        Import from Visual
                       </Button>
                       <Button
                         onClick={() => {
                           try {
                             setVisualFields(jsonToFields(jsonFields));
                           } catch {
-                            message.error('JSON non valido');
+                            message.error('Invalid JSON');
                           }
                         }}
                       >
-                        Esporta in Visuale
+                        Export to Visual
                       </Button>
                     </Space>
                   </>
@@ -314,7 +314,7 @@ export default function JobNew() {
               checked={immediate}
               onChange={(e) => setImmediate(e.target.checked)}
             >
-              Esegui immediatamente
+              Run immediately
             </Checkbox>
             <Input
               placeholder="Idempotency-Key"
@@ -335,7 +335,7 @@ export default function JobNew() {
       <Drawer
         open={!!result}
         onClose={() => setResult(null)}
-        title="Risultato immediato"
+        title="Immediate result"
         width={480}
       >
         {result && (
@@ -346,7 +346,7 @@ export default function JobNew() {
             )}
             {result.error && <pre>{result.error}</pre>}
             <Button onClick={() => navigate(`/jobs/${result.id}`)}>
-              Vai al dettaglio
+              Go to detail
             </Button>
           </>
         )}

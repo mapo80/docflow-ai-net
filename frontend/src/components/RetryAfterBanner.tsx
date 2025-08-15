@@ -24,7 +24,7 @@ export default function RetryAfterBanner({ seconds, onFinish }: Props) {
     <Alert
       banner
       type="warning"
-      message={`Riprova tra ${remaining}s`}
+      message={`Retry in ${remaining}s`}
     />
   );
 }
