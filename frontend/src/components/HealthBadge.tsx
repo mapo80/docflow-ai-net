@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Badge, Tooltip } from 'antd';
+import { Badge, Tooltip, Space } from 'antd';
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 
 type HealthResponse = { status?: string; reasons?: string[] };
 
@@ -12,9 +18,25 @@ const colorMap: Record<Status, string> = {
   backpressure: 'orange',
 };
 
+function statusIcon(status: Status) {
+  const props = { 'aria-label': `health-${status}` } as const;
+  switch (status) {
+    case 'ok':
+      return <CheckCircleOutlined {...props} style={{ color: 'green' }} />;
+    case 'unhealthy':
+      return <CloseCircleOutlined {...props} style={{ color: 'red' }} />;
+    case 'backpressure':
+      return <ExclamationCircleOutlined {...props} style={{ color: 'orange' }} />;
+    default:
+      return <LoadingOutlined {...props} />;
+  }
+}
+
 export default function HealthBadge() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
-  const status: Status = health ? (health.status as Status) : 'loading';
+  const status: Status = health
+    ? ((health.status === 'healthy' ? 'ok' : (health.status as Status)))
+    : 'loading';
 
   useEffect(() => {
     let cancelled = false;
@@ -39,7 +61,15 @@ export default function HealthBadge() {
 
   return (
     <Tooltip title={health?.reasons?.join(', ') || ''}>
-      <Badge color={colorMap[status]} text="Health" />
+      <Badge
+        color={colorMap[status]}
+        text={
+          <Space align="center" size="small">
+            {statusIcon(status)}
+            Health
+          </Space>
+        }
+      />
     </Tooltip>
   );
 }

@@ -7,7 +7,9 @@ type HealthResponse = { status?: string; reasons?: string[] };
 type Status = 'ok' | 'unhealthy' | 'backpressure' | 'loading';
 
 function statusIcon(status: string | undefined, prefix: string) {
-  const s: Status = status ? (status as Status) : 'loading';
+  const s: Status = status
+    ? ((status === 'healthy' ? 'ok' : (status as Status)))
+    : 'loading';
   const props = { 'aria-label': `${prefix}-${s}` } as const;
   switch (s) {
     case 'ok':
@@ -29,7 +31,7 @@ function StatusCard({ label, data, prefix }: { label: string; data: HealthRespon
         <Space align="center">
           {statusIcon(data?.status, prefix)}
           <Typography.Text strong>{label}:</Typography.Text>
-          <Typography.Text>{data?.status ?? 'unknown'}</Typography.Text>
+          <Typography.Text>{data?.status === 'healthy' ? 'ok' : data?.status ?? 'unknown'}</Typography.Text>
         </Space>
         {reasons.length > 0 && (
           <List size="small" dataSource={reasons} renderItem={(item) => <List.Item>{item}</List.Item>} />

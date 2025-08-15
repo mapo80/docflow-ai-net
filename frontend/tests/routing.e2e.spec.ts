@@ -24,9 +24,7 @@ test('health badge shows state', async ({ page }) => {
     localStorage.setItem('apiKey', 'dev-secret-key-change-me')
   );
   await page.reload();
-  await expect(
-    page.getByRole('banner').locator('.ant-badge-status-dot'),
-  ).toHaveCSS('background-color', 'rgb(245, 34, 45)');
+  await expect(page.getByLabel('health-unhealthy')).toBeVisible();
   const badge = page.getByRole('banner').locator('.ant-badge-status');
   await badge.hover();
   await expect(page.getByRole('tooltip')).toHaveText('disk_full');
