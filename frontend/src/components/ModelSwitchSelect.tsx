@@ -34,38 +34,48 @@ export default function ModelSwitchSelect({
     setRefreshing(false);
   };
 
+  const inputWidth = screens.xs ? '100%' : 200;
+
   return (
     <Space
       direction={screens.xs ? 'vertical' : 'horizontal'}
       style={{ width: '100%' }}
       align={screens.xs ? 'start' : 'center'}
     >
-      <Space.Compact style={{ width: screens.xs ? '100%' : 200 }}>
-        <Select
+      <div style={{ width: inputWidth }}>
+        <label htmlFor="model-select">Model file</label>
+        <Space.Compact style={{ width: '100%' }}>
+          <Select
+            id="model-select"
+            style={{ width: '100%' }}
+            placeholder="Select model"
+            value={file}
+            onChange={setFile}
+            options={models.map((m) => ({ value: m, label: m }))}
+            disabled={disabled}
+            data-testid="model-select"
+          />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={reload}
+            disabled={disabled}
+            loading={refreshing}
+            data-testid="reload-models"
+          />
+        </Space.Compact>
+      </div>
+      <div style={{ width: inputWidth }}>
+        <label htmlFor="context-size">Context size</label>
+        <InputNumber
+          id="context-size"
+          min={1024}
+          max={16384}
+          value={ctx}
+          onChange={(v) => setCtx(v ?? 0)}
+          disabled={disabled}
           style={{ width: '100%' }}
-          placeholder="Select model"
-          value={file}
-          onChange={setFile}
-          options={models.map((m) => ({ value: m, label: m }))}
-          disabled={disabled}
-          data-testid="model-select"
         />
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={reload}
-          disabled={disabled}
-          loading={refreshing}
-          data-testid="reload-models"
-        />
-      </Space.Compact>
-      <InputNumber
-        min={1024}
-        max={16384}
-        value={ctx}
-        onChange={(v) => setCtx(v ?? 0)}
-        disabled={disabled}
-        style={{ width: screens.xs ? '100%' : undefined }}
-      />
+      </div>
       <Button
         onClick={handle}
         disabled={!file || disabled}
