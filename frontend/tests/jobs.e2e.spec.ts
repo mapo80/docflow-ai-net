@@ -100,3 +100,8 @@ test('new job button navigates to form', async ({ page }) => {
   await expect(page).toHaveURL(/\/jobs\/new$/);
 });
 
+test('does not show hangfire button', async ({ page }) => {
+  await page.goto('/jobs');
+  await expect(page.getByRole('button', { name: 'Open Hangfire' })).toHaveCount(0);
+});
+
