@@ -6,7 +6,6 @@ import { JobsService, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { openHangfire } from '../hangfire';
 import type { PaginationProps } from 'antd';
 
 const terminal = ['Succeeded', 'Failed', 'Cancelled'];
@@ -170,7 +169,6 @@ export default function JobsList() {
         <Link to="/jobs/new">
           <Button aria-label="New Job" icon={<FileAddOutlined />} />
         </Link>
-        <Button onClick={openHangfire}>Open Hangfire</Button>
       </div>
       {retry !== null && <Alert banner message={`Queue full. Retry in ${retry}s`} />}
       {isMobile ? (
