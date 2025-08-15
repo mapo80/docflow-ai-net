@@ -1,4 +1,6 @@
 using DocflowAi.Net.Application.Abstractions;
+using System.Collections.Generic;
+using System;
 
 namespace DocflowAi.Net.Api.Tests.Fakes;
 
@@ -8,13 +10,17 @@ public sealed class ConfigurableFakeLlmModelService : ILlmModelService
     private bool _completed = true;
     private bool _running;
     private Exception? _next;
+    private IEnumerable<string> _models = new List<string> { "f" };
+    private ModelInfo _current = new(null, null, null, null, null);
 
     public void FailWith(Exception ex) => _next = ex;
+    public void SetModels(IEnumerable<string> models) => _models = models;
+    public void SetCurrent(ModelInfo model) => _current = model;
 
-    public Task SwitchModelAsync(string hfKey, string modelRepo, string modelFile, int contextSize, CancellationToken ct)
+    public Task DownloadModelAsync(string hfKey, string modelRepo, string modelFile, CancellationToken ct)
     {
         if (_running)
-            throw new InvalidOperationException("switch in progress");
+            throw new InvalidOperationException("download in progress");
         if (_next != null)
         {
             var ex = _next;
@@ -37,6 +43,21 @@ public sealed class ConfigurableFakeLlmModelService : ILlmModelService
         return Task.CompletedTask;
     }
 
-    public ModelDownloadStatus GetStatus() => new(_completed, _pct);
-}
+    public Task SwitchModelAsync(string modelFile, int contextSize)
+    {
+        if (_next != null)
+        {
+            var ex = _next;
+            _next = null;
+            throw ex;
+        }
+        _current = new ModelInfo(null, null, modelFile, contextSize, DateTime.UtcNow);
+        return Task.CompletedTask;
+    }
 
+    public IEnumerable<string> ListAvailableModels() => _models;
+
+    public ModelDownloadStatus GetStatus() => new(_completed, _pct);
+
+    public ModelInfo GetCurrentModel() => _current;
+}

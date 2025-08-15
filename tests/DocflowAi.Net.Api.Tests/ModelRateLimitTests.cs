@@ -27,7 +27,7 @@ public class ModelRateLimitTests : IClassFixture<TempDirFixture>
         await using var factory = new TestWebAppFactory(_fx.RootPath, permit:1, windowSeconds:60)
             .WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton<ILlmModelService, ConfigurableFakeLlmModelService>()));
         var client = CreateClient(factory);
-        var req = new { hfKey = "k", modelRepo = "r", modelFile = "f", contextSize = 10 };
+        var req = new { modelFile = "f", contextSize = 10 };
         await client.PostAsJsonAsync("/api/v1/model/switch", req);
         var resp = await client.PostAsJsonAsync("/api/v1/model/switch", req);
         resp.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);

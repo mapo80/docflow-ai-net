@@ -29,12 +29,12 @@ public class ModelLoggingTests : IClassFixture<TempDirFixture>
         client.DefaultRequestHeaders.Add("X-API-Key", "dev-secret-key-change-me");
         using (TestCorrelator.CreateContext())
         {
-            await client.PostAsJsonAsync("/api/v1/model/switch", new { hfKey = "k", modelRepo = "r", modelFile = "f", contextSize = 10 });
+            await client.PostAsJsonAsync("/api/v1/model/download", new { hfKey = "k", modelRepo = "r", modelFile = "f" });
             await client.GetAsync("/api/v1/model/status");
             var logs = TestCorrelator.GetLogEventsFromCurrentContext().ToList();
-            logs.Should().Contain(e => e.MessageTemplate.Text.StartsWith("ModelSwitchStarted"));
+            logs.Should().Contain(e => e.MessageTemplate.Text.StartsWith("ModelDownloadStarted"));
             logs.Should().Contain(e => e.MessageTemplate.Text.StartsWith("ModelStatusFetched"));
-            logs.Should().Contain(e => e.MessageTemplate.Text.StartsWith("ModelSwitchCompleted"));
+            logs.Should().Contain(e => e.MessageTemplate.Text.StartsWith("ModelDownloadCompleted"));
             logs.Should().NotContain(e => e.RenderMessage(null).Contains("k"));
         }
     }
@@ -55,10 +55,10 @@ public class ModelLoggingTests : IClassFixture<TempDirFixture>
         client.DefaultRequestHeaders.Add("X-API-Key", "dev-secret-key-change-me");
         using (TestCorrelator.CreateContext())
         {
-            var resp = await client.PostAsJsonAsync("/api/v1/model/switch", new { hfKey = "k", modelRepo = "r", modelFile = "f", contextSize = 10 });
+            var resp = await client.PostAsJsonAsync("/api/v1/model/download", new { hfKey = "k", modelRepo = "r", modelFile = "f" });
             resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
             var logs = TestCorrelator.GetLogEventsFromCurrentContext().ToList();
-            logs.Should().Contain(e => e.MessageTemplate.Text.StartsWith("ModelSwitchFailed"));
+            logs.Should().Contain(e => e.MessageTemplate.Text.StartsWith("ModelDownloadFailed"));
         }
     }
 }

@@ -38,8 +38,8 @@ public class ModelStatusTests : IClassFixture<TempDirFixture>
         await using var factory = new TestWebAppFactory(_fx.RootPath)
             .WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton<ILlmModelService, ConfigurableFakeLlmModelService>()));
         var client = CreateClient(factory);
-        var req = new { hfKey = "k", modelRepo = "r", modelFile = "f", contextSize = 10 };
-        await client.PostAsJsonAsync("/api/v1/model/switch", req);
+        var req = new { hfKey = "k", modelRepo = "r", modelFile = "f" };
+        await client.PostAsJsonAsync("/api/v1/model/download", req);
         double last = 0;
         for (int i = 0; i < 10; i++)
         {
