@@ -24,4 +24,12 @@ describe('ModelSwitchSelect', () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(reload).toHaveBeenCalled();
   });
+
+  it('renders labels for model and context size', () => {
+    render(
+      <ModelSwitchSelect models={['a.gguf']} onSwitch={vi.fn()} />,
+    );
+    expect(screen.getByLabelText('Model file')).toBeInTheDocument();
+    expect(screen.getByLabelText('Context size')).toBeInTheDocument();
+  });
 });
