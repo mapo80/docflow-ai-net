@@ -12,8 +12,6 @@ test('menu routing', async ({ page }) => {
   await expect(page).toHaveURL(/\/jobs\/new$/);
   await page.getByRole('menuitem', { name: 'Health' }).click();
   await expect(page).toHaveURL(/\/health$/);
-  await page.getByRole('menuitem', { name: 'Settings' }).click();
-  await expect(page).toHaveURL(/\/settings$/);
 });
 
 test('hangfire opens new window', async ({ page, context }) => {
@@ -49,7 +47,7 @@ test('health badge shows state', async ({ page }) => {
   await expect(
     page.getByRole('banner').locator('.ant-badge-status-dot'),
   ).toHaveCSS('background-color', 'rgb(245, 34, 45)');
-  const badge = page.getByRole('banner').getByText('Health');
+  const badge = page.getByRole('banner').locator('.ant-badge-status');
   await badge.hover();
   await expect(page.getByRole('tooltip')).toHaveText('disk_full');
 });

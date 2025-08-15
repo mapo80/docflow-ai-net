@@ -1,28 +1,25 @@
-import { Layout, Menu, Input } from 'antd';
+import { Layout, Menu } from 'antd';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { useState } from 'react';
 import {
   AppstoreOutlined,
-  PlusOutlined,
-  SettingOutlined,
+  FileAddOutlined,
   HeartOutlined,
   LinkOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 import HealthBadge from './components/HealthBadge';
 import { openHangfire } from './hangfire';
 
-const { Header, Content, Sider } = Layout;
+const { Header, Content } = Layout;
 
 export default function Shell() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
   const items = [
     { key: '/jobs', icon: <AppstoreOutlined />, label: 'Jobs' },
-    { key: '/jobs/new', icon: <PlusOutlined />, label: 'Nuovo Job' },
-    { key: '/model', icon: <AppstoreOutlined />, label: 'Modello' },
+    { key: '/jobs/new', icon: <FileAddOutlined />, label: 'Nuovo Job' },
+    { key: '/model', icon: <ExperimentOutlined />, label: 'Modello' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
-    { key: '/settings', icon: <SettingOutlined />, label: 'Settings' },
     {
       key: 'hangfire',
       icon: <LinkOutlined />,
@@ -32,31 +29,28 @@ export default function Shell() {
   ];
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
+      <Header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Menu
           selectedKeys={[location.pathname]}
-          mode="inline"
+          mode="horizontal"
           items={items}
           onClick={(e) => {
             if (e.key === 'hangfire') return;
             navigate(e.key);
           }}
+          style={{ flex: 1 }}
         />
-      </Sider>
-      <Layout>
-        <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <HealthBadge />
-          <Input.Search
-            placeholder="Job ID"
-            onSearch={(value) => value && navigate(`/jobs/${value}`)}
-            style={{ width: 200 }}
-            allowClear
-          />
-        </Header>
-        <Content style={{ padding: 24 }}>
-          <Outlet />
-        </Content>
-      </Layout>
+        <HealthBadge />
+      </Header>
+      <Content style={{ padding: 24 }}>
+        <Outlet />
+      </Content>
     </Layout>
   );
 }

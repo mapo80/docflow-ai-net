@@ -94,6 +94,12 @@ test.skip('429 queue_full', async ({ page }) => {
   await expect(page.getByText('1')).toBeVisible({ timeout: 3000 });
 });
 
+test('new job button navigates to form', async ({ page }) => {
+  await page.goto('/jobs');
+  await page.getByRole('button', { name: 'Nuovo Job' }).click();
+  await expect(page).toHaveURL(/\/jobs\/new$/);
+});
+
 test('hangfire button opens new window', async ({ page, context }) => {
   await page.goto('/jobs');
   const [newPage] = await Promise.all([
