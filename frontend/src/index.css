@@ -1,4 +1,14 @@
 body {
   margin: 0;
   background: #fff;
+  overflow-x: hidden;
+}
+
+.ant-layout-header {
+  padding: 0;
+}
+
+.ant-menu-horizontal {
+  flex-wrap: wrap;
+  white-space: normal;
 }

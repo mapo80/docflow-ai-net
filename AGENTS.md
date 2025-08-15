@@ -55,6 +55,13 @@ Prompts:
 - All Markdown files must be in English.
 - Files related to prompts and fields must remain in Italian.
 
+## UI constraints
+
+- The web application must be mobile-first.
+- Every page must render flawlessly on mobile devices without horizontal scrolling.
+- When displaying tabular data, follow Ant Design's responsive table guidelines, switching to stacked lists on small screens when needed. See: https://ant.design/components/table/#responsive
+- Use clear icons to convey service health and other status information at a glance.
+
 # Operations
 The native libraries of Tesseract (libtesseract.so.5) and Leptonica (liblept.so.5) are already present in `src/MarkItDownNet/TesseractOCR/x64` and are copied automatically next to the binaries. Installing system packages or creating symbolic links is not required.
 
