@@ -44,8 +44,12 @@ function StatusCard({ label, data, prefix }: { label: string; data: HealthRespon
 export default function HealthPage() {
   const [ready, setReady] = useState<HealthResponse | null>(null);
   const [live, setLive] = useState<HealthResponse | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const load = async () => {
+    setLoading(true);
+    setReady(null);
+    setLive(null);
     const api = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
     const base = api.replace(/\/api\/v1$/, '');
     try {
@@ -60,6 +64,7 @@ export default function HealthPage() {
     } catch {
       setLive({ reasons: ['fetch_failed'] });
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -70,7 +75,9 @@ export default function HealthPage() {
     <Space direction="vertical" style={{ width: '100%' }} size="large">
       <Typography.Title level={2}>Health</Typography.Title>
       <HealthBadge />
-      <Button onClick={load}>Retry</Button>
+      <Button onClick={load} loading={loading}>
+        Retry
+      </Button>
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>
           <StatusCard label="Ready" data={ready} prefix="ready" />
