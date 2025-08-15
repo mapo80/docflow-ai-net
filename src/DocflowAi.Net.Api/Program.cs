@@ -18,6 +18,7 @@ using Hangfire.MemoryStorage;
 using Hellang.Middleware.ProblemDetails;
 using FluentValidation;
 using DocflowAi.Net.Api.Model.Endpoints;
+using System.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Http;
@@ -217,25 +218,40 @@ if (jqOpts.EnableDashboard)
 }
 
 app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
-app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
-{
-    Predicate = r => r.Tags.Contains("ready"),
-    ResponseWriter = async (ctx, report) =>
+app.MapHealthChecks(
+    "/health/live",
+    new HealthCheckOptions
     {
-        ctx.Response.ContentType = "application/json";
-        var entry = report.Entries.First().Value;
-        if (entry.Status == HealthStatus.Healthy)
+        Predicate = _ => false,
+        ResponseWriter = async (ctx, _) =>
         {
-            await ctx.Response.WriteAsync("{\"status\":\"healthy\"}");
-        }
-        else
-        {
-            var reasons = entry.Data.TryGetValue("reasons", out var val) && val is IEnumerable<string> arr ? arr : new List<string>();
-            await ctx.Response.WriteAsJsonAsync(new { status = "unhealthy", reasons });
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.WriteAsync("{\"status\":\"ok\"}");
         }
     }
-});
+);
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+        Predicate = r => r.Tags.Contains("ready"),
+        ResponseWriter = async (ctx, report) =>
+        {
+            ctx.Response.ContentType = "application/json";
+            var entry = report.Entries.First().Value;
+            if (entry.Status == HealthStatus.Healthy)
+            {
+                await ctx.Response.WriteAsync("{\"status\":\"ok\"}");
+            }
+            else
+            {
+                var reasons = entry.Data.TryGetValue("reasons", out var val) && val is IEnumerable<string> arr ? arr.ToList() : new List<string>();
+                var status = reasons.Contains("backpressure") ? "backpressure" : "unhealthy";
+                await ctx.Response.WriteAsJsonAsync(new { status, reasons });
+            }
+        }
+    }
+);
 app.MapModelEndpoints();
 app.MapJobEndpoints();
 app.MapFallbackToFile("index.html");
