@@ -12,7 +12,7 @@ type HealthResponse = { status?: string; reasons?: string[] };
 type Status = 'loading' | 'ok' | 'unhealthy' | 'backpressure';
 
 const colorMap: Record<Status, string> = {
-  loading: 'default',
+  loading: '#d9d9d9',
   ok: 'green',
   unhealthy: 'red',
   backpressure: 'orange',
@@ -28,7 +28,7 @@ function statusIcon(status: Status) {
     case 'backpressure':
       return <ExclamationCircleOutlined {...props} style={{ color: 'orange' }} />;
     default:
-      return <LoadingOutlined {...props} />;
+      return <LoadingOutlined {...props} style={{ color: '#d9d9d9' }} />;
   }
 }
 

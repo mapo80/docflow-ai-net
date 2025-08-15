@@ -34,6 +34,7 @@ export default function Shell() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          background: '#fff',
         }}
       >
         <Menu
@@ -45,6 +46,7 @@ export default function Shell() {
             navigate(e.key);
           }}
           style={{ flex: 1 }}
+          theme="light"
         />
         <HealthBadge />
       </Header>
