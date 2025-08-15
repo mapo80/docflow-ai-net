@@ -1,8 +1,16 @@
+using System.Collections.Generic;
+
 namespace DocflowAi.Net.Application.Abstractions;
 
 public interface ILlmModelService
 {
-    Task SwitchModelAsync(string hfKey, string modelRepo, string modelFile, int contextSize, CancellationToken ct);
+    Task DownloadModelAsync(string hfKey, string modelRepo, string modelFile, CancellationToken ct);
+
+    Task SwitchModelAsync(string modelFile, int contextSize);
+
+    IEnumerable<string> ListAvailableModels();
 
     ModelDownloadStatus GetStatus();
+
+    ModelInfo GetCurrentModel();
 }

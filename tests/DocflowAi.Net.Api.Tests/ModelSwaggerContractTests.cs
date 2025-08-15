@@ -26,8 +26,11 @@ public class ModelSwaggerContractTests : IClassFixture<TempDirFixture>
             .WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton<ILlmModelService, ConfigurableFakeLlmModelService>()));
         var client = CreateClient(factory);
         var json = await client.GetStringAsync("/swagger/v1/swagger.json");
+        json.Should().Contain("/api/v1/model\":");
         json.Should().Contain("/api/v1/model/status");
         json.Should().Contain("/api/v1/model/switch");
+        json.Should().Contain("/api/v1/model/download");
+        json.Should().Contain("/api/v1/model/available");
         json.Should().NotContain("ModelController");
     }
 }
