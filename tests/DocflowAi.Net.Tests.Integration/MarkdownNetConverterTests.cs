@@ -11,6 +11,7 @@ using SkiaSharp;
 using BitMiracle.LibTiff.Classic;
 using Xunit;
 using Tesseract;
+#pragma warning disable CS0618
 
 namespace DocflowAi.Net.Tests.Integration;
 
@@ -280,4 +281,5 @@ public class MarkdownNetConverterTests
             tiff.WriteScanline(pixels, offset, i, 0);
         }
     }
+#pragma warning restore CS0618
 }

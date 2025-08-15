@@ -37,7 +37,8 @@ public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
     public async Task Respects_MaxParallelHeavyJobs()
     {
         await using var factory = new TestWebAppFactory_Step3B(_fx.RootPath, maxParallel:1);
-        var store = factory.GetService<IJobStore>();
+        var store = factory.GetService<IJobRepository>();
+        var uow = factory.GetService<IUnitOfWork>();
         var fs = factory.GetService<IFileSystemService>();
         var runner = factory.GetService<IJobRunner>();
         factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
@@ -50,6 +51,7 @@ public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
         var input2 = await fs.SaveTextAtomic(id2, "input.txt", "b");
         store.Create(CreateQueued(id1, Path.GetDirectoryName(input1)!, input1));
         store.Create(CreateQueued(id2, Path.GetDirectoryName(input2)!, input2));
+        uow.SaveChanges();
 
         var t1 = runner.Run(id1, CancellationToken.None);
         var t2 = runner.Run(id2, CancellationToken.None);

@@ -39,8 +39,10 @@ public class RunnerTests : IClassFixture<TempDirFixture>
             .WithWebHostBuilder(b => b.ConfigureServices(s =>
                 s.AddSingleton<IProcessService>(new DelegateProcessService((_, _) =>
                     Task.FromResult(new ProcessResult(true, "{\"ok\":1}", null))))));
-        var sp = factory.Services;
-        var store = sp.GetRequiredService<IJobStore>();
+        using var scope = factory.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        var store = sp.GetRequiredService<IJobRepository>();
+        var uow = sp.GetRequiredService<IUnitOfWork>();
         var fs = sp.GetRequiredService<IFileSystemService>();
         var runner = sp.GetRequiredService<IJobRunner>();
 
@@ -49,6 +51,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         var inputPath = await fs.SaveTextAtomic(id, "input.txt", "hi");
         var dir = Path.GetDirectoryName(inputPath)!;
         store.Create(CreateDoc(id, dir, inputPath));
+        uow.SaveChanges();
 
         await runner.Run(id, CancellationToken.None);
 
@@ -64,8 +67,10 @@ public class RunnerTests : IClassFixture<TempDirFixture>
             .WithWebHostBuilder(b => b.ConfigureServices(s =>
                 s.AddSingleton<IProcessService>(new DelegateProcessService((_, _) =>
                     Task.FromResult(new ProcessResult(false, "", "boom"))))));
-        var sp = factory.Services;
-        var store = sp.GetRequiredService<IJobStore>();
+        using var scope = factory.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        var store = sp.GetRequiredService<IJobRepository>();
+        var uow2 = sp.GetRequiredService<IUnitOfWork>();
         var fs = sp.GetRequiredService<IFileSystemService>();
         var runner = sp.GetRequiredService<IJobRunner>();
 
@@ -74,6 +79,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         var input = await fs.SaveTextAtomic(id, "input.txt", "hi");
         var dir = Path.GetDirectoryName(input)!;
         store.Create(CreateDoc(id, dir, input));
+        uow2.SaveChanges();
 
         await runner.Run(id, CancellationToken.None);
 
@@ -98,8 +104,10 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                     return new ProcessResult(true, "{}", null);
                 })));
             });
-        var sp = factory.Services;
-        var store = sp.GetRequiredService<IJobStore>();
+        using var scope = factory.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        var store = sp.GetRequiredService<IJobRepository>();
+        var uow3 = sp.GetRequiredService<IUnitOfWork>();
         var fs = sp.GetRequiredService<IFileSystemService>();
         var runner = sp.GetRequiredService<IJobRunner>();
 
@@ -108,6 +116,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         var input = await fs.SaveTextAtomic(id, "input.txt", "hi");
         var dir = Path.GetDirectoryName(input)!;
         store.Create(CreateDoc(id, dir, input));
+        uow3.SaveChanges();
 
         await runner.Run(id, CancellationToken.None);
         var job = store.Get(id)!;
@@ -126,8 +135,10 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                     await Task.Delay(Timeout.Infinite, ct);
                     return new ProcessResult(true, "{}", null);
                 }))));
-        var sp = factory.Services;
-        var store = sp.GetRequiredService<IJobStore>();
+        using var scope = factory.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        var store = sp.GetRequiredService<IJobRepository>();
+        var uow4 = sp.GetRequiredService<IUnitOfWork>();
         var fs = sp.GetRequiredService<IFileSystemService>();
         var runner = sp.GetRequiredService<IJobRunner>();
 
@@ -136,6 +147,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         var input = await fs.SaveTextAtomic(id, "input.txt", "hi");
         var dir = Path.GetDirectoryName(input)!;
         store.Create(CreateDoc(id, dir, input));
+        uow4.SaveChanges();
 
         var runTask = runner.Run(id, cts.Token);
         cts.CancelAfter(100); // cancel shortly

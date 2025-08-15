@@ -2,7 +2,7 @@ using System.Security.Claims; using System.Text.Encodings.Web; using DocflowAi.N
 namespace DocflowAi.Net.Api.Security;
 public sealed class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions> {
     private readonly ApiKeyOptions _opts;
-    public ApiKeyAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IOptions<ApiKeyOptions> apiOpts) : base(options, logger, encoder, clock) { _opts = apiOpts.Value; }
+    public ApiKeyAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IOptions<ApiKeyOptions> apiOpts) : base(options, logger, encoder) { _opts = apiOpts.Value; }
     protected override Task<AuthenticateResult> HandleAuthenticateAsync() {
         if (!Request.Headers.TryGetValue(_opts.HeaderName, out var provided)) return Task.FromResult(AuthenticateResult.NoResult());
         if (_opts.Keys.Length == 0) return Task.FromResult(AuthenticateResult.Fail("No API keys configured."));

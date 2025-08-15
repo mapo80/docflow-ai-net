@@ -29,7 +29,7 @@ public static class JobEndpoints
             .WithTags("Jobs")
             .RequireRateLimiting("General");
 
-        group.MapGet(string.Empty, (int? page, int? pageSize, IJobStore store) =>
+        group.MapGet(string.Empty, (int? page, int? pageSize, IJobRepository store) =>
         {
             var p = page ?? 1;
             var ps = pageSize ?? 20;
@@ -82,7 +82,7 @@ public static class JobEndpoints
             return op;
         });
 
-        group.MapPost(string.Empty, async (HttpRequest req, IJobStore store, IFileSystemService fs, IBackgroundJobClient jobs, IOptions<JobQueueOptions> opts, ILoggerFactory lf) =>
+        group.MapPost(string.Empty, async (HttpRequest req, IJobRepository store, IUnitOfWork uow, IFileSystemService fs, IBackgroundJobClient jobs, IOptions<JobQueueOptions> opts, ILoggerFactory lf) =>
         {
             var logger = lf.CreateLogger("JobEndpoints");
             var sw = Stopwatch.StartNew();
@@ -164,6 +164,7 @@ public static class JobEndpoints
                 Paths = new JobDocument.PathInfo { Dir = Path.GetDirectoryName(inputPath)!, Input = inputPath, Prompt = promptPath, Fields = fieldsPath, Output = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json"), Error = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt") }
             };
             store.Create(doc);
+            uow.SaveChanges();
 
             var mode = req.Query.TryGetValue("mode", out var mv) ? mv.ToString() : null;
             var immediate = string.Equals(mode, "immediate", StringComparison.OrdinalIgnoreCase) && optsVal.Immediate.Enabled;
@@ -294,7 +295,7 @@ public static class JobEndpoints
               return op;
           });
 
-        group.MapGet("/{id}", (Guid id, IJobStore store, ILoggerFactory lf) =>
+        group.MapGet("/{id}", (Guid id, IJobRepository store, ILoggerFactory lf) =>
         {
             var logger = lf.CreateLogger("JobEndpoints");
             var sw = Stopwatch.StartNew();
@@ -340,7 +341,7 @@ public static class JobEndpoints
             return op;
         });
 
-        group.MapDelete("/{id}", (Guid id, IJobStore store, ILoggerFactory lf) =>
+        group.MapDelete("/{id}", (Guid id, IJobRepository store, IUnitOfWork uow, ILoggerFactory lf) =>
         {
             var logger = lf.CreateLogger("JobEndpoints");
             var sw = Stopwatch.StartNew();
@@ -354,6 +355,7 @@ public static class JobEndpoints
             if (job.Status is "Queued" or "Running")
             {
                 store.MarkCancelled(id, "cancelled by user");
+                uow.SaveChanges();
                 logger.LogWarning("JobCancelled {JobId}", id);
                 logger.LogInformation("DeleteJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
                 return Results.Accepted($"/api/v1/jobs/{id}", new { ok = true, status = "Cancelled" });

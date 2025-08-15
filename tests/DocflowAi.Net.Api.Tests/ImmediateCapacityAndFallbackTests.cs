@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Fixtures;
+using DocflowAi.Net.Api.JobQueue.Data;
+using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 
 namespace DocflowAi.Net.Api.Tests;
@@ -44,7 +46,9 @@ public class ImmediateCapacityAndFallbackTests : IClassFixture<TempDirFixture>
         second.StatusCode.Should().Be(System.Net.HttpStatusCode.Accepted);
         var body = await second.Content.ReadFromJsonAsync<JsonElement>();
         var id = body.GetProperty("job_id").GetGuid();
-        LiteDbTestHelper.GetJob(factory.LiteDbPath, id)!.Status.Should().Be("Queued");
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
+        DbTestHelper.GetJob(db, id)!.Status.Should().Be("Queued");
         await first;
     }
 }

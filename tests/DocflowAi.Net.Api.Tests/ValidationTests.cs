@@ -1,5 +1,4 @@
 using DocflowAi.Net.Api.Tests.Fixtures;
-using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
@@ -23,7 +22,8 @@ public class ValidationTests : IClassFixture<TempDirFixture>
         var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(big), fileName = "a.pdf" });
         resp.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
         Directory.GetDirectories(factory.DataRootPath).Should().BeEmpty();
-        var store = factory.Services.GetRequiredService<IJobStore>();
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
         store.CountPending().Should().Be(0);
     }
 
@@ -36,7 +36,8 @@ public class ValidationTests : IClassFixture<TempDirFixture>
         var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(bytes), fileName = "a.exe" });
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         Directory.GetDirectories(factory.DataRootPath).Should().BeEmpty();
-        var store = factory.Services.GetRequiredService<IJobStore>();
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
         store.CountPending().Should().Be(0);
     }
 }

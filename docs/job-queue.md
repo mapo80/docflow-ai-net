@@ -1,6 +1,6 @@
 # Job Queue
 
-The API uses Hangfire with in-memory storage for scheduling and LiteDB as the single source of truth for job state. Files on disk are only artifacts and never used to derive status.
+The API uses Hangfire with in-memory storage for scheduling and a relational database accessed through Entity Framework Core (SQLite by default) as the single source of truth for job state. Files on disk are only artifacts and never used to derive status.
 
 ## States
 Submit → `Queued` → `Running` → `Succeeded`/`Failed`/`Cancelled`

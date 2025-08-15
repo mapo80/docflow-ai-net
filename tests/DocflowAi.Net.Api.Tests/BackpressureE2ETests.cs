@@ -1,6 +1,7 @@
 using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
+using DocflowAi.Net.Api.JobQueue.Data;
 using Microsoft.Extensions.DependencyInjection;
 using DocflowAi.Net.Api.Tests.Helpers;
 using FluentAssertions;
@@ -21,9 +22,12 @@ public class BackpressureE2ETests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fx.RootPath, maxQueueLength:1);
         var client = factory.CreateClient();
-        var store = factory.Services.GetRequiredService<IJobStore>();
-        var job = LiteDbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow);
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var job = DbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow);
         store.Create(job);
+        uow.SaveChanges();
         var dirsBefore = Directory.GetDirectories(factory.DataRootPath).Length;
         using (TestCorrelator.CreateContext())
         {
@@ -31,7 +35,9 @@ public class BackpressureE2ETests : IClassFixture<TempDirFixture>
             resp.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
             resp.Headers.Should().ContainKey("Retry-After");
             Directory.GetDirectories(factory.DataRootPath).Length.Should().Be(dirsBefore);
-            LiteDbTestHelper.GetJob(factory.LiteDbPath, job.Id).Should().NotBeNull();
+            using var scope2 = factory.Services.CreateScope();
+            var db = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
+            DbTestHelper.GetJob(db, job.Id).Should().NotBeNull();
             var events = TestCorrelator.GetLogEventsFromCurrentContext();
             events.Should().NotBeNull(); // placeholder to consume events
         }

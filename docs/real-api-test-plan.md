@@ -35,7 +35,7 @@ Endpoint scope:
 ### A) SMOKE & HEALTH
 A1. **Live_OK** – GET /health/live → 200.
 
-A2. **Ready_OK_or_Reasons** – GET /health/ready → 200 **or** 503 with `reasons[]` among: `litedb_unavailable`, `data_root_not_writable`, `backpressure`. If 503: assert `reasons` is not empty.
+A2. **Ready_OK_or_Reasons** – GET /health/ready → 200 **or** 503 with `reasons[]` among: `db_unavailable`, `data_root_not_writable`, `backpressure`. If 503: assert `reasons` is not empty.
 
 A3. **Hangfire_Accessible** (optional) – If `DOCFLOW_HANGFIRE_PATH` is set, perform a HEAD/GET to the public URL; expect 200/401/403/redirect (must not be persistent 404/5xx).
 

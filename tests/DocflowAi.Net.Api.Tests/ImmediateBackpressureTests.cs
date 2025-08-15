@@ -3,7 +3,9 @@ using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
+using DocflowAi.Net.Api.JobQueue.Data;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog.Sinks.TestCorrelator;
 
 namespace DocflowAi.Net.Api.Tests;
@@ -18,9 +20,11 @@ public class ImmediateBackpressureTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory_Immediate(_fx.RootPath, maxQueueLength: 1);
         var client = factory.CreateClient();
-        var existing = LiteDbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow);
-        var store = factory.GetService<IJobStore>();
+        var existing = DbTestHelper.CreateJob(Guid.NewGuid(), "Queued", DateTimeOffset.UtcNow);
+        var store = factory.GetService<IJobRepository>();
+        var uow = factory.GetService<IUnitOfWork>();
         store.Create(existing);
+        uow.SaveChanges();
         var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
         using (TestCorrelator.CreateContext())
         {
@@ -29,8 +33,9 @@ public class ImmediateBackpressureTests : IClassFixture<TempDirFixture>
             resp.Headers.Should().ContainKey("Retry-After");
             (await resp.Content.ReadAsStringAsync()).Should().Contain("queue_full");
             Directory.GetDirectories(factory.DataRootPath).Should().BeEmpty();
-            using var db = LiteDbTestHelper.Open(factory.LiteDbPath);
-            db.GetCollection<JobDocument>("jobs").Count().Should().Be(1);
+            using var scope = factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
+            db.Jobs.Count().Should().Be(1);
             TestCorrelator.GetLogEventsFromCurrentContext();
         }
     }

@@ -20,7 +20,9 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fx.RootPath);
         var client = factory.CreateClient();
-        var store = factory.Services.GetRequiredService<IJobStore>();
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var id = Guid.NewGuid();
         var job = new JobDocument
         {
@@ -36,6 +38,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
             Metrics = new JobDocument.MetricsInfo()
         };
         store.Create(job);
+        uow.SaveChanges();
         var resp = await client.GetAsync($"/api/v1/jobs/{id}");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var json = await resp.Content.ReadFromJsonAsync<JsonElement>();

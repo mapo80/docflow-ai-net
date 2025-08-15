@@ -5,6 +5,7 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 
 namespace DocflowAi.Net.Api.Tests;
@@ -39,7 +40,8 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
     public async Task Requeues_Expired_Lease()
     {
         await using var factory = new TestWebAppFactory_Step3B(_fx.RootPath);
-        var store = factory.GetService<IJobStore>();
+        var store = factory.GetService<IJobRepository>();
+        var uow = factory.GetService<IUnitOfWork>();
         var fs = factory.GetService<IFileSystemService>();
         var rescheduler = factory.GetService<IEnumerable<IHostedService>>().OfType<ReschedulerService>().Single();
 
@@ -48,9 +50,11 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
         var input = await fs.SaveTextAtomic(id, "input.txt", "hi");
         var dir = Path.GetDirectoryName(input)!;
         store.Create(CreateRunning(id, dir, input));
+        uow.SaveChanges();
 
         await rescheduler.ProcessOnceAsync(CancellationToken.None);
-        var job = store.Get(id)!;
+        using var verifyScope = factory.Services.CreateScope();
+        var job = verifyScope.ServiceProvider.GetRequiredService<IJobRepository>().Get(id)!;
         job.Status.Should().Be("Queued");
         job.Attempts.Should().Be(1);
         job.AvailableAt.Should().BeAfter(DateTimeOffset.UtcNow);
@@ -60,7 +64,8 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
     public async Task Marks_Failed_On_Max_Attempts()
     {
         await using var factory = new TestWebAppFactory_Step3B(_fx.RootPath);
-        var store = factory.GetService<IJobStore>();
+        var store = factory.GetService<IJobRepository>();
+        var uow2 = factory.GetService<IUnitOfWork>();
         var fs = factory.GetService<IFileSystemService>();
         var rescheduler = factory.GetService<IEnumerable<IHostedService>>().OfType<ReschedulerService>().Single();
 
@@ -71,9 +76,11 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
         var doc = CreateRunning(id, dir, input);
         doc.Attempts = 2; // max attempts
         store.Create(doc);
+        uow2.SaveChanges();
 
         await rescheduler.ProcessOnceAsync(CancellationToken.None);
-        var job = store.Get(id)!;
+        using var verifyScope = factory.Services.CreateScope();
+        var job = verifyScope.ServiceProvider.GetRequiredService<IJobRepository>().Get(id)!;
         job.Status.Should().Be("Failed");
         job.ErrorMessage.Should().Contain("max attempts");
         File.Exists(Path.Combine(dir, "error.txt")).Should().BeTrue();
@@ -83,7 +90,8 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
     public async Task Requeued_Job_Can_Run_To_Success()
     {
         await using var factory = new TestWebAppFactory_Step3B(_fx.RootPath);
-        var store = factory.GetService<IJobStore>();
+        var store = factory.GetService<IJobRepository>();
+        var uow3 = factory.GetService<IUnitOfWork>();
         var fs = factory.GetService<IFileSystemService>();
         var rescheduler = factory.GetService<IEnumerable<IHostedService>>().OfType<ReschedulerService>().Single();
         var runner = factory.GetService<IJobRunner>();
@@ -94,10 +102,12 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
         var input = await fs.SaveTextAtomic(id, "input.txt", "hi");
         var dir = Path.GetDirectoryName(input)!;
         store.Create(CreateRunning(id, dir, input));
+        uow3.SaveChanges();
 
         await rescheduler.ProcessOnceAsync(CancellationToken.None);
         // make available immediately
         store.Requeue(id, 1, DateTimeOffset.UtcNow.AddMilliseconds(-1));
+        uow3.SaveChanges();
 
         await runner.Run(id, CancellationToken.None);
         var job = store.Get(id)!;

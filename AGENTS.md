@@ -49,6 +49,14 @@ Prompts:
 - `dotnet build -c Release`
 - `dotnet test -c Release`
 
+## Persistence guidelines
+- Use Entity Framework Core with a code-first approach.
+- Support multiple database providers configured via `JobQueue:Database` in `appsettings`.
+- Follow repository and unit of work patterns.
+- All queries must reside in repositories; services may only depend on repositories and the unit of work and must not access `DbContext` directly.
+- Repository queries must execute on the database server; avoid client-side evaluation.
+- Any query that cannot be translated server side must be documented in `docs/query-translation-report.md`.
+
 ## Language constraints
 
 - Frontend and backend code, including error messages, must not contain Italian words.

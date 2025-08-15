@@ -26,10 +26,14 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 using DocflowAi.Net.Api.Health;
 using Microsoft.OpenApi.Models;
-using LiteDB;
+using DocflowAi.Net.Api.JobQueue.Data;
+using DocflowAi.Net.Api.JobQueue.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 using DocflowAi.Net.Api.Security;
+using Microsoft.Data.Sqlite;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using Hangfire.Dashboard;
@@ -92,15 +96,24 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddProblemDetails(o => { o.IncludeExceptionDetails = (ctx, ex) => builder.Environment.IsDevelopment(); });
 
-builder.Services.AddSingleton<LiteDatabase>(sp =>
+builder.Services.AddDbContext<JobDbContext>((sp, opts) =>
 {
-    var opts = sp.GetRequiredService<IOptions<JobQueueOptions>>().Value;
-    return new LiteDatabase(opts.LiteDb.Path);
+    var cfg = sp.GetRequiredService<IOptions<JobQueueOptions>>().Value.Database;
+    switch (cfg.Provider.ToLowerInvariant())
+    {
+        case "inmemory":
+            opts.UseInMemoryDatabase(cfg.ConnectionString);
+            break;
+        default:
+            opts.UseSqlite(cfg.ConnectionString);
+            break;
+    }
 });
-builder.Services.AddSingleton<IJobStore, LiteDbJobStore>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<IFileSystemService, FileSystemService>();
 builder.Services.AddSingleton<IProcessService, ProcessService>();
-builder.Services.AddSingleton<IJobRunner, JobRunner>();
+builder.Services.AddScoped<IJobRunner, JobRunner>();
 builder.Services.AddSingleton<IConcurrencyGate, ConcurrencyGate>();
 builder.Services.AddHostedService<ReschedulerService>();
 builder.Services.AddSingleton<CleanupService>();
@@ -179,6 +192,22 @@ builder.Services.AddHealthChecks()
     .AddCheck<JobQueueReadyHealthCheck>("jobqueue", tags: new[] { "ready" });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var cfg = scope.ServiceProvider.GetRequiredService<IOptions<JobQueueOptions>>().Value;
+    Directory.CreateDirectory(cfg.DataRoot);
+    if (cfg.Database.Provider.Equals("sqlite", StringComparison.OrdinalIgnoreCase))
+    {
+        var csb = new SqliteConnectionStringBuilder(cfg.Database.ConnectionString);
+        var dbPath = csb.DataSource;
+        var dir = Path.GetDirectoryName(dbPath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
+    }
+    var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
+    db.Database.EnsureCreated();
+}
 
 app.UseSerilogRequestLogging(opts =>
 {
