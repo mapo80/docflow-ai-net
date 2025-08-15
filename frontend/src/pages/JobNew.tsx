@@ -13,6 +13,9 @@ import {
   notification,
   Drawer,
 } from 'antd';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
+import '@uiw/react-markdown-preview/markdown.css';
 import { InboxOutlined } from '@ant-design/icons';
 import FieldsEditor, {
   fieldsToJson,
@@ -86,9 +89,7 @@ export async function submitPayload(
 
 export default function JobNew() {
   const [file, setFile] = useState<File | null>(null);
-  const [promptMode, setPromptMode] = useState<'text' | 'json'>('text');
-  const [promptText, setPromptText] = useState('');
-  const [promptJson, setPromptJson] = useState('{}');
+  const [prompt, setPrompt] = useState('');
   const [fieldsMode, setFieldsMode] = useState<'visual' | 'json'>('visual');
   const [visualFields, setVisualFields] = useState<FieldItem[]>([]);
   const [jsonFields, setJsonFields] = useState(fieldsToJson([]));
@@ -104,8 +105,7 @@ export default function JobNew() {
     if (preset) {
       try {
         const p = JSON.parse(preset);
-        setPromptText(p.promptText || '');
-        setPromptJson(p.promptJson || '{}');
+        setPrompt(p.prompt || p.promptText || '');
         setVisualFields(p.visualFields || []);
         setJsonFields(p.jsonFields || fieldsToJson([]));
       } catch {
@@ -117,7 +117,7 @@ export default function JobNew() {
   const savePreset = () => {
     localStorage.setItem(
       'jobPreset',
-      JSON.stringify({ promptText, promptJson, visualFields, jsonFields })
+      JSON.stringify({ prompt, visualFields, jsonFields })
     );
   };
 
@@ -131,17 +131,13 @@ export default function JobNew() {
       message.error(err);
       return;
     }
-    if (promptMode === 'json' && !isValidJson(promptJson)) {
-      message.error('Invalid prompt JSON');
-      return;
-    }
     if (fieldsMode === 'json' && !isValidJson(jsonFields)) {
       message.error('Invalid fields JSON');
       return;
     }
     const payload = await buildPayload(
       file,
-      promptMode === 'json' ? promptJson : promptText,
+      prompt,
       fieldsMode === 'json' ? jsonFields : fieldsToJson(visualFields)
     );
     savePreset();
@@ -229,34 +225,7 @@ export default function JobNew() {
           </Upload.Dragger>
         </Form.Item>
         <Form.Item label="Prompt">
-          <Tabs
-            activeKey={promptMode}
-            onChange={(k) => setPromptMode(k as 'text' | 'json')}
-            items={[
-              {
-                key: 'text',
-                label: 'Text',
-                children: (
-                  <Input.TextArea
-                    rows={4}
-                    value={promptText}
-                    onChange={(e) => setPromptText(e.target.value)}
-                  />
-                ),
-              },
-              {
-                key: 'json',
-                label: 'JSON',
-                children: (
-                  <Input.TextArea
-                    rows={4}
-                    value={promptJson}
-                    onChange={(e) => setPromptJson(e.target.value)}
-                  />
-                ),
-              },
-            ]}
-          />
+          <MDEditor value={prompt} onChange={(v) => setPrompt(v ?? '')} />
         </Form.Item>
         <Form.Item label="Fields">
           <Tabs

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Table, Space, Button, Progress, Badge, Alert, message } from 'antd';
+import { Table, Space, Button, Progress, Badge, Alert, message, List, Grid } from 'antd';
 import { FileAddOutlined } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { JobsService, type JobDetailResponse, ApiError } from '../generated';
@@ -7,6 +7,7 @@ import JobStatusTag from '../components/JobStatusTag';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { openHangfire } from '../hangfire';
+import type { PaginationProps } from 'antd';
 
 const terminal = ['Succeeded', 'Failed', 'Cancelled'];
 
@@ -17,6 +18,8 @@ export default function JobsList() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [retry, setRetry] = useState<number | null>(null);
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
 
   const load = async () => {
     setLoading(true);
@@ -82,7 +85,9 @@ export default function JobsList() {
     {
       title: 'Status',
       dataIndex: 'status',
-      render: (_: string, record: JobDetailResponse) => <JobStatusTag status={record.status!} derived={record.derivedStatus} />,
+      render: (_: string, record: JobDetailResponse) => (
+        <JobStatusTag status={record.status!} derived={record.derivedStatus} />
+      ),
       filters: [
         { text: 'Queued', value: 'Queued' },
         { text: 'Running', value: 'Running' },
@@ -96,28 +101,35 @@ export default function JobsList() {
       title: 'Progress',
       dataIndex: 'progress',
       render: (p?: number) => <Progress percent={p || 0} size="small" />,
+      responsive: ['md'],
     },
     {
       title: 'Attempts',
       dataIndex: 'attempts',
       render: (a?: number) => <Badge count={a || 0} showZero />,
+      responsive: ['lg'],
     },
     {
       title: 'Created',
       dataIndex: 'createdAt',
       render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+      responsive: ['lg'],
     },
     {
       title: 'Updated',
       dataIndex: 'updatedAt',
       render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+      responsive: ['xl'],
     },
     {
       title: 'Actions',
       render: (_: any, record: JobDetailResponse) => (
         <Space>
           <Link to={`/jobs/${record.id}`}>View</Link>
-          <Button disabled={!['Queued', 'Running'].includes(record.status!)} onClick={() => handleCancel(record.id!)}>
+          <Button
+            disabled={!['Queued', 'Running'].includes(record.status!)}
+            onClick={() => handleCancel(record.id!)}
+          >
             Cancel
           </Button>
           {record.paths?.output && (
@@ -128,6 +140,7 @@ export default function JobsList() {
           )}
         </Space>
       ),
+      responsive: ['md'],
     },
   ];
 
@@ -160,7 +173,50 @@ export default function JobsList() {
         <Button onClick={openHangfire}>Open Hangfire</Button>
       </div>
       {retry !== null && <Alert banner message={`Queue full. Retry in ${retry}s`} />}
-      <Table columns={columns} dataSource={jobs} rowKey="id" pagination={pagination} loading={loading} />
+      {isMobile ? (
+        <List
+          dataSource={jobs}
+          rowKey="id"
+          loading={loading}
+          pagination={pagination as PaginationProps}
+          renderItem={(record) => (
+            <List.Item
+              key={record.id}
+              actions={[
+                <Link to={`/jobs/${record.id}`}>View</Link>,
+                ['Queued', 'Running'].includes(record.status!) && (
+                  <Button type="link" onClick={() => handleCancel(record.id!)}>
+                    Cancel
+                  </Button>
+                ),
+              ]}
+            >
+              <List.Item.Meta
+                title={<Link to={`/jobs/${record.id}`}>{record.id}</Link>}
+                description={
+                  <>
+                    <JobStatusTag status={record.status!} derived={record.derivedStatus} />
+                    <div style={{ marginTop: 8 }}>
+                      <Progress percent={record.progress || 0} size="small" />
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                      {dayjs(record.updatedAt!).format('YYYY-MM-DD HH:mm')}
+                    </div>
+                  </>
+                }
+              />
+            </List.Item>
+          )}
+        />
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={jobs}
+          rowKey="id"
+          pagination={pagination}
+          loading={loading}
+        />
+      )}
     </div>
   );
 }
