@@ -32,8 +32,8 @@ public static class DefaultJobSeeder
         if (cfg.SeedDefaults && !db.Jobs.Any())
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Seeder");
-            var datasetRoot = Path.Combine(Directory.GetCurrentDirectory(), "dataset");
-            if (Directory.Exists(datasetRoot))
+            var datasetRoot = FindDatasetRoot(AppContext.BaseDirectory);
+            if (datasetRoot != null)
             {
                 var now = DateTimeOffset.UtcNow;
 
@@ -100,8 +100,21 @@ public static class DefaultJobSeeder
             }
             else
             {
-                logger.LogWarning("DatasetFolderMissing {Path}", datasetRoot);
+                logger.LogWarning("DatasetFolderMissing {Path}", "dataset");
             }
         }
+    }
+
+    private static string? FindDatasetRoot(string start)
+    {
+        var dir = new DirectoryInfo(start);
+        while (dir != null)
+        {
+            var path = Path.Combine(dir.FullName, "dataset");
+            if (Directory.Exists(path))
+                return path;
+            dir = dir.Parent;
+        }
+        return null;
     }
 }
