@@ -39,6 +39,7 @@
 
   <ItemGroup>
     <Content Include="..\..\dataset\**\*">
+      <Link>dataset/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
