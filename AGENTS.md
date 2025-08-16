@@ -76,14 +76,14 @@ The native libraries of Tesseract (libtesseract.so.5) and Leptonica (liblept.so.
 To run OCR, provide the language tessdata files and set `OcrDataPath` accordingly.
 
 ## Frontend E2E
-- Ensure the environment is ready:
+- Ensure the environment is ready (the Playwright commands below are **mandatory** before running `npm run e2e`):
   ```bash
   git submodule update --init --recursive
   ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
   export PATH="$HOME/dotnet:$PATH"
   dotnet build -c Release
-  npx playwright install
-  npx playwright install-deps   # required on Linux
+  npx --yes playwright install        # install browsers
+  npx --yes playwright install-deps   # required on Linux
   ```
 - Set variables in `.env`:
   - `VITE_API_BASE_URL` REST API URL (do not include the `/api/v1` prefix, the client adds it)
