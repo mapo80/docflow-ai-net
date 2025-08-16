@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Table, Space, Button, Progress, Badge, Alert, message, List, Grid } from 'antd';
-import { FileAddOutlined } from '@ant-design/icons';
+import {
+  FileAddOutlined,
+  EyeOutlined,
+  StopOutlined,
+  FileTextOutlined,
+  FileExclamationOutlined,
+} from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { JobsService, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
@@ -124,18 +130,31 @@ export default function JobsList() {
       title: 'Actions',
       render: (_: any, record: JobDetailResponse) => (
         <Space>
-          <Link to={`/jobs/${record.id}`}>View</Link>
+          <Link to={`/jobs/${record.id}`} title="View job">
+            <Button icon={<EyeOutlined />} aria-label="View job" title="View job" />
+          </Link>
           <Button
             disabled={!['Queued', 'Running'].includes(record.status!)}
             onClick={() => handleCancel(record.id!)}
-          >
-            Cancel
-          </Button>
+            icon={<StopOutlined />}
+            aria-label="Cancel job"
+            title="Cancel job"
+          />
           {record.paths?.output && (
-            <Button onClick={() => window.open(record.paths!.output!, '_blank')}>Output</Button>
+            <Button
+              onClick={() => window.open(record.paths!.output!, '_blank')}
+              icon={<FileTextOutlined />}
+              aria-label="View output"
+              title="View output"
+            />
           )}
           {record.paths?.error && (
-            <Button onClick={() => window.open(record.paths!.error!, '_blank')}>Error</Button>
+            <Button
+              onClick={() => window.open(record.paths!.error!, '_blank')}
+              icon={<FileExclamationOutlined />}
+              aria-label="View error"
+              title="View error"
+            />
           )}
         </Space>
       ),
@@ -181,11 +200,17 @@ export default function JobsList() {
             <List.Item
               key={record.id}
               actions={[
-                <Link to={`/jobs/${record.id}`}>View</Link>,
+                <Link to={`/jobs/${record.id}`} title="View job">
+                  <Button type="link" icon={<EyeOutlined />} aria-label="View job" title="View job" />
+                </Link>,
                 ['Queued', 'Running'].includes(record.status!) && (
-                  <Button type="link" onClick={() => handleCancel(record.id!)}>
-                    Cancel
-                  </Button>
+                  <Button
+                    type="link"
+                    onClick={() => handleCancel(record.id!)}
+                    icon={<StopOutlined />}
+                    aria-label="Cancel job"
+                    title="Cancel job"
+                  />
                 ),
               ]}
             >

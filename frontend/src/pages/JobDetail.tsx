@@ -3,6 +3,12 @@ import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { Descriptions, Progress, Button, message, Space, List, Modal } from 'antd';
+import {
+  ReloadOutlined,
+  StopOutlined,
+  FileSearchOutlined,
+  DownloadOutlined,
+} from '@ant-design/icons';
 import JobStatusTag from '../components/JobStatusTag';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 
@@ -82,10 +88,19 @@ export default function JobDetail() {
         )}
       </Descriptions>
       <Space style={{ marginTop: 16 }}>
-        <Button onClick={load}>Refresh</Button>
-        <Button disabled={!['Queued', 'Running'].includes(job.status!)} onClick={handleCancel}>
-          Cancel
-        </Button>
+        <Button
+          onClick={load}
+          icon={<ReloadOutlined />}
+          aria-label="Refresh"
+          title="Refresh"
+        />
+        <Button
+          disabled={!['Queued', 'Running'].includes(job.status!)}
+          onClick={handleCancel}
+          icon={<StopOutlined />}
+          aria-label="Cancel job"
+          title="Cancel job"
+        />
       </Space>
       {artifacts.length > 0 && (
         <List
@@ -98,10 +113,21 @@ export default function JobDetail() {
             return (
               <List.Item
                 actions={[
-                  canPreview && <Button onClick={() => showPreview(k, v)}>Preview</Button>,
-                  <Button href={v} target="_blank">
-                    Download
-                  </Button>,
+                  canPreview && (
+                    <Button
+                      onClick={() => showPreview(k, v)}
+                      icon={<FileSearchOutlined />}
+                      aria-label="Preview"
+                      title="Preview"
+                    />
+                  ),
+                  <Button
+                    href={v}
+                    target="_blank"
+                    icon={<DownloadOutlined />}
+                    aria-label="Download"
+                    title="Download"
+                  />,
                 ].filter(Boolean)}
               >
                 {k}
