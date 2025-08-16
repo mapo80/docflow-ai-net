@@ -57,7 +57,12 @@ export default function JobDetail() {
         return;
       }
       try {
-        const res = await fetch(job.paths.output);
+        const outUrl = job.paths.output.startsWith('http')
+          ? job.paths.output
+          : `${OpenAPI.BASE}${job.paths.output}`;
+        const res = await fetch(outUrl, {
+          headers: OpenAPI.HEADERS as Record<string, string> | undefined,
+        });
         const json = await res.json();
         const rows: {
           key: string;
@@ -136,6 +141,28 @@ export default function JobDetail() {
     }
   };
 
+  const handleDownload = async (label: string, path: string) => {
+    let url = path;
+    if (!url.startsWith('http')) url = `${OpenAPI.BASE}${path}`;
+    try {
+      const resp = await fetch(url, {
+        headers: OpenAPI.HEADERS as Record<string, string> | undefined,
+      });
+      if (!resp.ok) return;
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = path.split('/').pop() || label;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      /* ignore */
+    }
+  };
+
   if (!job) return <div>Loading...</div>;
 
   const artifacts = Object.entries(job.paths || {})
@@ -165,8 +192,7 @@ export default function JobDetail() {
             />
           )}
           <Button
-            href={record.path}
-            target="_blank"
+            onClick={() => handleDownload(record.label, record.path)}
             icon={<DownloadOutlined />}
             aria-label="Download"
             title="Download"
