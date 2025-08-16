@@ -72,7 +72,6 @@ public static class DefaultJobSeeder
                 File.Copy(Path.Combine(datasetRoot, "sample_invoice.png"), Path.Combine(errDir, "input.png"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-png", "prompt.txt"), Path.Combine(errDir, "prompt.txt"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-png", "fields.txt"), Path.Combine(errDir, "fields.txt"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-png", "llm_response.json"), Path.Combine(errDir, "output.json"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-png", "llm_response.txt"), Path.Combine(errDir, "error.txt"), true);
                 var errJob = new JobDocument
                 {
@@ -91,7 +90,7 @@ public static class DefaultJobSeeder
                         Input = Path.Combine(errDir, "input.png"),
                         Prompt = Path.Combine(errDir, "prompt.txt"),
                         Fields = Path.Combine(errDir, "fields.txt"),
-                        Output = Path.Combine(errDir, "output.json"),
+                        Output = string.Empty,
                         Error = Path.Combine(errDir, "error.txt")
                     }
                 };

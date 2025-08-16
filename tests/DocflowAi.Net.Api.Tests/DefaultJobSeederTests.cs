@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Net.Http.Json;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using System.Linq;
+using System.Text.Json;
+using System.Net;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -28,6 +30,36 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         resp!.total.Should().Be(2);
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("11111111-1111-1111-1111-111111111111"));
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("22222222-2222-2222-2222-222222222222"));
+    }
+
+    [Fact]
+    public async Task Seeded_Jobs_Expose_Artifacts()
+    {
+        var extra = new Dictionary<string, string?>
+        {
+            ["JobQueue:SeedDefaults"] = "true"
+        };
+        using var factory = new TestWebAppFactory(_fixture.RootPath, extra: extra);
+        var client = factory.CreateClient();
+
+        var ok = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/11111111-1111-1111-1111-111111111111");
+        ok.GetProperty("paths").GetProperty("input").GetString()
+            .Should().EndWith("/input.pdf");
+        ok.GetProperty("paths").GetProperty("output").GetString()
+            .Should().EndWith("/output.json");
+        ok.GetProperty("paths").GetProperty("error").ValueKind
+            .Should().Be(JsonValueKind.Null);
+
+        var err = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/22222222-2222-2222-2222-222222222222");
+        err.GetProperty("paths").GetProperty("input").GetString()
+            .Should().EndWith("/input.png");
+        err.GetProperty("paths").GetProperty("output").ValueKind
+            .Should().Be(JsonValueKind.Null);
+        err.GetProperty("paths").GetProperty("error").GetString()
+            .Should().EndWith("/error.txt");
+
+        var fileResp = await client.GetAsync(ok.GetProperty("paths").GetProperty("input").GetString());
+        fileResp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     private record JobListResponse(int page, int pageSize, int total, List<JobItem> items);
