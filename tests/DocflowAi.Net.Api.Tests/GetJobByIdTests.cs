@@ -24,6 +24,10 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
         var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var id = Guid.NewGuid();
+        var dir = Path.Combine(_fx.RootPath, "job");
+        Directory.CreateDirectory(dir);
+        var outputPath = Path.Combine(dir, "o.json");
+        await File.WriteAllTextAsync(outputPath, "{}");
         var job = new JobDocument
         {
             Id = id,
@@ -34,7 +38,15 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             Hash = "h",
-            Paths = new JobDocument.PathInfo { Dir = "/d", Input = "i", Prompt = "p", Fields = "f", Output = "o", Error = "e" },
+            Paths = new JobDocument.PathInfo
+            {
+                Dir = dir,
+                Input = Path.Combine(dir, "i.pdf"),
+                Prompt = Path.Combine(dir, "p.md"),
+                Fields = Path.Combine(dir, "f.json"),
+                Output = outputPath,
+                Error = Path.Combine(dir, "e.txt")
+            },
             Metrics = new JobDocument.MetricsInfo()
         };
         store.Create(job);
@@ -45,7 +57,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         json.GetProperty("status").GetString().Should().Be("Running");
         json.GetProperty("derivedStatus").GetString().Should().Be("Processing");
         json.GetProperty("progress").GetInt32().Should().Be(42);
-        json.GetProperty("paths").GetProperty("dir").GetString().Should().Be("/d");
+        json.GetProperty("paths").GetProperty("output").GetString().Should().Be($"/api/v1/jobs/{id}/files/o.json");
     }
 
     [Fact]
@@ -55,5 +67,35 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         var resp = await client.GetAsync($"/api/v1/jobs/{Guid.NewGuid()}");
         resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task File_endpoint_serves_artifact()
+    {
+        using var factory = new TestWebAppFactory(_fx.RootPath);
+        var client = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var id = Guid.NewGuid();
+        var dir = Path.Combine(_fx.RootPath, "job2");
+        Directory.CreateDirectory(dir);
+        var outputPath = Path.Combine(dir, "res.json");
+        await File.WriteAllTextAsync(outputPath, "{\"ok\":true}");
+        var job = new JobDocument
+        {
+            Id = id,
+            Status = "Succeeded",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Hash = "h",
+            Paths = new JobDocument.PathInfo { Dir = dir, Output = outputPath }
+        };
+        store.Create(job);
+        uow.SaveChanges();
+        var resp = await client.GetAsync($"/api/v1/jobs/{id}/files/res.json");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var text = await resp.Content.ReadAsStringAsync();
+        text.Should().Contain("ok");
     }
 }

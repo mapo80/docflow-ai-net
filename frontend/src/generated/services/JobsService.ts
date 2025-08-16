@@ -70,6 +70,29 @@ export class JobsService {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static jobsFile({
+        id,
+        file,
+    }: {
+        id: string,
+        file: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/jobs/{id}/files/{file}',
+            path: {
+                'id': id,
+                'file': file,
+            },
+            errors: {
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
      * @returns JobDetailResponse OK
      * @throws ApiError
      */

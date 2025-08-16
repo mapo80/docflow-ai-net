@@ -91,21 +91,21 @@ test.skip('queued job completes and shows detail', async ({ page }) => {
         createdAt: '',
         updatedAt: '',
         paths: {
-          output: '/files/output.json',
-          fields: '/files/fields.json',
+          output: '/api/v1/jobs/42/files/output.json',
+          fields: '/api/v1/jobs/42/files/fields.json',
         },
       }),
     });
   });
 
-  await page.route('**/files/output.json', (route) => {
+  await page.route('**/jobs/42/files/output.json', (route) => {
     route.fulfill({
       status: 200,
       headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
       body: JSON.stringify({ ok: true }),
     });
   });
-  await page.route('**/files/fields.json', (route) => {
+  await page.route('**/jobs/42/files/fields.json', (route) => {
     route.fulfill({
       status: 200,
       headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
