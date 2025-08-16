@@ -68,11 +68,11 @@ test.skip('dettaglio polling', async ({ page }) => {
   await page.route('**/jobs/1', (route) => {
     called++;
     if (called === 1)
-      route.fulfill({ json: { id: '1', status: 'Running', createdAt: '', updatedAt: '', paths: { output: '/out.json' } } });
+      route.fulfill({ json: { id: '1', status: 'Running', createdAt: '', updatedAt: '', paths: { output: '/api/v1/jobs/1/files/output.json' } } });
     else
-      route.fulfill({ json: { id: '1', status: 'Succeeded', createdAt: '', updatedAt: '', paths: { output: '/out.json' } } });
+      route.fulfill({ json: { id: '1', status: 'Succeeded', createdAt: '', updatedAt: '', paths: { output: '/api/v1/jobs/1/files/output.json' } } });
   });
-  await page.route('**/out.json', (route) => route.fulfill({ json: { ok: true } }));
+  await page.route('**/files/output.json', (route) => route.fulfill({ json: { ok: true } }));
   await page.goto('/jobs/1');
   await expect(page.getByText('Running')).toBeVisible();
   await expect(page.getByText('Succeeded')).toBeVisible({ timeout: 7000 });

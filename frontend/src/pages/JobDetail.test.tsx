@@ -11,7 +11,10 @@ test('detail viewers render and have download', async () => {
     createdAt: '',
     updatedAt: '',
     attempts: 1,
-    paths: { output: '/out.json', error: '/err.txt' },
+    paths: {
+      output: '/api/v1/jobs/1/files/output.json',
+      error: '/api/v1/jobs/1/files/error.txt',
+    },
   } as any);
   vi.spyOn(global, 'fetch' as any).mockImplementation((url: RequestInfo) => {
     if (typeof url === 'string' && url.endsWith('.json')) {

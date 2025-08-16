@@ -82,6 +82,23 @@ public static class JobEndpoints
             return op;
         });
 
+        group.MapGet("/{id}/files/{file}", (Guid id, string file, IJobRepository store) =>
+        {
+            var job = store.Get(id);
+            if (job == null) return Results.NotFound();
+            var name = Path.GetFileName(file);
+            var candidates = new[] { job.Paths.Input, job.Paths.Prompt, job.Paths.Fields, job.Paths.Output, job.Paths.Error }
+                .Where(p => !string.IsNullOrEmpty(p));
+            var match = candidates.FirstOrDefault(p => Path.GetFileName(p!)
+                .Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (match == null || !File.Exists(match)) return Results.NotFound();
+            var contentType = GetContentType(name);
+            return Results.File(match, contentType, name);
+        })
+        .WithName("Jobs_File")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
+
         group.MapPost(string.Empty, async (HttpRequest req, IJobRepository store, IUnitOfWork uow, IFileSystemService fs, IBackgroundJobClient jobs, IOptions<JobQueueOptions> opts, ILoggerFactory lf) =>
         {
             var logger = lf.CreateLogger("JobEndpoints");
@@ -307,7 +324,16 @@ public static class JobEndpoints
                 logger.LogWarning("JobNotFound {JobId}", id);
                 return Results.Json(new ErrorResponse("not_found", "job not found"), statusCode: 404);
             }
-            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, job.Paths, job.ErrorMessage, job.Immediate);
+            var apiPaths = new JobDocument.PathInfo
+            {
+                Dir = string.Empty,
+                Input = ToPublicPath(job.Id, job.Paths.Input),
+                Prompt = ToPublicPath(job.Id, job.Paths.Prompt),
+                Fields = ToPublicPath(job.Id, job.Paths.Fields),
+                Output = ToPublicPath(job.Id, job.Paths.Output),
+                Error = ToPublicPath(job.Id, job.Paths.Error)
+            };
+            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Immediate);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
             return Results.Ok(resp);
         })
@@ -328,10 +354,9 @@ public static class JobEndpoints
                 ["metrics"] = new OpenApiObject(),
                 ["paths"] = new OpenApiObject
                 {
-                    ["dir"] = new OpenApiString("/data/jobs/0000"),
-                    ["input"] = new OpenApiString("/data/jobs/0000/input.pdf"),
-                    ["output"] = new OpenApiString("/data/jobs/0000/output.json"),
-                    ["error"] = new OpenApiString("/data/jobs/0000/error.txt")
+                    ["input"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf"),
+                    ["output"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json"),
+                    ["error"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt")
                 }
             };
             op.Responses["404"].Content["application/json"].Example = new OpenApiObject
@@ -395,6 +420,14 @@ public static class JobEndpoints
 
         return builder;
     }
+
+    private static string? ToPublicPath(Guid id, string? path) =>
+        string.IsNullOrEmpty(path) ? null : $"/api/v1/jobs/{id}/files/{Path.GetFileName(path)}";
+
+    private static string GetContentType(string fileName) =>
+        fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? "application/json" :
+        fileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) ? "text/plain" :
+        "application/octet-stream";
 
     private static string MapDerivedStatus(string status) => status switch
     {
