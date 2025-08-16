@@ -16,7 +16,7 @@ import {
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
-import { InboxOutlined } from '@ant-design/icons';
+import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import FieldsEditor, {
   fieldsToJson,
   jsonToFields,

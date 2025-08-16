@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Input, Select, Space } from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import MinusCircleOutlined from '@ant-design/icons/MinusCircleOutlined';
+import PlusOutlined from '@ant-design/icons/PlusOutlined';
 
 export interface FieldItem {
   name: string;

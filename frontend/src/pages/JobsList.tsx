@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Table, Space, Button, Progress, Badge, Alert, message, List, Grid } from 'antd';
-import {
-  FileAddOutlined,
-  EyeOutlined,
-  StopOutlined,
-  FileTextOutlined,
-  FileExclamationOutlined,
-} from '@ant-design/icons';
+import FileAddOutlined from '@ant-design/icons/FileAddOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
+import StopOutlined from '@ant-design/icons/StopOutlined';
+import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
+import FileExclamationOutlined from '@ant-design/icons/FileExclamationOutlined';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { JobsService, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
