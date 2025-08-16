@@ -6,6 +6,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Api__Keys__0=dev-secret-key-change-me
+      - JobQueue__SeedDefaults=true
       - LLM__ModelPath=/models/qwen3-1_5-instruct-q4_0.gguf
       - LLM__ContextTokens=4096
       - LLM__Threads=6
