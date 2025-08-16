@@ -91,9 +91,11 @@ public static class JobEndpoints
                 .Where(p => !string.IsNullOrEmpty(p));
             var match = candidates.FirstOrDefault(p => Path.GetFileName(p!)
                 .Equals(name, StringComparison.OrdinalIgnoreCase));
-            if (match == null || !File.Exists(match)) return Results.NotFound();
+            if (match == null) return Results.NotFound();
+            var path = Path.GetFullPath(match);
+            if (!File.Exists(path)) return Results.NotFound();
             var contentType = GetContentType(name);
-            return Results.File(match, contentType, name);
+            return Results.File(path, contentType, name);
         })
         .WithName("Jobs_File")
         .Produces(StatusCodes.Status200OK)
