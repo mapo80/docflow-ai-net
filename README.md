@@ -23,6 +23,10 @@ End-to-end pipeline for extracting information from documents with **LLMs** and 
 1. Integrated **Hangfire** (MemoryStorage), **SQLite** via **Entity Framework Core** and **Rate Limiting** with paged `GET /api/v1/jobs`.
 2. Added `POST /api/v1/jobs` for submission (base64/multipart), `GET /api/v1/jobs/{id}` and `DELETE /api/v1/jobs/{id}` with state managed exclusively by the database and artifacts stored on disk.
 
+### Default Records
+
+At startup the API can optionally seed two sample jobs using files from the `dataset` directory. The flag `JobQueue:SeedDefaults` in `appsettings.json` controls this behavior and defaults to `true`.
+
 ### Database Providers
 
 The job queue persistence layer uses Entity Framework Core and supports the following providers:

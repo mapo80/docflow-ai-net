@@ -54,7 +54,8 @@ public class TestWebAppFactory_Immediate : WebApplicationFactory<Program>
                 ["JobQueue:Queue:MaxQueueLength"] = _maxQueueLength.ToString(),
                 ["JobQueue:Concurrency:HangfireWorkerCount"] = "1",
                 ["Serilog:WriteTo:0:Name"] = "TestCorrelator",
-                ["JobQueue:EnableDashboard"] = "false"
+                ["JobQueue:EnableDashboard"] = "false",
+                ["JobQueue:SeedDefaults"] = "false"
             };
             config.AddInMemoryCollection(dict);
             Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().Enrich.FromLogContext().WriteTo.TestCorrelator().CreateLogger();

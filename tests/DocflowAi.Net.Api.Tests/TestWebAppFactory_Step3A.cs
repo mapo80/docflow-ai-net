@@ -43,7 +43,8 @@ public class TestWebAppFactory_Step3A : WebApplicationFactory<Program>
                 ["JobQueue:Timeouts:JobTimeoutSeconds"] = _timeoutSeconds.ToString(),
                 ["JobQueue:Concurrency:HangfireWorkerCount"] = "1",
                 ["Serilog:WriteTo:0:Name"] = "TestCorrelator",
-                ["JobQueue:EnableDashboard"] = "false"
+                ["JobQueue:EnableDashboard"] = "false",
+                ["JobQueue:SeedDefaults"] = "false"
             };
             config.AddInMemoryCollection(dict);
             Log.Logger = new LoggerConfiguration()

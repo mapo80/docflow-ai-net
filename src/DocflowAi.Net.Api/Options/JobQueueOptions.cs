@@ -1,19 +1,20 @@
 namespace DocflowAi.Net.Api.Options;
 
-public class JobQueueOptions
-{
-    public const string SectionName = "JobQueue";
-    public string DataRoot { get; set; } = "./data/jobs";
-    public DatabaseOptions Database { get; set; } = new();
-    public QueueOptions Queue { get; set; } = new();
-    public RateLimitOptions RateLimit { get; set; } = new();
-    public ConcurrencyOptions Concurrency { get; set; } = new();
-    public TimeoutOptions Timeouts { get; set; } = new();
-    public UploadOptions UploadLimits { get; set; } = new();
-    public ImmediateOptions Immediate { get; set; } = new();
-    public CleanupOptions Cleanup { get; set; } = new();
-    public int JobTTLDays { get; set; } = 14;
-    public bool EnableDashboard { get; set; } = true;
+    public class JobQueueOptions
+    {
+        public const string SectionName = "JobQueue";
+        public string DataRoot { get; set; } = "./data/jobs";
+        public DatabaseOptions Database { get; set; } = new();
+        public QueueOptions Queue { get; set; } = new();
+        public RateLimitOptions RateLimit { get; set; } = new();
+        public ConcurrencyOptions Concurrency { get; set; } = new();
+        public TimeoutOptions Timeouts { get; set; } = new();
+        public UploadOptions UploadLimits { get; set; } = new();
+        public ImmediateOptions Immediate { get; set; } = new();
+        public CleanupOptions Cleanup { get; set; } = new();
+        public int JobTTLDays { get; set; } = 14;
+        public bool EnableDashboard { get; set; } = true;
+        public bool SeedDefaults { get; set; } = true;
 
     public class DatabaseOptions
     {
