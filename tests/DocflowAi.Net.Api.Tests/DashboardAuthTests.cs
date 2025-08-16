@@ -28,7 +28,7 @@ public class DashboardAuthTests : IClassFixture<TempDirFixture>
     [Fact]
     public async Task Dashboard_allows_request_with_valid_api_key()
     {
-        var extra = new Dictionary<string,string?>
+        var extra = new Dictionary<string, string?>
         {
             ["JobQueue:EnableDashboard"] = "true",
             ["HangfireDashboardAuth:Enabled"] = "true",
@@ -38,5 +38,8 @@ public class DashboardAuthTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         var resp = await client.GetAsync("/hangfire?api_key=k");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        resp.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
+        var content = await resp.Content.ReadAsStringAsync();
+        content.Should().Contain("<html", "dashboard should return HTML content");
     }
 }
