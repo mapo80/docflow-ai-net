@@ -46,6 +46,6 @@ test('pagination and cancel', async () => {
   await waitFor(() => expect(getSpy).toHaveBeenCalledWith({ page: 1, pageSize: 10 }));
   fireEvent.click(screen.getByText('2'));
   await waitFor(() => expect(getSpy).toHaveBeenLastCalledWith({ page: 2, pageSize: 10 }));
-  fireEvent.click(screen.getByText('Cancel'));
+  fireEvent.click(screen.getByTitle('Cancel job'));
   await waitFor(() => expect(cancelSpy).toHaveBeenCalledWith({ id: '1' }));
 });
