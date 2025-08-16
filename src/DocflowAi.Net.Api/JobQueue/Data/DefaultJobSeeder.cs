@@ -32,7 +32,8 @@ public static class DefaultJobSeeder
         if (cfg.SeedDefaults && !db.Jobs.Any())
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Seeder");
-            var datasetRoot = FindDatasetRoot(AppContext.BaseDirectory);
+            var datasetRoot = FindDatasetRoot(app.Environment.ContentRootPath)
+                ?? FindDatasetRoot(AppContext.BaseDirectory);
             if (datasetRoot != null)
             {
                 var now = DateTimeOffset.UtcNow;
