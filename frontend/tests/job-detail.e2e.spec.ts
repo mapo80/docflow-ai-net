@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test('shows immediate flag and previews artifacts', async ({ page }) => {
+test('shows fields and file list without error file', async ({ page }) => {
   await page.route('**/jobs/1', (route) => {
     route.fulfill({
       json: {
@@ -17,31 +17,33 @@ test('shows immediate flag and previews artifacts', async ({ page }) => {
         attempts: 1,
         createdAt: '',
         updatedAt: '',
-        immediate: true,
         paths: {
           input: '/api/v1/jobs/1/files/input.pdf',
           output: '/api/v1/jobs/1/files/output.json',
-          prompt: '/api/v1/jobs/1/files/prompt.md',
+          error: '/api/v1/jobs/1/files/error.txt',
         },
       },
     });
   });
-  let downloadRequested = false;
-  await page.route('**/files/output.json', (route) => {
-    downloadRequested = true;
+  await page.route('**/files/output.json', (route) =>
     route.fulfill({
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: true }),
-    });
-  });
-  await page.route('**/files/prompt.md', (route) =>
-    route.fulfill({ body: '# Title\ncontent' })
+      body: JSON.stringify([
+        {
+          FieldName: 'company_name',
+          Value: 'ACME',
+          Confidence: 0.9,
+          Spans: [{ Page: 0, BBox: { X: 0, Y: 0, W: 1, H: 1 } }],
+        },
+      ]),
+    })
   );
 
   await page.goto('/jobs/1');
-  await expect(page.getByText('Immediate')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Open Hangfire' })).toHaveCount(0);
-  await page.evaluate(() => fetch('/api/v1/jobs/1/files/output.json'));
-  expect(downloadRequested).toBeTruthy();
+  await expect(page.getByText('company_name')).toBeVisible();
+  await page.getByRole('tab', { name: 'Files' }).click();
+  await expect(page.getByRole('cell', { name: 'input' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'output' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'error' })).toHaveCount(0);
 });
 

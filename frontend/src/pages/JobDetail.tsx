@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError } from '../generated';
 import { request as __request } from '../generated/core/request';
-import { Descriptions, Progress, Button, message, Space, List, Modal } from 'antd';
+import { Descriptions, Progress, Button, message, Space, Modal, Tabs, Table } from 'antd';
 import {
   ReloadOutlined,
   StopOutlined,
@@ -15,7 +15,14 @@ import MarkdownPreview from '@uiw/react-markdown-preview';
 export default function JobDetail() {
   const { id } = useParams();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
-  const [preview, setPreview] = useState<{ label: string; type: 'json' | 'markdown'; content: string } | null>(null);
+  const [preview, setPreview] = useState<
+    | { label: string; type: 'json' | 'markdown'; content: string }
+    | { label: string; type: 'file'; src: string }
+    | null
+  >(null);
+  const [fields, setFields] = useState<
+    { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
+  >([]);
 
   const load = async () => {
     if (!id) return;
@@ -37,6 +44,55 @@ export default function JobDetail() {
     return () => clearInterval(t);
   }, [job]);
 
+  useEffect(() => {
+    const fetchFields = async () => {
+      if (!job?.paths?.output) {
+        setFields([]);
+        return;
+      }
+      try {
+        const res = await fetch(job.paths.output);
+        const json = await res.json();
+        const rows: {
+          key: string;
+          value: string | null;
+          confidence?: number;
+          page?: number;
+          bbox?: string;
+        }[] = [];
+        if (Array.isArray(json)) {
+          json.forEach((f: any, i: number) => {
+            const span = f.Spans?.[0];
+            const box = span?.BBox;
+            rows.push({
+              key: f.FieldName ?? `f${i}`,
+              value: f.Value ?? null,
+              confidence: f.Confidence,
+              page: span?.Page,
+              bbox: box ? `${box.X},${box.Y},${box.W},${box.H}` : undefined,
+            });
+          });
+        } else if (json.fields) {
+          json.fields.forEach((f: any, i: number) => {
+            const span = f.evidence?.[0];
+            const box = span?.bbox;
+            rows.push({
+              key: f.key ?? `f${i}`,
+              value: f.value ?? null,
+              confidence: f.confidence,
+              page: span?.page,
+              bbox: box ? `${box.x},${box.y},${box.w},${box.h}` : undefined,
+            });
+          });
+        }
+        setFields(rows);
+      } catch {
+        setFields([]);
+      }
+    };
+    fetchFields();
+  }, [job]);
+
   const handleCancel = async () => {
     if (!id) return;
     try {
@@ -54,21 +110,63 @@ export default function JobDetail() {
       const u = new URL(url);
       url = u.pathname + u.search;
     }
-    try {
-      const content = await __request<string>(OpenAPI, { method: 'GET', url });
-      const lower = path.toLowerCase();
-      const type = lower.endsWith('.json') ? 'json' : 'markdown';
-      setPreview({ label, type, content });
-    } catch {
-      const lower = path.toLowerCase();
-      const type = lower.endsWith('.json') ? 'json' : 'markdown';
-      setPreview({ label, type, content: '' });
+    const lower = path.toLowerCase();
+    if (
+      lower.endsWith('.json') ||
+      lower.endsWith('.md') ||
+      lower.endsWith('.markdown') ||
+      lower.endsWith('.txt')
+    ) {
+      try {
+        const content = await __request<string>(OpenAPI, { method: 'GET', url });
+        const type = lower.endsWith('.json') ? 'json' : 'markdown';
+        setPreview({ label, type, content });
+      } catch {
+        const type = lower.endsWith('.json') ? 'json' : 'markdown';
+        setPreview({ label, type, content: '' });
+      }
+    } else {
+      setPreview({ label, type: 'file', src: path });
     }
   };
 
   if (!job) return <div>Loading...</div>;
 
-  const artifacts = Object.entries(job.paths || {}).filter(([, v]) => v) as [string, string][];
+  const artifacts = Object.entries(job.paths || {})
+    .filter(([k, v]) => v && (k !== 'error' || job.status !== 'Succeeded'))
+    .map(([k, v]) => ({ key: k, label: k, path: v as string }));
+
+  const fieldColumns = [
+    { title: 'Key', dataIndex: 'key' },
+    { title: 'Value', dataIndex: 'value' },
+    { title: 'Page', dataIndex: 'page' },
+    { title: 'BBox', dataIndex: 'bbox' },
+    { title: 'Confidence', dataIndex: 'confidence' },
+  ];
+
+  const fileColumns = [
+    { title: 'Name', dataIndex: 'label' },
+    {
+      title: 'Actions',
+      render: (_: any, record: { label: string; path: string }) => (
+        <Space>
+          <Button
+            onClick={() => showPreview(record.label, record.path)}
+            icon={<FileSearchOutlined />}
+            aria-label="Preview"
+            title="Preview"
+          />
+          <Button
+            href={record.path}
+            target="_blank"
+            icon={<DownloadOutlined />}
+            aria-label="Download"
+            title="Download"
+          />
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -102,43 +200,44 @@ export default function JobDetail() {
           title="Cancel job"
         />
       </Space>
-      {artifacts.length > 0 && (
-        <List
-          style={{ marginTop: 16 }}
-          bordered
-          dataSource={artifacts}
-          renderItem={([k, v]) => {
-            const lower = v.toLowerCase();
-            const canPreview = k !== 'input' && (lower.endsWith('.json') || lower.endsWith('.md') || lower.endsWith('.markdown'));
-            return (
-              <List.Item
-                actions={[
-                  canPreview && (
-                    <Button
-                      onClick={() => showPreview(k, v)}
-                      icon={<FileSearchOutlined />}
-                      aria-label="Preview"
-                      title="Preview"
-                    />
-                  ),
-                  <Button
-                    href={v}
-                    target="_blank"
-                    icon={<DownloadOutlined />}
-                    aria-label="Download"
-                    title="Download"
-                  />,
-                ].filter(Boolean)}
-              >
-                {k}
-              </List.Item>
-            );
-          }}
-        />
-      )}
+      <Tabs
+        style={{ marginTop: 16 }}
+        items={[
+          {
+            key: 'fields',
+            label: 'Fields',
+            children: (
+              <Table
+                dataSource={fields}
+                columns={fieldColumns}
+                size="small"
+                pagination={false}
+                rowKey="key"
+                scroll={{ x: true }}
+              />
+            ),
+          },
+          {
+            key: 'files',
+            label: 'Files',
+            children: (
+              <Table
+                dataSource={artifacts}
+                columns={fileColumns}
+                size="small"
+                pagination={false}
+                rowKey="key"
+                scroll={{ x: true }}
+              />
+            ),
+          },
+        ]}
+      />
       {preview && (
         <Modal open title={preview.label} footer={null} onCancel={() => setPreview(null)} width="80%">
-          {preview.type === 'json' ? (
+          {preview.type === 'file' ? (
+            <iframe src={preview.src} style={{ width: '100%', height: '80vh' }} />
+          ) : preview.type === 'json' ? (
             <pre>{JSON.stringify(JSON.parse(preview.content || '{}'), null, 2)}</pre>
           ) : (
             <MarkdownPreview source={preview.content} />
