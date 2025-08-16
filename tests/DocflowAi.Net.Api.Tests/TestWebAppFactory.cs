@@ -64,6 +64,7 @@ public class TestWebAppFactory : WebApplicationFactory<Program>
                 ["JobQueue:Queue:MaxQueueLength"] = _maxQueueLength.ToString(),
                 ["JobQueue:Concurrency:HangfireWorkerCount"] = _workerCount.ToString(),
                 ["JobQueue:UploadLimits:MaxRequestBodyMB"] = _uploadLimitMb.ToString(),
+                ["JobQueue:SeedDefaults"] = "false",
                 ["Serilog:Using:0"] = "Serilog.Sinks.TestCorrelator",
                 ["Serilog:WriteTo:0:Name"] = "TestCorrelator"
             };

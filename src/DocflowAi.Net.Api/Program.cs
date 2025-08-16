@@ -32,9 +32,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 using DocflowAi.Net.Api.Security;
-using Microsoft.Data.Sqlite;
 using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 using Hangfire.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -192,22 +190,7 @@ builder.Services.AddHealthChecks()
     .AddCheck<JobQueueReadyHealthCheck>("jobqueue", tags: new[] { "ready" });
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var cfg = scope.ServiceProvider.GetRequiredService<IOptions<JobQueueOptions>>().Value;
-    Directory.CreateDirectory(cfg.DataRoot);
-    if (cfg.Database.Provider.Equals("sqlite", StringComparison.OrdinalIgnoreCase))
-    {
-        var csb = new SqliteConnectionStringBuilder(cfg.Database.ConnectionString);
-        var dbPath = csb.DataSource;
-        var dir = Path.GetDirectoryName(dbPath);
-        if (!string.IsNullOrEmpty(dir))
-            Directory.CreateDirectory(dir);
-    }
-    var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
-    db.Database.EnsureCreated();
-}
+DefaultJobSeeder.Build(app);
 
 app.UseSerilogRequestLogging(opts =>
 {
