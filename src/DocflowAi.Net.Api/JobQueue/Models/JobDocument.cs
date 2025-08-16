@@ -7,6 +7,7 @@ public class JobDocument
     public int Progress { get; set; }
     public int Attempts { get; set; }
     public int Priority { get; set; }
+    public bool Immediate { get; set; }
     public DateTimeOffset? LeaseUntil { get; set; }
     public DateTimeOffset? AvailableAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

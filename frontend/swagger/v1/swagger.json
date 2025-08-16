@@ -645,6 +645,9 @@
           "errorMessage": {
             "type": "string",
             "nullable": true
+          },
+          "immediate": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false,
@@ -676,6 +679,9 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "immediate": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false,
