@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import JobStatusTag from '../components/JobStatusTag';
 import MarkdownPreview from '@uiw/react-markdown-preview';
+import JsonView from '@uiw/react-json-view';
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -46,6 +47,11 @@ export default function JobDetail() {
 
   useEffect(() => {
     const fetchFields = async () => {
+      const direct: any = (job as any)?.fields;
+      if (Array.isArray(direct)) {
+        setFields(direct);
+        return;
+      }
       if (!job?.paths?.output) {
         setFields([]);
         return;
@@ -150,12 +156,14 @@ export default function JobDetail() {
       title: 'Actions',
       render: (_: any, record: { label: string; path: string }) => (
         <Space>
-          <Button
-            onClick={() => showPreview(record.label, record.path)}
-            icon={<FileSearchOutlined />}
-            aria-label="Preview"
-            title="Preview"
-          />
+          {record.label !== 'input' && (
+            <Button
+              onClick={() => showPreview(record.label, record.path)}
+              icon={<FileSearchOutlined />}
+              aria-label="Preview"
+              title="Preview"
+            />
+          )}
           <Button
             href={record.path}
             target="_blank"
@@ -234,11 +242,20 @@ export default function JobDetail() {
         ]}
       />
       {preview && (
-        <Modal open title={preview.label} footer={null} onCancel={() => setPreview(null)} width="80%">
+        <Modal
+          open
+          title={preview.label}
+          footer={null}
+          onCancel={() => setPreview(null)}
+          width="100%"
+          style={{ top: 0 }}
+          bodyStyle={{ height: '100vh', overflowY: 'auto', padding: 0 }}
+          rootClassName="fullscreen-modal"
+        >
           {preview.type === 'file' ? (
-            <iframe src={preview.src} style={{ width: '100%', height: '80vh' }} />
+            <iframe src={preview.src} style={{ width: '100%', height: '100%' }} />
           ) : preview.type === 'json' ? (
-            <pre>{JSON.stringify(JSON.parse(preview.content || '{}'), null, 2)}</pre>
+            <JsonView value={JSON.parse(preview.content || '{}')} />
           ) : (
             <MarkdownPreview source={preview.content} />
           )}
