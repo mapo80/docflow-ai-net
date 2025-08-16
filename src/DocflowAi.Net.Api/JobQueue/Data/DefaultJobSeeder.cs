@@ -44,8 +44,7 @@ public static class DefaultJobSeeder
                 File.Copy(Path.Combine(datasetRoot, "sample_invoice.pdf"), Path.Combine(okDir, "input.pdf"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-pdf", "prompt.txt"), Path.Combine(okDir, "prompt.txt"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-pdf", "fields.txt"), Path.Combine(okDir, "fields.txt"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-pdf", "llm_response.json"), Path.Combine(okDir, "output.json"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-pdf", "llm_response.txt"), Path.Combine(okDir, "error.txt"), true);
+                File.Copy(Path.Combine(datasetRoot, "test-png-boxsolver-pointerstrategy", "result.json"), Path.Combine(okDir, "output.json"), true);
                 var okJob = new JobDocument
                 {
                     Id = okId,
@@ -63,7 +62,7 @@ public static class DefaultJobSeeder
                         Prompt = Path.Combine(okDir, "prompt.txt"),
                         Fields = Path.Combine(okDir, "fields.txt"),
                         Output = Path.Combine(okDir, "output.json"),
-                        Error = Path.Combine(okDir, "error.txt")
+                        Error = string.Empty
                     }
                 };
 
