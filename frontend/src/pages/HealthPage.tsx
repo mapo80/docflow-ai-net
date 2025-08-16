@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Col, Row, Space, Typography, List } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
+import CloseCircleOutlined from '@ant-design/icons/CloseCircleOutlined';
+import ExclamationCircleOutlined from '@ant-design/icons/ExclamationCircleOutlined';
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import HealthBadge from '../components/HealthBadge';
 
 type HealthResponse = { status?: string; reasons?: string[] };

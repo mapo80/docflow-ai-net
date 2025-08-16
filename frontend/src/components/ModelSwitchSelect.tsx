@@ -1,5 +1,5 @@
 import { Select, InputNumber, Button, Space, Grid } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import { useState } from 'react';
 
 type Props = {

@@ -3,12 +3,10 @@ import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { Descriptions, Progress, Button, message, Space, Modal, Tabs, Table } from 'antd';
-import {
-  ReloadOutlined,
-  StopOutlined,
-  FileSearchOutlined,
-  DownloadOutlined,
-} from '@ant-design/icons';
+import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
+import StopOutlined from '@ant-design/icons/StopOutlined';
+import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
+import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 import JobStatusTag from '../components/JobStatusTag';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import JsonView from '@uiw/react-json-view';
