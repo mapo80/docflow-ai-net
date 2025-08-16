@@ -43,7 +43,7 @@ public static class JobEndpoints
                 p,
                 ps,
                 total,
-                items.Select(i => new JobSummary(i.Id, i.Status, MapDerivedStatus(i.Status), i.Progress, i.CreatedAt, i.UpdatedAt)).ToList()
+                items.Select(i => new JobSummary(i.Id, i.Status, MapDerivedStatus(i.Status), i.Progress, i.CreatedAt, i.UpdatedAt, i.Immediate)).ToList()
             );
             return Results.Ok(response);
         })
@@ -152,12 +152,16 @@ public static class JobEndpoints
             var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, promptFile = Path.GetFileName(promptPath), fieldsFile = Path.GetFileName(fieldsPath) });
             await fs.SaveTextAtomic(jobId, "manifest.json", manifest);
 
+            var mode = req.Query.TryGetValue("mode", out var mv) ? mv.ToString() : null;
+            var immediate = string.Equals(mode, "immediate", StringComparison.OrdinalIgnoreCase) && optsVal.Immediate.Enabled;
+
             var doc = new JobDocument
             {
                 Id = jobId,
                 Status = "Queued",
                 Progress = 0,
                 Attempts = 0,
+                Immediate = immediate,
                 AvailableAt = DateTimeOffset.UtcNow,
                 Hash = hash,
                 IdempotencyKey = idemKey,
@@ -165,9 +169,6 @@ public static class JobEndpoints
             };
             store.Create(doc);
             uow.SaveChanges();
-
-            var mode = req.Query.TryGetValue("mode", out var mv) ? mv.ToString() : null;
-            var immediate = string.Equals(mode, "immediate", StringComparison.OrdinalIgnoreCase) && optsVal.Immediate.Enabled;
 
             if (!immediate)
             {
@@ -306,7 +307,7 @@ public static class JobEndpoints
                 logger.LogWarning("JobNotFound {JobId}", id);
                 return Results.Json(new ErrorResponse("not_found", "job not found"), statusCode: 404);
             }
-            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, job.Paths, job.ErrorMessage);
+            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, job.Paths, job.ErrorMessage, job.Immediate);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
             return Results.Ok(resp);
         })
