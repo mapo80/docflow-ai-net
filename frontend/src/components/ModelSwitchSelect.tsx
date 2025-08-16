@@ -1,4 +1,4 @@
-import { Select, InputNumber, Button, Space, Grid } from 'antd';
+import { Select, InputNumber, Button, Space } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import { useState } from 'react';
 
@@ -20,7 +20,10 @@ export default function ModelSwitchSelect({
   const [file, setFile] = useState<string | undefined>(initialFile);
   const [ctx, setCtx] = useState<number>(1024);
   const [refreshing, setRefreshing] = useState(false);
-  const screens = Grid.useBreakpoint();
+  const isMobile =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(max-width: 575px)').matches;
 
   const handle = async () => {
     if (!file) return;
@@ -34,15 +37,15 @@ export default function ModelSwitchSelect({
     setRefreshing(false);
   };
 
-  const inputWidth = screens.xs ? '100%' : 200;
+  const inputWidth = isMobile ? '100%' : 200;
 
   return (
     <Space
-      direction={screens.xs ? 'vertical' : 'horizontal'}
+      direction={isMobile ? 'vertical' : 'horizontal'}
       style={{ width: '100%' }}
-      align={screens.xs ? 'start' : 'center'}
+      align={isMobile ? 'start' : 'center'}
     >
-      <div style={{ width: inputWidth }}>
+      <div style={{ width: inputWidth }} data-testid="model-select-wrapper">
         <label htmlFor="model-select">Model file</label>
         <Space.Compact style={{ width: '100%' }}>
           <Select
@@ -80,7 +83,7 @@ export default function ModelSwitchSelect({
         onClick={handle}
         disabled={!file || disabled}
         data-testid="switch-btn"
-        block={screens.xs}
+        block={isMobile}
       >
         Switch
       </Button>
