@@ -15,7 +15,8 @@ export default function JobDetail() {
   const { id } = useParams();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
   const [preview, setPreview] = useState<
-    | { label: string; type: 'json' | 'markdown'; content: string }
+    | { label: string; type: 'json'; content: unknown }
+    | { label: string; type: 'markdown'; content: string }
     | { label: string; type: 'file'; src: string }
     | null
   >(null);
@@ -127,12 +128,20 @@ export default function JobDetail() {
       lower.endsWith('.txt')
     ) {
       try {
-        const content = await __request<string>(OpenAPI, { method: 'GET', url });
+        const content = await __request<any>(OpenAPI, { method: 'GET', url });
         const type = lower.endsWith('.json') ? 'json' : 'markdown';
-        setPreview({ label, type, content });
+        if (type === 'json') {
+          setPreview({ label, type, content });
+        } else {
+          setPreview({ label, type, content: String(content) });
+        }
       } catch {
         const type = lower.endsWith('.json') ? 'json' : 'markdown';
-        setPreview({ label, type, content: '' });
+        if (type === 'json') {
+          setPreview({ label, type, content: {} });
+        } else {
+          setPreview({ label, type, content: '' });
+        }
       }
     } else {
       setPreview({ label, type: 'file', src: path });
@@ -279,7 +288,13 @@ export default function JobDetail() {
           {preview.type === 'file' ? (
             <iframe src={preview.src} style={{ width: '100%', height: '100%' }} />
           ) : preview.type === 'json' ? (
-            <JsonView value={JSON.parse(preview.content || '{}')} />
+            <JsonView
+              value={
+                typeof preview.content === 'string'
+                  ? JSON.parse(preview.content || '{}')
+                  : preview.content
+              }
+            />
           ) : (
             <MarkdownPreview source={preview.content} />
           )}
