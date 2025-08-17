@@ -10,7 +10,12 @@ export default function Loader() {
         height: '100vh',
       }}
     >
-      <LoadingOutlined aria-label="loading" style={{ fontSize: 48 }} spin />
+      <LoadingOutlined
+        aria-label="loading"
+        data-testid="loader"
+        style={{ fontSize: 48 }}
+        spin
+      />
     </div>
   );
 }
