@@ -6,6 +6,9 @@ import FileAddOutlined from '@ant-design/icons/FileAddOutlined';
 import HeartOutlined from '@ant-design/icons/HeartOutlined';
 import LinkOutlined from '@ant-design/icons/LinkOutlined';
 import ExperimentOutlined from '@ant-design/icons/ExperimentOutlined';
+import DatabaseOutlined from '@ant-design/icons/DatabaseOutlined';
+import PlayCircleOutlined from '@ant-design/icons/PlayCircleOutlined';
+import ProfileOutlined from '@ant-design/icons/ProfileOutlined';
 import HealthBadge from './components/HealthBadge';
 import ChunkLoader from './components/ChunkLoader';
 import { openHangfire } from './hangfire';
@@ -19,6 +22,9 @@ export default function Shell() {
     { key: '/jobs', icon: <AppstoreOutlined />, label: 'Jobs' },
     { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
     { key: '/model', icon: <ExperimentOutlined />, label: 'Model' },
+    { key: '/models', icon: <DatabaseOutlined />, label: 'Models' },
+    { key: '/templates', icon: <ProfileOutlined />, label: 'Templates' },
+    { key: '/recognize-run', icon: <PlayCircleOutlined />, label: 'Recognize Run' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
     {
       key: 'hangfire',

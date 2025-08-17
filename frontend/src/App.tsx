@@ -8,6 +8,9 @@ const JobNew = lazy(() => import('./pages/JobNew'));
 const JobDetail = lazy(() => import('./pages/JobDetail'));
 const HealthPage = lazy(() => import('./pages/HealthPage'));
 const ModelManagerPage = lazy(() => import('./pages/ModelManagerPage'));
+const ModelsPage = lazy(() => import('./pages/ModelsPage'));
+const RecognizeRunPage = lazy(() => import('./pages/RecognizeRunPage'));
+const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
 import { OpenAPI } from './generated';
 
 function App() {
@@ -36,6 +39,9 @@ function App() {
           <Route path="jobs/:id" element={<JobDetail />} />
           <Route path="health" element={<HealthPage />} />
           <Route path="model" element={<ModelManagerPage />} />
+          <Route path="models" element={<ModelsPage />} />
+          <Route path="recognize-run" element={<RecognizeRunPage />} />
+          <Route path="templates" element={<TemplatesPage />} />
           <Route path="*" element={<Navigate to="/jobs" />} />
         </Route>
       </Routes>
