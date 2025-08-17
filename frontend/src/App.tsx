@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import Loader from './components/Loader';
 import { Routes, Route, Navigate } from 'react-router-dom';
 const Login = lazy(() => import('./pages/Login'));
 const Shell = lazy(() => import('./Shell'));
@@ -20,13 +21,13 @@ function App() {
   };
   if (!apiKey) {
     return (
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<Loader />}>
         <Login onLogin={handleLogin} />
       </Suspense>
     );
   }
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<Loader />}>
       <Routes>
         <Route path="/" element={<Shell />}>
           <Route index element={<Navigate to="/jobs" />} />
