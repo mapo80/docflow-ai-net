@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError } from '../generated';
-import { request as __request } from '../generated/core/request';
 import { Descriptions, Progress, Button, message, Space, Modal, Tabs, Table } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
@@ -117,10 +116,7 @@ export default function JobDetail() {
 
   const showPreview = async (label: string, path: string) => {
     let url = path;
-    if (url.startsWith('http')) {
-      const u = new URL(url);
-      url = u.pathname + u.search;
-    }
+    if (!url.startsWith('http')) url = `${OpenAPI.BASE}${path}`;
     const lower = path.toLowerCase();
     if (
       lower.endsWith('.json') ||
@@ -129,20 +125,15 @@ export default function JobDetail() {
       lower.endsWith('.txt')
     ) {
       try {
-        const content = await __request<any>(OpenAPI, { method: 'GET', url });
+        const resp = await fetch(url, {
+          headers: OpenAPI.HEADERS as Record<string, string> | undefined,
+        });
+        const text = await resp.text();
         const type = lower.endsWith('.json') ? 'json' : 'markdown';
-        if (type === 'json') {
-          setPreview({ label, type, content });
-        } else {
-          setPreview({ label, type, content: String(content) });
-        }
+        setPreview({ label, type, content: text });
       } catch {
         const type = lower.endsWith('.json') ? 'json' : 'markdown';
-        if (type === 'json') {
-          setPreview({ label, type, content: {} });
-        } else {
-          setPreview({ label, type, content: '' });
-        }
+        setPreview({ label, type, content: type === 'json' ? '{}' : '' });
       }
     } else {
       setPreview({ label, type: 'file', src: path });

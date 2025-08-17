@@ -14,6 +14,7 @@ test('detail viewers render and have download', async () => {
     paths: {
       input: '/api/v1/jobs/1/files/input.pdf',
       output: '/api/v1/jobs/1/files/output.json',
+      fields: '/api/v1/jobs/1/files/fields.json',
       error: '/api/v1/jobs/1/files/error.txt',
     },
   } as any);
@@ -32,6 +33,15 @@ test('detail viewers render and have download', async () => {
         ),
       );
     }
+    if (typeof url === 'string' && url.endsWith('fields.json')) {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify([
+            { key: 'company_name', value: 'ACME', confidence: 0.9 },
+          ]),
+        ),
+      );
+    }
     return Promise.resolve(new Response(''));
   });
   render(
@@ -44,6 +54,10 @@ test('detail viewers render and have download', async () => {
   await screen.findByText('Job 1');
   await screen.findByText('company_name');
   await screen.getByRole('tab', { name: 'Files' }).click();
-  await waitFor(() => expect(screen.getAllByTitle('Download')).toHaveLength(2));
+  await waitFor(() => expect(screen.getAllByTitle('Download')).toHaveLength(3));
+  const previews = await screen.findAllByTitle('Preview');
+  expect(previews).toHaveLength(2);
+  await previews[1].click();
+  await screen.findByText('confidence');
   expect(screen.queryByText('error')).toBeNull();
 });
