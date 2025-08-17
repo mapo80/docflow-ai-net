@@ -52,18 +52,28 @@ export default function JobDetail() {
         setFields(direct);
         return;
       }
-      if (!job?.paths?.output) {
+      const fPath = job?.paths?.fields;
+      if (!fPath) {
         setFields([]);
         return;
       }
       try {
-        const outUrl = job.paths.output.startsWith('http')
-          ? job.paths.output
-          : `${OpenAPI.BASE}${job.paths.output}`;
+        const outUrl = fPath.startsWith('http')
+          ? fPath
+          : `${OpenAPI.BASE}${fPath}`;
         const res = await fetch(outUrl, {
           headers: OpenAPI.HEADERS as Record<string, string> | undefined,
         });
-        const json = await res.json();
+        let json: any = [];
+        try {
+          json = await res.json();
+        } catch {
+          try {
+            json = JSON.parse(await res.text());
+          } catch {
+            json = [];
+          }
+        }
         const rows: {
           key: string;
           value: string | null;
@@ -123,7 +133,11 @@ export default function JobDetail() {
         headers: OpenAPI.HEADERS as Record<string, string> | undefined,
       });
       const ct = resp.headers.get('content-type')?.toLowerCase() ?? '';
-      if (ct.includes('application/json') || ct.includes('text/json')) {
+      if (
+        ct.includes('application/json') ||
+        ct.includes('text/json') ||
+        url.endsWith('.json')
+      ) {
         let json: unknown = {};
         try {
           json = await resp.json();
