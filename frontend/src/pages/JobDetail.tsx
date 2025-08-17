@@ -10,6 +10,7 @@ import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 import JobStatusTag from '../components/JobStatusTag';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import JsonView from '@uiw/react-json-view';
+import { githubLightTheme } from '@uiw/react-json-view/githubLight';
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -282,7 +283,12 @@ export default function JobDetail() {
           onCancel={() => setPreview(null)}
           width="100%"
           style={{ top: 0 }}
-          bodyStyle={{ height: '100vh', overflowY: 'auto', padding: 0 }}
+          bodyStyle={{
+            height: '100vh',
+            overflowY: 'auto',
+            padding: 0,
+            backgroundColor: '#fff',
+          }}
           rootClassName="fullscreen-modal"
         >
           {preview.type === 'file' ? (
@@ -294,9 +300,17 @@ export default function JobDetail() {
                   ? JSON.parse(preview.content || '{}')
                   : preview.content
               }
+              style={{ ...githubLightTheme, padding: 16 }}
+              collapsed={false}
+              displayObjectSize={false}
+              displayDataTypes={false}
             />
           ) : (
-            <MarkdownPreview source={preview.content} />
+            <MarkdownPreview
+              source={preview.content}
+              wrapperElement={{ 'data-color-mode': 'light' }}
+              style={{ padding: 16 }}
+            />
           )}
         </Modal>
       )}
