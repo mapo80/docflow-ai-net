@@ -40,6 +40,29 @@ public class DashboardAuthTests : IClassFixture<TempDirFixture>
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         resp.Content.Headers.ContentType?.MediaType.Should().Be("text/html");
         var content = await resp.Content.ReadAsStringAsync();
-        content.Should().Contain("<html", "dashboard should return HTML content");
+        content.Should().Contain("Hangfire", "dashboard should contain Hangfire information");
+    }
+
+    [Fact]
+    public async Task Static_assets_require_api_key_in_query_string()
+    {
+        var extra = new Dictionary<string, string?>
+        {
+            ["JobQueue:EnableDashboard"] = "true",
+            ["HangfireDashboardAuth:Enabled"] = "true",
+            ["Api:Keys:0"] = "k"
+        };
+        using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
+        var client = factory.CreateClient();
+        var resp = await client.GetAsync("/hangfire?api_key=k");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await resp.Content.ReadAsStringAsync();
+        var match = System.Text.RegularExpressions.Regex.Match(content, "href=\"(?<p>/hangfire/[^\"]+)\"");
+        match.Success.Should().BeTrue("resource path should be present");
+        var assetPath = match.Groups["p"].Value;
+        var unauthorized = await client.GetAsync(assetPath);
+        unauthorized.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        var authorized = await client.GetAsync(assetPath + "?api_key=k");
+        authorized.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

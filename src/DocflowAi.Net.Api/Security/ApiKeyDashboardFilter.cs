@@ -20,7 +20,9 @@ public class ApiKeyDashboardFilter : IDashboardAuthorizationFilter
         var provided = http.Request.Query["api_key"].FirstOrDefault()
                       ?? http.Request.Headers[_options.HeaderName].FirstOrDefault();
         if (!string.IsNullOrEmpty(provided) && _options.Keys.Contains(provided))
+        {
             return true;
+        }
         http.Response.StatusCode = StatusCodes.Status401Unauthorized;
         return false;
     }
