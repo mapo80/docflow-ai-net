@@ -50,7 +50,7 @@ export default function Shell() {
         />
         <HealthBadge />
       </Header>
-      <Content style={{ padding: 24 }}>
+      <Content style={{ padding: 24, position: 'relative' }}>
         <Suspense fallback={<Loader />}>
           <Outlet />
         </Suspense>

@@ -4,10 +4,11 @@ export default function Loader() {
   return (
     <div
       style={{
+        position: 'absolute',
+        inset: 0,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh',
       }}
     >
       <LoadingOutlined
