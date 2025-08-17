@@ -17,19 +17,14 @@ test('detail viewers render and have download', async () => {
       fields: '/api/v1/jobs/1/files/fields.json',
       error: '/api/v1/jobs/1/files/error.txt',
     },
+    fields: [{ key: 'company_name', value: 'ACME', confidence: 0.9 }],
   } as any);
   vi.spyOn(global, 'fetch' as any).mockImplementation((url: RequestInfo) => {
     if (typeof url === 'string' && url.endsWith('output.json')) {
       return Promise.resolve(
         new Response(
-          JSON.stringify([
-            {
-              FieldName: 'company_name',
-              Value: 'ACME',
-              Confidence: 0.9,
-              Spans: [{ Page: 0, BBox: { X: 0, Y: 0, W: 1, H: 1 } }],
-            },
-          ]),
+          JSON.stringify({ promptLength: 12, fieldsLength: 1 }),
+          { headers: { 'Content-Type': 'application/json' } },
         ),
       );
     }
@@ -39,6 +34,7 @@ test('detail viewers render and have download', async () => {
           JSON.stringify([
             { key: 'company_name', value: 'ACME', confidence: 0.9 },
           ]),
+          { headers: { 'Content-Type': 'application/json' } },
         ),
       );
     }
@@ -57,6 +53,9 @@ test('detail viewers render and have download', async () => {
   await waitFor(() => expect(screen.getAllByTitle('Download')).toHaveLength(3));
   const previews = await screen.findAllByTitle('Preview');
   expect(previews).toHaveLength(2);
+  await previews[0].click();
+  await screen.findByText((content) => content.includes('promptLength'));
+  screen.getAllByLabelText('Close')[0].click();
   await previews[1].click();
   await screen.findByText('confidence');
   expect(screen.queryByText('error')).toBeNull();
