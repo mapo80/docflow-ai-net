@@ -117,37 +117,33 @@ export default function JobDetail() {
   const showPreview = async (label: string, path: string) => {
     let url = path;
     if (!url.startsWith('http')) url = `${OpenAPI.BASE}${path}`;
-    const lower = path.toLowerCase();
-    if (
-      lower.endsWith('.json') ||
-      lower.endsWith('.md') ||
-      lower.endsWith('.markdown') ||
-      lower.endsWith('.txt')
-    ) {
-      try {
-        const resp = await fetch(url, {
-          headers: OpenAPI.HEADERS as Record<string, string> | undefined,
-        });
-        if (lower.endsWith('.json')) {
-          let json: unknown;
+    try {
+      const resp = await fetch(url, {
+        headers: OpenAPI.HEADERS as Record<string, string> | undefined,
+      });
+      const ct = resp.headers.get('content-type')?.toLowerCase() ?? '';
+      if (ct.includes('application/json') || ct.includes('text/json')) {
+        let json: unknown = {};
+        try {
+          json = await resp.json();
+        } catch {
           try {
-            json = await resp.json();
-          } catch {
             json = JSON.parse(await resp.text());
+          } catch {
+            json = {};
           }
-          setPreview({ label, type: 'json', content: json });
-        } else {
-          const text = await resp.text();
-          setPreview({ label, type: 'markdown', content: text });
         }
-      } catch {
-        if (lower.endsWith('.json')) {
-          setPreview({ label, type: 'json', content: {} });
-        } else {
-          setPreview({ label, type: 'markdown', content: '' });
-        }
+        setPreview({ label, type: 'json', content: json });
+      } else if (
+        ct.includes('text/markdown') ||
+        ct.includes('text/plain')
+      ) {
+        const text = await resp.text();
+        setPreview({ label, type: 'markdown', content: text });
+      } else {
+        setPreview({ label, type: 'file', src: url });
       }
-    } else {
+    } catch {
       setPreview({ label, type: 'file', src: path });
     }
   };
