@@ -1,9 +1,9 @@
 import DataLoader from "@/components/DataLoader";
 import React, { useEffect, useState } from "react";
-import { Card, Form, Input, Upload, Button, Select, message } from "antd";
+import { Card, Form, Upload, Button, Select, message } from "antd";
 import recognizeApi from "@/services/recognizeApi";
-import templatesApi, { TemplateDto } from "@/services/templatesApi";
-import modelsApi, { ModelDto } from "@/services/modelsApi";
+import templatesApi, { type TemplateDto } from "@/services/templatesApi";
+import modelsApi, { type ModelDto } from "@/services/modelsApi";
 
 const RecognizeRunPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);

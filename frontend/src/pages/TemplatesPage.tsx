@@ -2,7 +2,7 @@ import DataLoader from "@/components/DataLoader";
 import React, { useEffect, useMemo, useState } from "react";
 import { Card, Button, Table, Tag, message, Popconfirm } from "antd";
 import TemplateModal from "@/components/templates/TemplateModal";
-import api, { TemplateDto, TemplateUpsertRequest } from "@/services/templatesApi";
+import api, { type TemplateDto, type TemplateUpsertRequest } from "@/services/templatesApi";
 
 const TemplatesPage: React.FC = () => {
   const [data, setData] = useState<TemplateDto[]>([]);

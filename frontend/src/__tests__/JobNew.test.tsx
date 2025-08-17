@@ -11,7 +11,7 @@ describe("JobNew", () => {
   });
   it("renders", () => {
     render(<MemoryRouter><JobNew /></MemoryRouter>);
-    expect(screen.getByText(/Nuovo Job/i)).toBeInTheDocument();
-    expect(screen.getByText(/Template/i)).toBeInTheDocument();
+    expect(screen.getByText(/New Job/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Template/i)[0]).toBeInTheDocument();
   });
 });

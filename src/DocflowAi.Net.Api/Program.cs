@@ -39,7 +39,8 @@ using System.Collections.Generic;
 using Hangfire.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-\1
+var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddModelCatalog(builder.Configuration);
 var level = Environment.GetEnvironmentVariable("LOG_LEVEL") ?? "Information";
 var parsed = Enum.TryParse<Serilog.Events.LogEventLevel>(level, true, out var lvl) ? lvl : Serilog.Events.LogEventLevel.Information;
@@ -191,7 +192,8 @@ builder.Services.AddHttpClient<ILlmModelService, LlmModelService>();
 builder.Services.AddHealthChecks()
     .AddCheck<JobQueueReadyHealthCheck>("jobqueue", tags: new[] { "ready" });
 
-\1
+var app = builder.Build();
+
 app.MapModelCatalogEndpoints();
 DefaultJobSeeder.Build(app);
 

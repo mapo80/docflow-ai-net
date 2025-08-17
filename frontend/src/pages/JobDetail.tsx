@@ -1,5 +1,4 @@
 import DataLoader from "@/components/DataLoader";
-import Loader from "@/components/Loader";
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -42,8 +41,6 @@ const JobDetail: React.FC = () => {
   const markdown = data?.preview?.markdown ?? data?.output?.markdown ?? "";
   const fields = data?.preview?.fields ?? data?.output?.fields ?? data?.fields ?? null;
 
-  if (loading || !data) { return <Loader />; }
-
   if (loading || !data) { return <DataLoader />; }
 
   return (
@@ -59,7 +56,7 @@ const JobDetail: React.FC = () => {
             { key: "model", label: "Model", children: String(modelName) },
           ] as any} />
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-            <Button onClick={load}>Ricarica</Button>
+            <Button onClick={load}>Reload</Button>
           </div>
         </Card>
 

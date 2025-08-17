@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace DocflowAi.Net.Api.Features.Models;
 
@@ -8,7 +9,7 @@ namespace DocflowAi.Net.Api.Features.Models;
 /// </summary>
 public class ModelRuntimeManager
 {
-    private readonly ModelCatalogDbContext _db;
+    private readonly IDbContextFactory<ModelCatalogDbContext> _dbFactory;
     private readonly IModelActivator _activator;
     private readonly IModelActivator2? _activator2;
     private readonly ILogger<ModelRuntimeManager> _log;
@@ -18,14 +19,15 @@ public class ModelRuntimeManager
 
     public ModelActivationPayload? ActivePayload { get; private set; }
 
-    public ModelRuntimeManager(ModelCatalogDbContext db, IModelActivator activator, ILogger<ModelRuntimeManager> log, IModelActivator2? activator2 = null)
+    public ModelRuntimeManager(IDbContextFactory<ModelCatalogDbContext> dbFactory, IModelActivator activator, ILogger<ModelRuntimeManager> log, IModelActivator2? activator2 = null)
     {
-        _db = db; _activator = activator; _log = log; _activator2 = activator2;
+        _dbFactory = dbFactory; _activator = activator; _log = log; _activator2 = activator2;
     }
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
-        var active = await _db.Models.AsNoTracking().FirstOrDefaultAsync(m => m.IsActive, ct);
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var active = await db.Models.AsNoTracking().FirstOrDefaultAsync(m => m.IsActive, ct);
         if (active?.LocalPath is { Length: > 0 } path && File.Exists(path))
         {
             ActivePath = path;
@@ -36,7 +38,8 @@ public class ModelRuntimeManager
     
     public async Task ActivateAsync(Guid id, CancellationToken ct = default)
     {
-        var model = await _db.Models.FirstOrDefaultAsync(m => m.Id == id, ct) 
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var model = await db.Models.FirstOrDefaultAsync(m => m.Id == id, ct)
                     ?? throw new InvalidOperationException("Model not found");
 
         ModelActivationPayload payload;
@@ -89,28 +92,15 @@ public class ModelRuntimeManager
             throw new InvalidOperationException("No activator available for non-local provider");
         }
 
-        var current = await _db.Models.Where(m => m.IsActive).ToListAsync(ct);
+        var current = await db.Models.Where(m => m.IsActive).ToListAsync(ct);
         foreach (var m in current) m.IsActive = false;
 
         model.IsActive = true;
         model.LastUsedAt = DateTimeOffset.UtcNow;
-        await _db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(ct);
 
         ActivePath = payload.LocalPath;
         ActivePayload = payload;
-        _log.LogInformation("Model activated: {Name}", model.Name);
-    }
-_log.LogInformation("Activating model {Name} at {Path}", model.Name, model.LocalPath);
-        await _activator.ActivateAsync(model.LocalPath!, ct);
-
-        var current = await _db.Models.Where(m => m.IsActive).ToListAsync(ct);
-        foreach (var m in current) m.IsActive = false;
-
-        model.IsActive = true;
-        model.LastUsedAt = DateTimeOffset.UtcNow;
-        await _db.SaveChangesAsync(ct);
-
-        ActivePath = model.LocalPath;
         _log.LogInformation("Model activated: {Name}", model.Name);
     }
 }
