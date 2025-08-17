@@ -1,6 +1,8 @@
+
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 
-export default function Loader() {
+/** Full-viewport loader for lazy chunk loading (Suspense fallback) */
+export default function ChunkLoader() {
   return (
     <div
       style={{
@@ -9,8 +11,9 @@ export default function Loader() {
         alignItems: 'center',
         height: '100vh',
       }}
+      aria-label="chunk-loading"
     >
-      <LoadingOutlined aria-label="loading" style={{ fontSize: 48 }} spin />
+      <LoadingOutlined style={{ fontSize: 48 }} spin />
     </div>
   );
 }

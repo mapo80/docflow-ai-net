@@ -1,3 +1,5 @@
+using DocflowAi.Net.Api.Features.Templates;
+using DocflowAi.Net.Api.Features.Models;
 using System.Reflection;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Configuration;
@@ -37,8 +39,8 @@ using System.Collections.Generic;
 using Hangfire.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-var builder = WebApplication.CreateBuilder(args);
-
+\1
+builder.Services.AddModelCatalog(builder.Configuration);
 var level = Environment.GetEnvironmentVariable("LOG_LEVEL") ?? "Information";
 var parsed = Enum.TryParse<Serilog.Events.LogEventLevel>(level, true, out var lvl) ? lvl : Serilog.Events.LogEventLevel.Information;
 if (Log.Logger.GetType().Name == "SilentLogger")
@@ -189,7 +191,8 @@ builder.Services.AddHttpClient<ILlmModelService, LlmModelService>();
 builder.Services.AddHealthChecks()
     .AddCheck<JobQueueReadyHealthCheck>("jobqueue", tags: new[] { "ready" });
 
-var app = builder.Build();
+\1
+app.MapModelCatalogEndpoints();
 DefaultJobSeeder.Build(app);
 
 app.UseSerilogRequestLogging(opts =>

@@ -8,6 +8,7 @@ public interface IJobRepository
 {
     JobDocument? Get(Guid id);
     (IReadOnlyList<JobDocument> items, int total) ListPaged(int page, int pageSize);
+    (IReadOnlyList<JobDocument> items, int total) ListPagedFiltered(int page, int pageSize, string? q, string[]? statuses, DateTimeOffset? from, DateTimeOffset? to, bool? immediate);
     void Create(JobDocument doc);
     void UpdateStatus(Guid id, string status, string? errorMessage = null, DateTimeOffset? endedAt = null, long? durationMs = null);
     void UpdateProgress(Guid id, int progress);

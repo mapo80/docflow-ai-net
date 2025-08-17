@@ -19,6 +19,7 @@ public class ApiKeyDashboardFilter : IDashboardAuthorizationFilter
         var http = context.GetHttpContext();
         var provided = http.Request.Query["api_key"].FirstOrDefault()
                       ?? http.Request.Headers[_options.HeaderName].FirstOrDefault();
+        if (_options.Keys == null || _options.Keys.Length == 0) return true;
         if (!string.IsNullOrEmpty(provided) && _options.Keys.Contains(provided))
         {
             return true;

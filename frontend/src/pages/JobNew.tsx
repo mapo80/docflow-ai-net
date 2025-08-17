@@ -1,325 +1,199 @@
-import { useState, useEffect } from 'react';
-import {
-  Alert,
-  Button,
-  Card,
-  Checkbox,
-  Form,
-  Input,
-  Upload,
-  Tabs,
-  Space,
-  message,
-  notification,
-  Drawer,
-} from 'antd';
-import MDEditor from '@uiw/react-md-editor';
-import '@uiw/react-md-editor/markdown-editor.css';
-import '@uiw/react-markdown-preview/markdown.css';
-import InboxOutlined from '@ant-design/icons/InboxOutlined';
-import FieldsEditor, {
-  fieldsToJson,
-  jsonToFields,
-  type FieldItem,
-} from '../components/FieldsEditor';
-import { ApiError, OpenAPI } from '../generated';
-import { request as __request } from '../generated/core/request';
-import { useNavigate } from 'react-router-dom';
 
-export function isValidJson(str: string): boolean {
-  try {
-    JSON.parse(str);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import React, { useEffect, useMemo, useState } from "react";
+import { Card, Form, Input, Upload, Button, Tabs, Select, Space, message, Typography, Divider, Switch } from "antd";
+import { InboxOutlined } from "@ant-design/icons";
+import MDEditor from "@uiw/react-md-editor";
+import modelsApi, { ModelDto } from "@/services/modelsApi";
+import templatesApi, { TemplateDto } from "@/services/templatesApi";
+import { useNavigate } from "react-router-dom";
 
-export function validateFile(
-  file: File,
-  maxSize = 10 * 1024 * 1024,
-  allowed = ['pdf', 'png', 'jpg', 'jpeg']
-): string | undefined {
-  const ext = file.name.split('.').pop()?.toLowerCase();
-  if (!ext || !allowed.includes(ext)) return 'Invalid extension';
-  if (file.size > maxSize) return 'File too large';
-  return undefined;
-}
+const { Title, Text } = Typography;
+const { Dragger } = Upload;
 
-export async function fileToBase64(file: File): Promise<string> {
-  const buffer = await (file.arrayBuffer
-    ? file.arrayBuffer()
-    : new Response(file).arrayBuffer());
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
+type Mode = "saved" | "inline";
 
-export async function buildPayload(
-  file: File,
-  prompt: string,
-  fields: string
-) {
-  return {
-    fileBase64: await fileToBase64(file),
-    fileName: file.name,
-    prompt,
-    fields,
-  };
-}
-
-export async function submitPayload(
-  payload: Awaited<ReturnType<typeof buildPayload>>,
-  immediate: boolean,
-  idempotencyKey?: string
-): Promise<any> {
-  const res = await __request(OpenAPI, {
-    method: 'POST',
-    url: '/api/v1/jobs',
-    query: { mode: immediate ? 'immediate' : undefined },
-    body: payload,
-    mediaType: 'application/json',
-    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
-  });
-  return typeof res === 'string' ? JSON.parse(res) : res;
-}
-
-export default function JobNew() {
-  const [file, setFile] = useState<File | null>(null);
-  const [prompt, setPrompt] = useState('');
-  const [fieldsMode, setFieldsMode] = useState<'visual' | 'json'>('visual');
-  const [visualFields, setVisualFields] = useState<FieldItem[]>([]);
-  const [jsonFields, setJsonFields] = useState(fieldsToJson([]));
-  const [immediate, setImmediate] = useState(false);
-  const [idempotencyKey, setIdempotencyKey] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any | null>(null);
-  const [retryAfter, setRetryAfter] = useState<number | null>(null);
+const JobNew: React.FC = () => {
+  const [form] = Form.useForm();
   const navigate = useNavigate();
 
+  const [file, setFile] = useState<File | null>(null);
+  const [prompt, setPrompt] = useState<string>("");
+  const [mode, setMode] = useState<Mode>("saved");
+  const [selectedTemplateName, setSelectedTemplateName] = useState<string | undefined>(undefined);
+  const [inlineTemplate, setInlineTemplate] = useState<string>("[]");
+  const [models, setModels] = useState<ModelDto[]>([]);
+  const [templates, setTemplates] = useState<TemplateDto[]>([]);
+  const [selectedModelName, setSelectedModelName] = useState<string | undefined>(undefined);
+  const [immediate, setImmediate] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
-    const preset = localStorage.getItem('jobPreset');
-    if (preset) {
-      try {
-        const p = JSON.parse(preset);
-        setPrompt(p.prompt || p.promptText || '');
-        setVisualFields(p.visualFields || []);
-        setJsonFields(p.jsonFields || fieldsToJson([]));
-      } catch {
-        /* ignore */
-      }
-    }
+    modelsApi.list().then((m) => {
+      setModels(m);
+      const active = m.find((x) => x.isActive);
+      if (active) setSelectedModelName(active.name);
+    }).catch(() => {});
+    templatesApi.list().then(setTemplates).catch(() => {});
   }, []);
 
-  const savePreset = () => {
-    localStorage.setItem(
-      'jobPreset',
-      JSON.stringify({ prompt, visualFields, jsonFields })
-    );
-  };
+  const modelOptions = useMemo(() => models.map(m => ({
+    value: m.name,
+    label: `${m.name} (${m.sourceType})`,
+    disabled: m.status !== "Available"
+  })), [models]);
 
-  const handleSubmit = async () => {
-    if (!file) {
-      message.error('File is required');
-      return;
+  const templateOptions = useMemo(() => templates.map(t => ({
+    value: t.name,
+    label: `${t.name} • ${t.documentType} • ${t.language}`
+  })), [templates]);
+
+  const fieldsJson = useMemo(() => {
+    if (mode === "saved") {
+      const tpl = templates.find(t => t.name === selectedTemplateName);
+      return tpl?.fieldsJson ?? "[]";
     }
-    const err = validateFile(file);
-    if (err) {
-      message.error(err);
-      return;
-    }
-    if (fieldsMode === 'json' && !isValidJson(jsonFields)) {
-      message.error('Invalid fields JSON');
-      return;
-    }
-    const payload = await buildPayload(
-      file,
-      prompt,
-      fieldsMode === 'json' ? jsonFields : fieldsToJson(visualFields)
-    );
-    savePreset();
-    setLoading(true);
+    return inlineTemplate;
+  }, [mode, selectedTemplateName, templates, inlineTemplate]);
+
+  const onSubmit = async () => {
+    if (!file) { message.error("Seleziona un file"); return; }
+    if (!selectedModelName) { message.error("Seleziona un modello"); return; }
+    if (mode === "saved" && !selectedTemplateName) { message.error("Seleziona un template"); return; }
     try {
-      const data = await submitPayload(
-        payload,
-        immediate,
-        idempotencyKey || undefined
-      );
-      if (data.status === 'Succeeded') {
-        setResult(data);
-      } else {
-        notification.success({
-          message: 'Job created',
-          description: data.job_id,
-        });
-        navigate(`/jobs/${data.job_id}`);
+      JSON.parse(fieldsJson);
+    } catch {
+      message.error("Fields JSON non valido"); return;
+    }
+
+    setSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("prompt", prompt ?? "");
+      fd.append("fields", fieldsJson);
+      fd.append("modelName", selectedModelName);
+      if (mode === "saved" && selectedTemplateName) {
+        fd.append("templateName", selectedTemplateName);
       }
-    } catch (e) {
-      if (e instanceof ApiError) {
-        if (e.status === 429 && e.body?.errorCode === 'immediate_capacity') {
-          setRetryAfter(e.body.retry_after_seconds ?? 0);
-        } else if (e.status === 429) {
-          notification.warning({ message: 'queue_full' });
-        } else if (e.status === 413) {
-          message.error('File too large');
-        } else if (e.status === 507) {
-          notification.error({ message: 'insufficient storage' });
-        } else {
-          notification.error({ message: e.body?.errorCode });
-        }
-      } else {
-        notification.error({ message: 'Error' });
+      if (immediate) fd.append("immediate", "true");
+
+      // Submit to existing Jobs API (multipart). Fallback to /api/recognitions/run if immediate desired.
+      const endpoint = "/api/v1/jobs";
+      const res = await fetch(endpoint, { method: "POST", body: fd });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Submit failed");
       }
+      const data = await res.json().catch(() => ({} as any));
+      // try to navigate using returned id
+      const id = data?.id ?? data?.jobId ?? data?.JobId;
+      if (id) {
+        message.success("Job creato");
+        navigate(`/jobs/${id}`);
+      } else {
+        message.success("Inviato");
+      }
+    } catch (e: any) {
+      message.error(e.message ?? "Errore invio job");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if (retryAfter === null) return;
-    if (retryAfter <= 0) {
-      setRetryAfter(null);
-      return;
-    }
-    const id = setTimeout(() => setRetryAfter((r) => (r ?? 1) - 1), 1000);
-    return () => clearTimeout(id);
-  }, [retryAfter]);
 
   return (
-    <Card>
-      {retryAfter !== null && (
-        <Alert
-          banner
-          type="warning"
-          message={`Immediate capacity exhausted. Retry in ${retryAfter}s`}
-        />
-      )}
-      <Form layout="vertical">
-        <Form.Item label="File" required>
-          <Upload.Dragger
-            maxCount={1}
-            beforeUpload={(f) => {
-              const e = validateFile(f);
-              if (e) {
-                message.error(e);
-                return Upload.LIST_IGNORE;
-              }
-              setFile(f);
-              return false;
-            }}
-          >
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">
-              Drag or click to upload
-            </p>
-            {file && (
-              <p>
-                {file.name} ({(file.size / 1024).toFixed(1)} KB)
-              </p>
-            )}
-          </Upload.Dragger>
-        </Form.Item>
-        <Form.Item label="Prompt">
-          <MDEditor value={prompt} onChange={(v) => setPrompt(v ?? '')} />
-        </Form.Item>
-        <Form.Item label="Fields">
-          <Tabs
-            activeKey={fieldsMode}
-            onChange={(k) => setFieldsMode(k as 'visual' | 'json')}
-            items={[
+    <div style={{ padding: 16 }}>
+      <Card title="Nuovo Job" style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <Card size="small" bordered>
+              <Title level={5} style={{ marginBottom: 12 }}>Documento</Title>
+              <Dragger
+                name="file"
+                multiple={false}
+                beforeUpload={(f) => { setFile(f); return false; }}
+                maxCount={1}
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">Trascina un file o clicca per selezionarlo</p>
+                {file && <Text type="secondary">Selezionato: {file.name}</Text>}
+              </Dragger>
+            </Card>
+
+            <Card size="small" bordered>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Title level={5} style={{ marginBottom: 12 }}>Modello</Title>
+                <Text type="secondary">Solo modelli "Available"</Text>
+              </div>
+              <Select
+                style={{ width: "100%" }}
+                placeholder="Seleziona modello"
+                options={modelOptions}
+                value={selectedModelName}
+                onChange={setSelectedModelName}
+                showSearch
+                optionFilterProp="label"
+              />
+              <div style={{ marginTop: 12 }}>
+                <Space>
+                  <Text>Immediate</Text>
+                  <Switch checked={immediate} onChange={setImmediate} />
+                </Space>
+              </div>
+            </Card>
+          </div>
+
+          <Card size="small" bordered>
+            <Title level={5} style={{ marginBottom: 12 }}>Template</Title>
+            <Tabs activeKey={mode} onChange={(k) => setMode(k as Mode)} items={[
               {
-                key: 'visual',
-                label: 'Visual',
+                key: "saved",
+                label: "Seleziona template salvato",
                 children: (
-                  <FieldsEditor
-                    value={visualFields}
-                    onChange={(f) => {
-                      setVisualFields(f);
-                      setJsonFields(fieldsToJson(f));
-                    }}
+                  <Select
+                    style={{ width: "100%" }}
+                    placeholder="Seleziona template"
+                    options={templateOptions}
+                    value={selectedTemplateName}
+                    onChange={setSelectedTemplateName}
+                    showSearch
+                    optionFilterProp="label"
                   />
-                ),
+                )
               },
               {
-                key: 'json',
-                label: 'JSON',
+                key: "inline",
+                label: "Incolla template (JSON)",
                 children: (
-                  <>
-                    <Input.TextArea
-                      rows={4}
-                      value={jsonFields}
-                      onChange={(e) => setJsonFields(e.target.value)}
-                    />
-                    <Space style={{ marginTop: 8 }}>
-                      <Button onClick={() => setJsonFields(fieldsToJson(visualFields))}>
-                        Import from Visual
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          try {
-                            setVisualFields(jsonToFields(jsonFields));
-                          } catch {
-                            message.error('Invalid JSON');
-                          }
-                        }}
-                      >
-                        Export to Visual
-                      </Button>
-                    </Space>
-                  </>
-                ),
-              },
-            ]}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Checkbox
-              checked={immediate}
-              onChange={(e) => setImmediate(e.target.checked)}
-            >
-              Run immediately
-            </Checkbox>
-            <Input
-              placeholder="Idempotency-Key"
-              value={idempotencyKey}
-              onChange={(e) => setIdempotencyKey(e.target.value)}
-            />
-            <Button
-              type="primary"
-              onClick={handleSubmit}
-              loading={loading}
-              disabled={!file}
-            >
-              Submit
-            </Button>
-          </Space>
-        </Form.Item>
-      </Form>
-      <Drawer
-        open={!!result}
-        onClose={() => setResult(null)}
-        title="Immediate result"
-        width={480}
-      >
-        {result && (
-          <>
-            <p>Status: {result.status}</p>
-            {result.output && (
-              <pre>{JSON.stringify(result.output, null, 2)}</pre>
-            )}
-            {result.error && <pre>{result.error}</pre>}
-            <Button onClick={() => navigate(`/jobs/${result.id}`)}>
-              Go to detail
-            </Button>
-          </>
-        )}
-      </Drawer>
-    </Card>
+                  <Input.TextArea
+                    value={inlineTemplate}
+                    onChange={(e) => setInlineTemplate(e.target.value)}
+                    autoSize={{ minRows: 8 }}
+                    placeholder='[{"key":"total","description":"...","type":"number","required":true}]'
+                  />
+                )
+              }
+            ]} />
+            <Divider orientation="left">Anteprima campi</Divider>
+            <pre style={{ background: "#fafafa", padding: 12, borderRadius: 8, maxHeight: 240, overflow: "auto" }}>{fieldsJson}</pre>
+          </Card>
+
+          <Card size="small" bordered>
+            <Title level={5} style={{ marginBottom: 12 }}>Prompt (opzionale)</Title>
+            <div data-color-mode="light">
+              <MDEditor value={prompt} onChange={(v) => setPrompt(v || "")} height={200} />
+            </div>
+          </Card>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+            <Button onClick={() => navigate(-1)}>Annulla</Button>
+            <Button type="primary" onClick={onSubmit} loading={submitting} disabled={!file}>Crea Job</Button>
+          </div>
+        </Space>
+      </Card>
+    </div>
   );
-}
+};
+
+export default JobNew;

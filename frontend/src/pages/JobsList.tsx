@@ -1,243 +1,277 @@
-import { useEffect, useState } from 'react';
-import { Table, Space, Button, Progress, Badge, Alert, message, List, Grid } from 'antd';
-import FileAddOutlined from '@ant-design/icons/FileAddOutlined';
-import EyeOutlined from '@ant-design/icons/EyeOutlined';
-import StopOutlined from '@ant-design/icons/StopOutlined';
-import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
-import FileExclamationOutlined from '@ant-design/icons/FileExclamationOutlined';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { JobsService, type JobDetailResponse, ApiError } from '../generated';
-import JobStatusTag from '../components/JobStatusTag';
-import { Link } from 'react-router-dom';
-import dayjs from 'dayjs';
-import type { PaginationProps } from 'antd';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Table, Space, Button, Progress, Tag, Typography, Input, Select, DatePicker, Grid, Tooltip, Popconfirm, message, Badge, Segmented, Switch } from 'antd';
+import { PlusOutlined, ReloadOutlined, SearchOutlined, EyeOutlined, StopOutlined, DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
+import dayjs, { Dayjs } from 'dayjs';
+import { Link, useNavigate } from 'react-router-dom';
+import { listJobs, cancelJob } from '@/services/jobsApi';
 
-const terminal = ['Succeeded', 'Failed', 'Cancelled'];
+const { Title, Text } = Typography;
+const { RangePicker } = DatePicker;
+const useBreakpoint = Grid.useBreakpoint;
 
-export default function JobsList() {
-  const [jobs, setJobs] = useState<JobDetailResponse[]>([]);
+type JobRow = {
+  id: string;
+  status: string;
+  progress?: number;
+  attempts?: number;
+  fileName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  immediate?: boolean;
+  modelName?: string;
+  templateName?: string;
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  Queued: 'default',
+  Running: 'processing',
+  Succeeded: 'success',
+  Failed: 'error',
+  Cancelled: 'warning',
+};
+
+const TERMINAL = new Set(['Succeeded', 'Failed', 'Cancelled']);
+
+const JobsList: React.FC = () => {
+  const screens = useBreakpoint();
+  const navigate = useNavigate();
+
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(() => Number(localStorage.getItem('pageSize') || 10));
+  const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
+  const [rows, setRows] = useState<JobRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [retry, setRetry] = useState<number | null>(null);
-  const screens = Grid.useBreakpoint();
-  const isMobile = !screens.md;
 
-  const load = async () => {
+  // Filters
+  const [q, setQ] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
+  const load = useCallback(async (p = page, ps = pageSize) => {
     setLoading(true);
     try {
-      const res = await JobsService.jobsList({ page, pageSize });
-      const items = (res.items || []) as JobDetailResponse[];
-      setJobs(items);
-      setTotal(res.total || 0);
-      if (items.some((j) => !terminal.includes(j.status!))) {
-        // polling
-      }
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 429 && e.body?.retry_after_seconds) {
-        setRetry(e.body.retry_after_seconds);
-      }
+      const resp: any = await listJobs({ page: p, pageSize: ps, q, status: statusFilter, from: dateRange ? dateRange[0].toISOString() : undefined, to: dateRange ? dateRange[1].toISOString() : undefined });
+      // Expect shape: { page, pageSize, total, items: [{ id, status, progress, attempts, fileName, createdAt, updatedAt, immediate }] }
+      setTotal(resp.total ?? 0);
+      setRows((resp.items ?? []).map((x: any) => ({
+        id: x.id ?? x.Id,
+        status: x.status ?? x.Status,
+        progress: x.progress ?? x.Progress,
+        attempts: x.attempts ?? x.Attempts,
+        fileName: x.fileName ?? x.FileName ?? x.inputFileName,
+        createdAt: x.createdAt ?? x.CreatedAt,
+        updatedAt: x.updatedAt ?? x.UpdatedAt,
+        immediate: x.immediate ?? x.Immediate,
+        modelName: x.modelName ?? x.ModelName ?? x.meta?.modelName ?? x.output?.modelName,
+        templateName: x.templateName ?? x.TemplateName ?? x.meta?.templateName ?? x.output?.templateName,
+      })));
+    } catch (e: any) {
+      message.error(e?.message ?? 'Load failed');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    load();
   }, [page, pageSize]);
 
+  useEffect(() => { load(page, pageSize); }, [page, pageSize, load]);
+
+  // Auto refresh
   useEffect(() => {
-    if (retry === null) return;
-    if (retry <= 0) {
-      setRetry(null);
-      load();
-      return;
+    if (!autoRefresh) return;
+    const t = setInterval(() => load(page, pageSize), 2000);
+    return () => clearInterval(t);
+  }, [autoRefresh, page, pageSize, load]);
+
+  const filtered = useMemo(() => {
+    let data = rows;
+    if (q.trim()) {
+      const s = q.trim().toLowerCase();
+      data = data.filter(r =>
+        (r.id && r.id.toLowerCase().includes(s)) ||
+        (r.fileName && r.fileName.toLowerCase().includes(s)) ||
+        (r.modelName && r.modelName.toLowerCase().includes(s)) ||
+        (r.templateName && r.templateName.toLowerCase().includes(s))
+      );
     }
-    const id = setTimeout(() => setRetry((r) => (r ? r - 1 : null)), 1000);
-    return () => clearTimeout(id);
-  }, [retry]);
+    if (statusFilter.length) {
+      data = data.filter(r => statusFilter.includes(r.status));
+    }
+    if (dateRange) {
+      const [from, to] = dateRange;
+      data = data.filter(r => {
+        const d = r.createdAt ? dayjs(r.createdAt) : null;
+        return d && d.isAfter(from) && d.isBefore(to);
+      });
+    }
+    return data;
+  }, [rows, q, statusFilter, dateRange]);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (jobs.some((j) => !terminal.includes(j.status!))) {
-        load();
-      }
-    }, 5000);
-    return () => clearInterval(id);
-  }, [jobs, page, pageSize]);
-
-  const handleCancel = async (id: string) => {
+  const cancelJob = async (id: string) => {
     try {
-      await JobsService.jobsDelete({ id });
-      message.success('Job canceled');
-      load();
-    } catch (e) {
-      if (e instanceof ApiError) {
-        message.error(e.body?.errorCode);
-      }
+      await cancelJob(id);
+      message.success('Job cancellato');
+      load(page, pageSize);
+    } catch (e: any) {
+      message.error(e?.message ?? 'Cancel failed');
     }
   };
 
-  const columns: ColumnsType<JobDetailResponse> = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      render: (id: string) => <Link to={`/jobs/${id}`}>{id}</Link>,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      render: (_: string, record: JobDetailResponse) => (
-        <JobStatusTag status={record.status!} derived={record.derivedStatus} />
-      ),
-      filters: [
-        { text: 'Queued', value: 'Queued' },
-        { text: 'Running', value: 'Running' },
-        { text: 'Succeeded', value: 'Succeeded' },
-        { text: 'Failed', value: 'Failed' },
-        { text: 'Cancelled', value: 'Cancelled' },
-      ],
-      onFilter: (value, record) => record.status === value,
-    },
-    {
-      title: 'Progress',
-      dataIndex: 'progress',
-      render: (p?: number) => <Progress percent={p || 0} size="small" />,
-      responsive: ['md'],
-    },
-    {
-      title: 'Attempts',
-      dataIndex: 'attempts',
-      render: (a?: number) => <Badge count={a || 0} showZero />,
-      responsive: ['lg'],
-    },
-    {
-      title: 'Created',
-      dataIndex: 'createdAt',
-      render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
-      responsive: ['lg'],
-    },
-    {
-      title: 'Updated',
-      dataIndex: 'updatedAt',
-      render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
-      responsive: ['xl'],
-    },
-    {
-      title: 'Actions',
-      render: (_: any, record: JobDetailResponse) => (
-        <Space>
-          <Link to={`/jobs/${record.id}`} title="View job">
-            <Button icon={<EyeOutlined />} aria-label="View job" title="View job" />
-          </Link>
-          <Button
-            disabled={!['Queued', 'Running'].includes(record.status!)}
-            onClick={() => handleCancel(record.id!)}
-            icon={<StopOutlined />}
-            aria-label="Cancel job"
-            title="Cancel job"
-          />
-          {record.paths?.output && (
-            <Button
-              onClick={() => window.open(record.paths!.output!, '_blank')}
-              icon={<FileTextOutlined />}
-              aria-label="View output"
-              title="View output"
-            />
-          )}
-          {record.paths?.error && (
-            <Button
-              onClick={() => window.open(record.paths!.error!, '_blank')}
-              icon={<FileExclamationOutlined />}
-              aria-label="View error"
-              title="View error"
-            />
-          )}
-        </Space>
-      ),
-      responsive: ['md'],
-    },
-  ];
-
-  const pagination: TablePaginationConfig = {
-    current: page,
-    pageSize,
-    total,
-    showSizeChanger: true,
-    pageSizeOptions: ['10', '20', '50', '100'],
-    onChange: (p, ps) => {
-      setPage(p);
-      setPageSize(ps);
-      localStorage.setItem('pageSize', String(ps));
-    },
-  };
+  const columns = useMemo(() => {
+    return [
+      {
+        title: 'ID',
+        dataIndex: 'id',
+        width: 260,
+        render: (v: string) => <Link to={`/jobs/${v}`}>{v}</Link>,
+        ellipsis: true,
+        fixed: screens.xl ? 'left' : undefined,
+      },
+      {
+        title: 'File',
+        dataIndex: 'fileName',
+        ellipsis: true,
+        render: (v?: string) => v ?? '—',
+      },
+      {
+        title: 'Status',
+        dataIndex: 'status',
+        filters: Object.keys(STATUS_COLORS).map(s => ({ text: s, value: s })),
+        onFilter: (value: any, record: JobRow) => record.status === value,
+        render: (s: string) => <Tag color={STATUS_COLORS[s] ?? 'default'}>{s}</Tag>,
+        width: 140,
+      },
+      {
+        title: 'Progress',
+        dataIndex: 'progress',
+        width: 160,
+        render: (p?: number, r: JobRow) => p != null ? <Progress percent={p} size="small" status={r.status === 'Failed' ? 'exception' : r.status === 'Succeeded' ? 'success' : 'active'} /> : '—',
+        responsive: ['sm'],
+      },
+      {
+        title: 'Attempts',
+        dataIndex: 'attempts',
+        width: 100,
+        render: (a?: number) => <Badge count={a || 0} showZero />,
+        responsive: ['lg'],
+      },
+      {
+        title: 'Model',
+        dataIndex: 'modelName',
+        ellipsis: true,
+        render: (v?: string) => v ? <Tag>{v}</Tag> : '—',
+        responsive: ['lg'],
+      },
+      {
+        title: 'Template',
+        dataIndex: 'templateName',
+        ellipsis: true,
+        render: (v?: string) => v ? <Tag color="geekblue">{v}</Tag> : '—',
+        responsive: ['lg'],
+      },
+      {
+        title: 'Created',
+        dataIndex: 'createdAt',
+        width: 180,
+        render: (v?: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '—',
+        responsive: ['md'],
+        sorter: (a: JobRow, b: JobRow) => dayjs(a.createdAt).valueOf() - dayjs(b.createdAt).valueOf(),
+        defaultSortOrder: 'descend' as const,
+      },
+      {
+        title: 'Updated',
+        dataIndex: 'updatedAt',
+        width: 180,
+        render: (v?: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '—',
+        responsive: ['xl'],
+      },
+      {
+        title: 'Actions',
+        key: 'actions',
+        fixed: screens.xl ? 'right' : undefined,
+        width: 220,
+        render: (_: any, r: JobRow) => (
+          <Space>
+            <Tooltip title="Vedi">
+              <Button icon={<EyeOutlined />} onClick={() => navigate(`/jobs/${r.id}`)} />
+            </Tooltip>
+            <Tooltip title="File">
+              <Button icon={<FileTextOutlined />} href={`/api/v1/jobs/${r.id}/file`} target="_blank" />
+            </Tooltip>
+            <Tooltip title={TERMINAL.has(r.status) ? "Non annullabile" : "Annulla"}>
+              <Popconfirm title="Annullare il job?" onConfirm={() => cancelJob(r.id)} okText="Sì" cancelText="No" disabled={TERMINAL.has(r.status)}>
+                <Button icon={<StopOutlined />} danger disabled={TERMINAL.has(r.status)} />
+              </Popconfirm>
+            </Tooltip>
+          </Space>
+        ),
+      },
+    ];
+  }, [navigate, screens.xl]);
 
   return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          marginBottom: 16,
-          gap: 8,
-        }}
-      >
-        <Link to="/jobs/new">
-          <Button aria-label="New Job" icon={<FileAddOutlined />} />
-        </Link>
-      </div>
-      {retry !== null && <Alert banner message={`Queue full. Retry in ${retry}s`} />}
-      {isMobile ? (
-        <List
-          dataSource={jobs}
+    <div style={{ padding: 16 }}>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <Title level={3} style={{ margin: 0 }}>Jobs</Title>
+          <Space wrap>
+            <Tooltip title="Aggiorna">
+              <Button icon={<ReloadOutlined />} onClick={() => load(page, pageSize)} />
+            </Tooltip>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/jobs/new')}>
+              Nuovo Job
+            </Button>
+          </Space>
+        </div>
+
+        <Space wrap style={{ width: '100%' }}>
+          <Input
+            allowClear
+            style={{ minWidth: 240 }}
+            placeholder="Cerca per ID, file, modello, template"
+            prefix={<SearchOutlined />}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="Status"
+            style={{ minWidth: 200 }}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={Object.keys(STATUS_COLORS).map(s => ({ label: s, value: s }))}
+          />
+          <RangePicker
+            onChange={(v) => setDateRange(v as any)}
+            showTime
+            allowEmpty={[true, true]}
+          />
+          <Space>
+            <Text>Auto refresh</Text>
+            <Switch checked={autoRefresh} onChange={setAutoRefresh} />
+          </Space>
+        </Space>
+
+        <Table<JobRow>
           rowKey="id"
+          size="middle"
+          bordered
+          sticky
           loading={loading}
-          pagination={pagination as PaginationProps}
-          renderItem={(record) => (
-            <List.Item
-              key={record.id}
-              actions={[
-                <Link to={`/jobs/${record.id}`} title="View job">
-                  <Button type="link" icon={<EyeOutlined />} aria-label="View job" title="View job" />
-                </Link>,
-                ['Queued', 'Running'].includes(record.status!) && (
-                  <Button
-                    type="link"
-                    onClick={() => handleCancel(record.id!)}
-                    icon={<StopOutlined />}
-                    aria-label="Cancel job"
-                    title="Cancel job"
-                  />
-                ),
-              ]}
-            >
-              <List.Item.Meta
-                title={<Link to={`/jobs/${record.id}`}>{record.id}</Link>}
-                description={
-                  <>
-                    <JobStatusTag status={record.status!} derived={record.derivedStatus} />
-                    <div style={{ marginTop: 8 }}>
-                      <Progress percent={record.progress || 0} size="small" />
-                    </div>
-                    <div style={{ marginTop: 8 }}>
-                      {dayjs(record.updatedAt!).format('YYYY-MM-DD HH:mm')}
-                    </div>
-                  </>
-                }
-              />
-            </List.Item>
-          )}
+          dataSource={filtered}
+          columns={columns as any}
+          pagination={{
+            current: page,
+            pageSize,
+            total,
+            showSizeChanger: true,
+            onChange: (p, ps) => { setPage(p); setPageSize(ps); },
+          }}
+          scroll={{ x: 1200 }}
         />
-      ) : (
-        <Table
-          columns={columns}
-          dataSource={jobs}
-          rowKey="id"
-          pagination={pagination}
-          loading={loading}
-        />
-      )}
+      </Space>
     </div>
   );
-}
+};
+
+export default JobsList;

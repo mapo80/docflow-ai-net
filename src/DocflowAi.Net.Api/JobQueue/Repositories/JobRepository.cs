@@ -31,6 +31,50 @@ public class JobRepository : IJobRepository
         return (items, total);
     }
 
+    public (IReadOnlyList<JobDocument> items, int total) ListPagedFiltered(int page, int pageSize, string? q, string[]? statuses, DateTimeOffset? from, DateTimeOffset? to, bool? immediate)
+    {
+        if (page < 1) page = 1;
+        if (pageSize > 100) pageSize = 100;
+        if (pageSize <= 0) pageSize = 20;
+        var query = _db.Jobs.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var s = q.ToLower();
+            query = query.Where(x =>
+                x.Id.ToString().ToLower().Contains(s) ||
+                x.Paths.Input.ToLower().Contains(s) ||
+                (x.Paths.Prompt != null && x.Paths.Prompt.ToLower().Contains(s)) ||
+                (x.ErrorMessage != null && x.ErrorMessage.ToLower().Contains(s))
+            );
+        }
+
+        if (statuses != null && statuses.Length > 0)
+        {
+            query = query.Where(x => statuses.Contains(x.Status));
+        }
+
+        if (from.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt <= to.Value);
+        }
+
+        if (immediate.HasValue)
+        {
+            query = query.Where(x => x.Immediate == immediate.Value);
+        }
+
+        query = query.OrderByDescending(x => x.CreatedAt);
+        var total = query.Count();
+        var items = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return (items, total);
+    }
+
     public void Create(JobDocument doc)
     {
         doc.CreatedAt = doc.UpdatedAt = DateTimeOffset.UtcNow;

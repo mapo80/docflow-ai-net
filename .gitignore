@@ -402,3 +402,5 @@ dist/
 build/
 # GGUF models
 models/
+
+!**/Features/models

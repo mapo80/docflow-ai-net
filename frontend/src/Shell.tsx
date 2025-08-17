@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Layout, Menu } from 'antd';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import AppstoreOutlined from '@ant-design/icons/AppstoreOutlined';
@@ -6,6 +7,8 @@ import HeartOutlined from '@ant-design/icons/HeartOutlined';
 import LinkOutlined from '@ant-design/icons/LinkOutlined';
 import ExperimentOutlined from '@ant-design/icons/ExperimentOutlined';
 import HealthBadge from './components/HealthBadge';
+import ChunkLoader from './components/ChunkLoader';
+import Loader from './components/Loader';
 import { openHangfire } from './hangfire';
 
 const { Header, Content } = Layout;
@@ -49,7 +52,7 @@ export default function Shell() {
         <HealthBadge />
       </Header>
       <Content style={{ padding: 24 }}>
-        <Outlet />
+        <Suspense fallback={<Loader />}><Suspense fallback={<ChunkLoader />}><Outlet /></Suspense></Suspense>
       </Content>
     </Layout>
   );
