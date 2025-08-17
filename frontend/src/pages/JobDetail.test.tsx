@@ -14,7 +14,7 @@ test('detail viewers render and have download', async () => {
     paths: {
       input: '/api/v1/jobs/1/files/input.pdf',
       output: '/api/v1/jobs/1/files/output.json',
-      fields: '/api/v1/jobs/1/files/fields.json',
+      fields: '/api/v1/jobs/1/files/fields',
       error: '/api/v1/jobs/1/files/error.txt',
     },
     fields: [{ key: 'company_name', value: 'ACME', confidence: 0.9 }],
@@ -28,7 +28,7 @@ test('detail viewers render and have download', async () => {
         ),
       );
     }
-    if (typeof url === 'string' && url.endsWith('fields.json')) {
+    if (typeof url === 'string' && url.endsWith('fields')) {
       return Promise.resolve(
         new Response(
           JSON.stringify([
