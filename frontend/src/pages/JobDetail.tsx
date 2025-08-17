@@ -15,7 +15,7 @@ export default function JobDetail() {
   const { id } = useParams();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
   const [preview, setPreview] = useState<
-    | { label: string; type: 'json'; content: unknown }
+    | { label: string; type: 'json'; content: any }
     | { label: string; type: 'markdown'; content: string }
     | { label: string; type: 'file'; src: string }
     | null
@@ -128,12 +128,24 @@ export default function JobDetail() {
         const resp = await fetch(url, {
           headers: OpenAPI.HEADERS as Record<string, string> | undefined,
         });
-        const text = await resp.text();
-        const type = lower.endsWith('.json') ? 'json' : 'markdown';
-        setPreview({ label, type, content: text });
+        if (lower.endsWith('.json')) {
+          let json: unknown;
+          try {
+            json = await resp.json();
+          } catch {
+            json = JSON.parse(await resp.text());
+          }
+          setPreview({ label, type: 'json', content: json });
+        } else {
+          const text = await resp.text();
+          setPreview({ label, type: 'markdown', content: text });
+        }
       } catch {
-        const type = lower.endsWith('.json') ? 'json' : 'markdown';
-        setPreview({ label, type, content: type === 'json' ? '{}' : '' });
+        if (lower.endsWith('.json')) {
+          setPreview({ label, type: 'json', content: {} });
+        } else {
+          setPreview({ label, type: 'markdown', content: '' });
+        }
       }
     } else {
       setPreview({ label, type: 'file', src: path });
@@ -276,7 +288,7 @@ export default function JobDetail() {
           style={{ top: 0 }}
           bodyStyle={{
             height: '100vh',
-            overflowY: 'auto',
+            overflow: 'auto',
             padding: 0,
             backgroundColor: '#fff',
           }}
@@ -285,17 +297,15 @@ export default function JobDetail() {
           {preview.type === 'file' ? (
             <iframe src={preview.src} style={{ width: '100%', height: '100%' }} />
           ) : preview.type === 'json' ? (
-            <JsonView
-              value={
-                typeof preview.content === 'string'
-                  ? JSON.parse(preview.content || '{}')
-                  : preview.content
-              }
-              style={{ ...githubLightTheme, padding: 16 }}
-              collapsed={false}
-              displayObjectSize={false}
-              displayDataTypes={false}
-            />
+            <div style={{ padding: 16, overflowX: 'auto' }}>
+              <JsonView
+                value={preview.content}
+                style={{ ...githubLightTheme, padding: 16 }}
+                collapsed={false}
+                displayObjectSize={false}
+                displayDataTypes={false}
+              />
+            </div>
           ) : (
             <MarkdownPreview
               source={preview.content}
