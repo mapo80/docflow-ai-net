@@ -10,6 +10,7 @@ import JobStatusTag from '../components/JobStatusTag';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
+import Loader from '../components/Loader';
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -170,7 +171,7 @@ export default function JobDetail() {
     }
   };
 
-  if (!job) return <div>Loading...</div>;
+  if (!job) return <Loader />;
 
   const artifacts = Object.entries(job.paths || {})
     .filter(([k, v]) => v && (k !== 'error' || job.status !== 'Succeeded'))
