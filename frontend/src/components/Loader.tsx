@@ -4,13 +4,19 @@ export default function Loader() {
   return (
     <div
       style={{
+        position: 'absolute',
+        inset: 0,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh',
       }}
     >
-      <LoadingOutlined aria-label="loading" style={{ fontSize: 48 }} spin />
+      <LoadingOutlined
+        aria-label="loading"
+        data-testid="loader"
+        style={{ fontSize: 48 }}
+        spin
+      />
     </div>
   );
 }
