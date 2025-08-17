@@ -40,7 +40,8 @@ public class ImmediateCapacityAndFallbackTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
         var first = client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);
-        await Task.Delay(200);
+        for (var i = 0; i < 50 && factory.Fake.MaxConcurrent == 0; i++)
+            await Task.Delay(100);
         var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf" };
         var second = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", secondPayload);
         second.StatusCode.Should().Be(System.Net.HttpStatusCode.Accepted);
