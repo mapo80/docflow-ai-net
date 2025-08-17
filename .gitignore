@@ -404,3 +404,5 @@ build/
 models/
 
 !**/Features/models
+!frontend/src/components/models/
+!frontend/src/components/models/**

@@ -61,7 +61,7 @@ public static class RecognizeEndpoints
             }
 
             // Execute current processing pipeline (uses job abstraction) with minimal inputs
-            var pi = new ProcessInput(Guid.NewGuid(), inputPath, promptPath: null, fieldsPath: null);
+            var pi = new ProcessInput(Guid.NewGuid(), inputPath, PromptPath: null, FieldsPath: null);
             var result = await process.ExecuteAsync(pi, ct);
             if (!result.Success)
             {

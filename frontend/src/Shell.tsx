@@ -8,7 +8,6 @@ import LinkOutlined from '@ant-design/icons/LinkOutlined';
 import ExperimentOutlined from '@ant-design/icons/ExperimentOutlined';
 import HealthBadge from './components/HealthBadge';
 import ChunkLoader from './components/ChunkLoader';
-import Loader from './components/Loader';
 import { openHangfire } from './hangfire';
 
 const { Header, Content } = Layout;
@@ -52,7 +51,9 @@ export default function Shell() {
         <HealthBadge />
       </Header>
       <Content style={{ padding: 24 }}>
-        <Suspense fallback={<Loader />}><Suspense fallback={<ChunkLoader />}><Outlet /></Suspense></Suspense>
+        <Suspense fallback={<ChunkLoader />}>
+          <Suspense fallback={<ChunkLoader />}><Outlet /></Suspense>
+        </Suspense>
       </Content>
     </Layout>
   );

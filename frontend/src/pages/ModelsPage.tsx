@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Card, Button, message } from "antd";
 import AddModelModal from "@/components/models/AddModelModal";
 import ModelTable from "@/components/models/ModelTable";
-import api, { AddModelRequest, ModelDto } from "@/services/modelsApi";
+import api, { type AddModelRequest, type ModelDto } from "@/services/modelsApi";
 
 const ModelsPage: React.FC = () => {
   const [models, setModels] = useState<ModelDto[]>([]);
@@ -25,9 +25,7 @@ const ModelsPage: React.FC = () => {
   useEffect(() => {
     load();
     const id = setInterval(load, 2000);
-    if (loading) { return <DataLoader />; }
-
-  return () => clearInterval(id);
+    return () => clearInterval(id);
   }, []);
 
   const onAdd = async (req: AddModelRequest) => {
@@ -69,6 +67,8 @@ const ModelsPage: React.FC = () => {
       message.error(e.message ?? "Failed to delete");
     }
   };
+
+  if (loading) { return <DataLoader />; }
 
   return (
     <div style={{ padding: 16, display: "grid", gap: 16 }}>

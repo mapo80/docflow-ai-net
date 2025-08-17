@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Table, Space, Button, Progress, Tag, Typography, Input, Select, DatePicker, Grid, Tooltip, Popconfirm, message, Badge, Segmented, Switch } from 'antd';
-import { PlusOutlined, ReloadOutlined, SearchOutlined, EyeOutlined, StopOutlined, DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Table, Space, Button, Progress, Tag, Typography, Input, Select, DatePicker, Grid, Tooltip, Popconfirm, message, Badge, Switch } from 'antd';
+import { PlusOutlined, ReloadOutlined, SearchOutlined, EyeOutlined, StopOutlined, FileTextOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import { Link, useNavigate } from 'react-router-dom';
-import { listJobs, cancelJob } from '@/services/jobsApi';
+import { listJobs, cancelJob as cancelJobApi } from '@/services/jobsApi';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -106,10 +106,10 @@ const JobsList: React.FC = () => {
     return data;
   }, [rows, q, statusFilter, dateRange]);
 
-  const cancelJob = async (id: string) => {
+  const handleCancel = async (id: string) => {
     try {
-      await cancelJob(id);
-      message.success('Job cancellato');
+      await cancelJobApi(id);
+      message.success('Job canceled');
       load(page, pageSize);
     } catch (e: any) {
       message.error(e?.message ?? 'Cancel failed');
@@ -144,7 +144,7 @@ const JobsList: React.FC = () => {
         title: 'Progress',
         dataIndex: 'progress',
         width: 160,
-        render: (p?: number, r: JobRow) => p != null ? <Progress percent={p} size="small" status={r.status === 'Failed' ? 'exception' : r.status === 'Succeeded' ? 'success' : 'active'} /> : '—',
+        render: (p: number | undefined, r: JobRow) => p != null ? <Progress percent={p} size="small" status={r.status === 'Failed' ? 'exception' : r.status === 'Succeeded' ? 'success' : 'active'} /> : '—',
         responsive: ['sm'],
       },
       {
@@ -191,14 +191,14 @@ const JobsList: React.FC = () => {
         width: 220,
         render: (_: any, r: JobRow) => (
           <Space>
-            <Tooltip title="Vedi">
+            <Tooltip title="View">
               <Button icon={<EyeOutlined />} onClick={() => navigate(`/jobs/${r.id}`)} />
             </Tooltip>
             <Tooltip title="File">
               <Button icon={<FileTextOutlined />} href={`/api/v1/jobs/${r.id}/file`} target="_blank" />
             </Tooltip>
-            <Tooltip title={TERMINAL.has(r.status) ? "Non annullabile" : "Annulla"}>
-              <Popconfirm title="Annullare il job?" onConfirm={() => cancelJob(r.id)} okText="Sì" cancelText="No" disabled={TERMINAL.has(r.status)}>
+            <Tooltip title={TERMINAL.has(r.status) ? "Not cancellable" : "Cancel"}>
+              <Popconfirm title="Cancel job?" onConfirm={() => handleCancel(r.id)} okText="Yes" cancelText="No" disabled={TERMINAL.has(r.status)}>
                 <Button icon={<StopOutlined />} danger disabled={TERMINAL.has(r.status)} />
               </Popconfirm>
             </Tooltip>
@@ -214,11 +214,11 @@ const JobsList: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <Title level={3} style={{ margin: 0 }}>Jobs</Title>
           <Space wrap>
-            <Tooltip title="Aggiorna">
+            <Tooltip title="Refresh">
               <Button icon={<ReloadOutlined />} onClick={() => load(page, pageSize)} />
             </Tooltip>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/jobs/new')}>
-              Nuovo Job
+              New Job
             </Button>
           </Space>
         </div>
@@ -227,7 +227,7 @@ const JobsList: React.FC = () => {
           <Input
             allowClear
             style={{ minWidth: 240 }}
-            placeholder="Cerca per ID, file, modello, template"
+            placeholder="Search by ID, file, model, template"
             prefix={<SearchOutlined />}
             value={q}
             onChange={(e) => setQ(e.target.value)}

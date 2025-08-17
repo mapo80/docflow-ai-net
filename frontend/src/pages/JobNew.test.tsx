@@ -1,12 +1,5 @@
 import { isValidJson, validateFile, buildPayload, submitPayload } from './JobNew';
 import { test, expect, vi } from 'vitest';
-import { ApiError } from '../generated';
-
-vi.mock('../generated/core/request', () => ({
-  request: vi.fn(),
-}));
-
-import { request as __request } from '../generated/core/request';
 
 test('isValidJson', () => {
   expect(isValidJson('{}')).toBe(true);
@@ -24,23 +17,16 @@ test('validateFile', () => {
 
 test('submitPayload branches', async () => {
   const payload = await buildPayload(new File(['a'], 'a.pdf'), 'p', '{}');
-  (__request as any).mockResolvedValueOnce({ job_id: '1', status: 'Succeeded' });
+  const fetchMock = vi
+    .spyOn(global, 'fetch' as any)
+    .mockResolvedValueOnce({ ok: true, json: async () => ({ job_id: '1', status: 'Succeeded' }) } as any)
+    .mockResolvedValueOnce({ ok: true, json: async () => ({ job_id: '2', status: 'Pending' }) } as any)
+    .mockResolvedValueOnce({ ok: false, text: async () => '' } as any);
   let res = await submitPayload(payload, true);
   expect(res).toMatchObject({ job_id: '1', status: 'Succeeded' });
-  (__request as any).mockResolvedValueOnce({ job_id: '2', status: 'Pending' });
   res = await submitPayload(payload, false);
   expect(res).toMatchObject({ job_id: '2', status: 'Pending' });
-  (__request as any).mockRejectedValueOnce(
-    new ApiError(
-      { method: 'POST', url: '/jobs' } as any,
-      {
-        url: '',
-        status: 429,
-        statusText: 'Too Many Requests',
-        body: { errorCode: 'immediate_capacity', retry_after_seconds: 5 },
-      },
-      'Too Many Requests'
-    )
-  );
-  await expect(submitPayload(payload, true)).rejects.toBeInstanceOf(ApiError);
+  await expect(submitPayload(payload, true)).rejects.toThrow('Submit failed');
+  fetchMock.mockRestore();
 });
+

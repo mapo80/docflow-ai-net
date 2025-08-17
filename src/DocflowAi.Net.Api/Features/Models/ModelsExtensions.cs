@@ -1,4 +1,6 @@
+using System.IO;
 using DocflowAi.Net.Api.Features.Models.Downloaders;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +15,21 @@ public static class ModelsExtensions
         var conn = cfg.GetConnectionString("ModelCatalog")
                    ?? cfg.GetConnectionString("Default")
                    ?? "Data Source=data/models.db";
-        services.AddDbContext<ModelCatalogDbContext>(o => o.UseSqlite(conn));
+
+        var builder = new SqliteConnectionStringBuilder(conn);
+        var dataSource = builder.DataSource;
+
+        if (!string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
+        {
+            var dir = Path.GetDirectoryName(Path.GetFullPath(dataSource));
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+        }
+
+        services.AddDbContextFactory<ModelCatalogDbContext>(o => o.UseSqlite(builder.ToString()));
+        services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<ModelCatalogDbContext>>().CreateDbContext());
 
         services.AddHttpClient(); // used by downloaders
 
