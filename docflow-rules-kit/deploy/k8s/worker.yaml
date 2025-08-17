@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docflow-worker
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: docflow-worker } }
+  template:
+    metadata:
+      labels: { app: docflow-worker }
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/worker: runtime/default
+    spec:
+      containers:
+      - name: worker
+        image: yourrepo/docflow-worker:latest
+        ports: [{ containerPort: 5095 }]
+        env:
+        - name: Auth__WorkerKeys__0
+          valueFrom: { secretKeyRef: { name: docflow-secrets, key: workerKey } }
+        resources:
+          limits: { cpu: "500m", memory: "256Mi" }
+          requests: { cpu: "100m", memory: "64Mi" }
+        livenessProbe:
+          httpGet: { path: /health, port: 5095 }
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet: { path: /health, port: 5095 }
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+          seccompProfile: { type: RuntimeDefault }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: docflow-worker }
+spec:
+  selector: { app: docflow-worker }
+  ports: [{ name: http, port: 5095, targetPort: 5095 }]

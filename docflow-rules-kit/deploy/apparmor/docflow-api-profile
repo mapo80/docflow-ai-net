@@ -1,0 +1,8 @@
+profile docflow-api-profile flags=(attach_disconnected) {
+  #include <tunables/global>
+  file,
+  network,
+  capability net_bind_service,
+  deny /proc/** wklx,
+  deny /sys/** wklx,
+}

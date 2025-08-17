@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docflow-api
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: docflow-api } }
+  template:
+    metadata:
+      labels: { app: docflow-api }
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/api: runtime/default
+    spec:
+      containers:
+      - name: api
+        image: yourrepo/docflow-api:latest
+        ports: [{ containerPort: 5080 }]
+        env:
+        - name: Auth__ApiKeys__0
+          valueFrom: { secretKeyRef: { name: docflow-secrets, key: apiKey } }
+        - name: Auth__WorkerKeys__0
+          valueFrom: { secretKeyRef: { name: docflow-secrets, key: workerKey } }
+        - name: Runner__Mode
+          value: "OutOfProcess"
+        - name: Runner__WorkerUrl
+          value: "http://docflow-worker:5095"
+        resources:
+          limits: { cpu: "1000m", memory: "512Mi" }
+          requests: { cpu: "200m", memory: "128Mi" }
+        livenessProbe:
+          httpGet: { path: /health, port: 5080 }
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet: { path: /health, port: 5080 }
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+          seccompProfile: { type: RuntimeDefault }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: docflow-api }
+spec:
+  selector: { app: docflow-api }
+  ports: [{ name: http, port: 80, targetPort: 5080 }]
