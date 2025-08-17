@@ -6,6 +6,10 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
+const hangfireHtml =
+  '<!DOCTYPE html><html><head><title>Hangfire Dashboard</title></head>' +
+  '<body><h1>Hangfire</h1></body></html>';
+
 test('opens hangfire dashboard with api key', async ({ page, context }) => {
   await context.route(
     '**/hangfire?api_key=dev-secret-key-change-me',
@@ -13,7 +17,7 @@ test('opens hangfire dashboard with api key', async ({ page, context }) => {
       route.fulfill({
         status: 200,
         contentType: 'text/html',
-        body: '<html></html>',
+        body: hangfireHtml,
       }),
   );
   await page.goto('/jobs');
@@ -26,7 +30,7 @@ test('opens hangfire dashboard with api key', async ({ page, context }) => {
     'http://localhost:5214/hangfire?api_key=dev-secret-key-change-me',
   );
   const html = await popup.content();
-  expect(html).toContain('<html');
+  expect(html).toContain('Hangfire Dashboard');
 });
 
 test('opens hangfire from job detail page', async ({ page, context }) => {
@@ -36,7 +40,7 @@ test('opens hangfire from job detail page', async ({ page, context }) => {
       route.fulfill({
         status: 200,
         contentType: 'text/html',
-        body: '<html></html>',
+        body: hangfireHtml,
       }),
   );
   await context.route('**/api/v1/jobs/1', (route) =>
@@ -61,4 +65,6 @@ test('opens hangfire from job detail page', async ({ page, context }) => {
   expect(popup.url()).toBe(
     'http://localhost:5214/hangfire?api_key=dev-secret-key-change-me',
   );
+  const html = await popup.content();
+  expect(html).toContain('Hangfire Dashboard');
 });
