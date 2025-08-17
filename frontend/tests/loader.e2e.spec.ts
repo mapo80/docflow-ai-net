@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('shows loader icon while job detail is loading', async ({ page }) => {
-  await page.route('**/jobs/1', async (route) => {
+  await page.route('**/api/v1/jobs/1', async (route) => {
     await new Promise((r) => setTimeout(r, 1000));
     route.fulfill({
       json: {
@@ -24,6 +24,6 @@ test('shows loader icon while job detail is loading', async ({ page }) => {
   });
 
   await page.goto('/jobs/1', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByLabel('loading')).toBeVisible();
-  await expect(page.getByText('Job 1')).toBeVisible();
+  await expect(page.getByLabel('data-loading')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Job' })).toBeVisible();
 });
