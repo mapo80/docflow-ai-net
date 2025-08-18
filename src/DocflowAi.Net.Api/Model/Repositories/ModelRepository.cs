@@ -22,6 +22,9 @@ public class ModelRepository : IModelRepository
 
     public ModelDocument? GetById(Guid id) => _db.Models.Find(id);
 
+    public ModelDocument? GetByName(string name) =>
+        _db.Models.AsNoTracking().FirstOrDefault(m => m.Name == name);
+
     public void Add(ModelDocument model, string? apiKey, string? hfToken)
     {
         model.ApiKeyEncrypted = apiKey != null ? _protector.Protect(apiKey) : null;
