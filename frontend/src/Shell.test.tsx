@@ -16,4 +16,26 @@ describe('Shell', () => {
     fireEvent.click(toggle);
     expect(localStorage.getItem('menuCollapsed')).toBe('false');
   });
+
+  it('shows app icon and title', () => {
+    localStorage.setItem('menuCollapsed', 'true');
+    const { getAllByText, container } = render(
+      <MemoryRouter initialEntries={['/jobs']}>
+        <Shell />
+      </MemoryRouter>,
+    );
+    expect(getAllByText('DocFlow AI').length).toBeGreaterThan(0);
+    expect(container.querySelector('svg[data-icon="robot"]')).not.toBeNull();
+  });
+
+  it('renders drawer on mobile screens', () => {
+    localStorage.setItem('menuCollapsed', 'false');
+    render(
+      <MemoryRouter initialEntries={['/jobs']}>
+        <Shell />
+      </MemoryRouter>,
+    );
+    // jsdom lacks matchMedia so useBreakpoint returns mobile
+    expect(document.body.querySelector('.ant-drawer-open')).not.toBeNull();
+  });
 });
