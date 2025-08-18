@@ -137,4 +137,18 @@ public class ModelDispatchServiceTests
         var act = () => svc.InvokeAsync("missing", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
+
+    [Fact]
+    public async Task HostedModel_Without_BaseUrl_Throws()
+    {
+        var model = new ModelDocument { Name = "noUrl", Type = "hosted-llm", Provider = "openai", BaseUrl = null, ApiKeyEncrypted = "enc" };
+        var repo = Substitute.For<IModelRepository>();
+        repo.GetByName("noUrl").Returns(model);
+        var protector = Substitute.For<ISecretProtector>();
+        protector.Unprotect("enc").Returns("key");
+        var svc = new ModelDispatchService(repo, protector);
+
+        var act = () => svc.InvokeAsync("noUrl", "{}", CancellationToken.None);
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
 }

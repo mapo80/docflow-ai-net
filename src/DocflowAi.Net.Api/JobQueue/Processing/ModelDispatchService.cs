@@ -81,7 +81,8 @@ public class ModelDispatchService : IModelDispatchService
             ? string.Empty
             : _protector.Unprotect(model.ApiKeyEncrypted);
         var credential = new ApiKeyCredential(apiKey);
-        var options = new OpenAIClientOptions { Endpoint = new Uri(model.BaseUrl) };
+        var baseUrl = model.BaseUrl ?? throw new InvalidOperationException("BaseUrl is required for hosted models");
+        var options = new OpenAIClientOptions { Endpoint = new Uri(baseUrl) };
         var client = new ChatClient(model.Name, credential, options);
         var messages = new[] { new UserChatMessage(payload) };
         var completion = await client.CompleteChatAsync(messages, cancellationToken: ct);
@@ -95,7 +96,8 @@ public class ModelDispatchService : IModelDispatchService
             ? string.Empty
             : _protector.Unprotect(model.ApiKeyEncrypted);
         var credential = new ApiKeyCredential(apiKey);
-        var client = new AzureOpenAIClient(new Uri(model.BaseUrl), credential);
+        var baseUrl = model.BaseUrl ?? throw new InvalidOperationException("BaseUrl is required for hosted models");
+        var client = new AzureOpenAIClient(new Uri(baseUrl), credential);
         var chat = client.GetChatClient(model.Name);
         var messages = new[] { new UserChatMessage(payload) };
         var completion = await chat.CompleteChatAsync(messages, cancellationToken: ct);
