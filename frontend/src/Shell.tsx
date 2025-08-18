@@ -1,18 +1,35 @@
-import { Layout, Menu } from 'antd';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { Layout, Menu, Button } from 'antd';
+import {
+  useNavigate,
+  Outlet,
+  useLocation,
+} from 'react-router-dom';
 import AppstoreOutlined from '@ant-design/icons/AppstoreOutlined';
 import FileAddOutlined from '@ant-design/icons/FileAddOutlined';
 import HeartOutlined from '@ant-design/icons/HeartOutlined';
 import LinkOutlined from '@ant-design/icons/LinkOutlined';
 import ExperimentOutlined from '@ant-design/icons/ExperimentOutlined';
-import HealthBadge from './components/HealthBadge';
+import MenuFoldOutlined from '@ant-design/icons/MenuFoldOutlined';
+import MenuUnfoldOutlined from '@ant-design/icons/MenuUnfoldOutlined';
+import { useState } from 'react';
 import { openHangfire } from './hangfire';
 
-const { Header, Content } = Layout;
+const { Sider, Header, Content } = Layout;
 
 export default function Shell() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState<boolean>(
+    () => localStorage.getItem('menuCollapsed') === 'true',
+  );
+
+  const handleCollapse = (value: boolean, type: 'clickTrigger' | 'responsive') => {
+    if (type === 'clickTrigger') {
+      localStorage.setItem('menuCollapsed', String(value));
+      setCollapsed(value);
+    }
+  };
+
   const items = [
     { key: '/jobs', icon: <AppstoreOutlined />, label: 'Jobs' },
     { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
@@ -25,32 +42,48 @@ export default function Shell() {
       onClick: openHangfire,
     },
   ];
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#fff',
-        }}
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={handleCollapse}
+        breakpoint="md"
+        collapsedWidth={0}
+        trigger={null}
       >
         <Menu
           selectedKeys={[location.pathname]}
-          mode="horizontal"
+          mode="inline"
           items={items}
           onClick={(e) => {
             if (e.key === 'hangfire') return;
             navigate(e.key);
           }}
-          style={{ flex: 1 }}
-          theme="light"
+          style={{ height: '100%' }}
         />
-        <HealthBadge />
-      </Header>
-      <Content style={{ padding: 24 }}>
-        <Outlet />
-      </Content>
+      </Sider>
+      <Layout>
+        <Header
+          style={{
+            padding: 0,
+            background: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Button
+            type="text"
+            aria-label="toggle-menu"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => handleCollapse(!collapsed, 'clickTrigger')}
+          />
+        </Header>
+        <Content style={{ padding: 24 }}>
+          <Outlet />
+        </Content>
+      </Layout>
     </Layout>
   );
 }

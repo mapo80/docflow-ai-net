@@ -4,7 +4,6 @@ import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
 import CloseCircleOutlined from '@ant-design/icons/CloseCircleOutlined';
 import ExclamationCircleOutlined from '@ant-design/icons/ExclamationCircleOutlined';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
-import HealthBadge from '../components/HealthBadge';
 
 type HealthResponse = { status?: string; reasons?: string[] };
 type Status = 'ok' | 'unhealthy' | 'backpressure' | 'loading';
@@ -77,7 +76,6 @@ export default function HealthPage() {
   return (
     <Space direction="vertical" style={{ width: '100%' }} size="large">
       <Typography.Title level={2}>Health</Typography.Title>
-      <HealthBadge />
       <Button onClick={load} loading={loading}>
         Retry
       </Button>
