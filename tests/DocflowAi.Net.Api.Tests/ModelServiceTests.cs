@@ -82,6 +82,8 @@ public class ModelServiceTests
         });
         dto.HasApiKey.Should().BeTrue();
         db.Models.First().ApiKeyEncrypted.Should().NotBe("plain-secret");
+        dto.CreatedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
+        dto.UpdatedAt.Should().BeCloseTo(dto.CreatedAt, TimeSpan.FromSeconds(5));
     }
 
     [Fact]

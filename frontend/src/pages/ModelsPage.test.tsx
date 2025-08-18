@@ -18,6 +18,8 @@ vi.mock('../generated', () => {
       lastUsedAt: null,
       hasApiKey: true,
       hasHfToken: false,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-02T00:00:00Z',
     },
     {
       id: '2',
@@ -32,6 +34,8 @@ vi.mock('../generated', () => {
       lastUsedAt: null,
       hasApiKey: false,
       hasHfToken: true,
+      createdAt: '2024-01-03T00:00:00Z',
+      updatedAt: '2024-01-04T00:00:00Z',
     },
   ];
   return {
@@ -62,6 +66,13 @@ describe('ModelsPage', () => {
     await waitFor(() => {
       expect(ModelsService.modelsStartDownload).toHaveBeenCalledWith({ id: '2' });
     });
+  });
+
+  it('shows created and updated dates', async () => {
+    render(<ModelsPage />);
+    await screen.findByText('host');
+    expect(screen.getAllByText('Created: 2024-01-01 00:00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Updated: 2024-01-04 00:00').length).toBeGreaterThan(0);
   });
 });
 

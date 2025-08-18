@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Table,
+  List,
   Button,
   Input,
   Select,
@@ -8,6 +9,7 @@ import {
   message,
   Grid,
 } from 'antd';
+import type { Breakpoint } from 'antd/es/_util/responsiveObserver';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
@@ -24,6 +26,7 @@ export default function ModelsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
   const [logModel, setLogModel] = useState<string | null>(null);
 
   const load = async () => {
@@ -77,6 +80,18 @@ export default function ModelsPage() {
       render: (v?: string) => (v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '–'),
     },
     {
+      title: 'Created',
+      dataIndex: 'createdAt',
+      responsive: ['md'] as Breakpoint[],
+      render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+    },
+    {
+      title: 'Updated',
+      dataIndex: 'updatedAt',
+      responsive: ['md'] as Breakpoint[],
+      render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+    },
+    {
       title: 'Actions',
       render: (_: unknown, record: ModelDto) => (
         <Space>
@@ -105,13 +120,10 @@ export default function ModelsPage() {
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 8,
-          marginBottom: 16,
-        }}
+      <Space
+        direction={isMobile ? 'vertical' : 'horizontal'}
+        style={{ width: '100%', marginBottom: 16 }}
+        wrap
       >
         <Button
           type="primary"
@@ -120,32 +132,95 @@ export default function ModelsPage() {
           onClick={() => {
             setModalOpen(true);
           }}
-        />
-        <Input
-          placeholder="Search"
+        >
+          Create Model
+        </Button>
+        <Input.Search
+          placeholder="Search by name"
+          allowClear
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 200 }}
+          style={{ flex: 1, minWidth: 200 }}
         />
         <Select
           value={typeFilter}
           onChange={(v) => setTypeFilter(v)}
-          style={{ width: 150 }}
+          style={{ width: 160 }}
           options={[
             { value: 'all', label: 'All' },
             { value: 'hosted-llm', label: 'Hosted LLM' },
             { value: 'local', label: 'Local' },
           ]}
         />
-      </div>
-      <Table<ModelDto>
-        rowKey="id"
-        columns={columns}
-        dataSource={filtered}
-        loading={loading}
-        pagination={false}
-        size={screens.xs ? 'small' : undefined}
-      />
+      </Space>
+      {isMobile ? (
+        <List
+          dataSource={filtered}
+          loading={loading}
+          renderItem={(r) => (
+            <List.Item
+              actions={
+                r.type === 'local'
+                  ? [
+                      <Button
+                        key="download"
+                        icon={<DownloadOutlined />}
+                        aria-label="Start download"
+                        onClick={async () => {
+                          await ModelsService.modelsStartDownload({ id: r.id! });
+                          message.success('Download started');
+                          load();
+                        }}
+                      />, 
+                      <Button
+                        key="log"
+                        icon={<FileTextOutlined />}
+                        aria-label="View log"
+                        onClick={() => setLogModel(r.id!)}
+                      />,
+                    ]
+                  : undefined
+              }
+            >
+              <List.Item.Meta
+                title={r.name}
+                description={
+                  <div>
+                    <div>Type: {r.type === 'hosted-llm' ? 'Hosted LLM' : 'Local'}</div>
+                    <div>
+                      {r.type === 'hosted-llm'
+                        ? `Provider: ${r.provider}`
+                        : `HF: ${r.hfRepo}/${r.modelFile}`}
+                    </div>
+                    <div>
+                      Downloaded:{' '}
+                      {r.type === 'hosted-llm' ? '–' : r.downloaded ? 'Yes' : 'No'}
+                    </div>
+                    <div>
+                      Status:{' '}
+                      {r.type === 'hosted-llm' ? '–' : r.downloadStatus || 'NotRequested'}
+                    </div>
+                    <div>Created: {dayjs(r.createdAt).format('YYYY-MM-DD HH:mm')}</div>
+                    <div>Updated: {dayjs(r.updatedAt).format('YYYY-MM-DD HH:mm')}</div>
+                    <div>
+                      Last Used:{' '}
+                      {r.lastUsedAt ? dayjs(r.lastUsedAt).format('YYYY-MM-DD HH:mm') : '–'}
+                    </div>
+                  </div>
+                }
+              />
+            </List.Item>
+          )}
+        />
+      ) : (
+        <Table<ModelDto>
+          rowKey="id"
+          columns={columns}
+          dataSource={filtered}
+          loading={loading}
+          pagination={false}
+        />
+      )}
       {modalOpen && (
         <ModelModal
           open={modalOpen}

@@ -139,5 +139,18 @@ public class ModelService : IModelService
     }
 
     private static ModelDto ToDto(ModelDocument m) =>
-        new(m.Id, m.Name, m.Type, m.Provider, m.HfRepo, m.ModelFile, m.Downloaded, m.DownloadStatus, m.LastUsedAt, m.ApiKeyEncrypted != null, m.HfTokenEncrypted != null);
+        new(
+            m.Id,
+            m.Name,
+            m.Type,
+            m.Provider,
+            m.HfRepo,
+            m.ModelFile,
+            m.Downloaded,
+            m.DownloadStatus,
+            m.LastUsedAt,
+            m.ApiKeyEncrypted != null,
+            m.HfTokenEncrypted != null,
+            m.CreatedAt,
+            m.UpdatedAt);
 }
