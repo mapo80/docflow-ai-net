@@ -30,8 +30,8 @@ public class JobDocument
     public class PathInfo
     {
         public string Dir { get; set; } = string.Empty;
-        public string Input { get; set; } = string.Empty;
-        public string Output { get; set; } = string.Empty;
-        public string Error { get; set; } = string.Empty;
+        public string? Input { get; set; }
+        public string? Output { get; set; }
+        public string? Error { get; set; }
     }
 }

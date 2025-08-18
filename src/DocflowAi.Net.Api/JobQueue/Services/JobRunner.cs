@@ -79,12 +79,12 @@ public class JobRunner : IJobRunner
                 ProcessResult result;
                 try
                 {
-                    var input = new ProcessInput(jobId, job.Paths.Input, job.TemplateToken, job.Model);
+                      var input = new ProcessInput(jobId, job.Paths.Input!, job.TemplateToken, job.Model);
                     result = await timeoutPolicy.ExecuteAsync(token => _process.ExecuteAsync(input, token), leaseCts.Token);
                 }
                 catch (OperationCanceledException)
                 {
-                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), "cancelled by user");
+                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), "cancelled by user");
                     _store.MarkCancelled(jobId, "cancelled by user");
                     _uow.SaveChanges();
                     _logger.Warning("JobCancelled {JobId}", jobId);
@@ -92,7 +92,7 @@ public class JobRunner : IJobRunner
                 }
                 catch (TimeoutRejectedException)
                 {
-                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), "timeout");
+                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), "timeout");
                     _store.MarkFailed(jobId, "timeout");
                     _uow.SaveChanges();
                     _logger.Warning("JobTimeout {JobId}", jobId);
@@ -100,7 +100,7 @@ public class JobRunner : IJobRunner
                 }
                 catch (Exception ex)
                 {
-                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), ex.Message);
+                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), ex.Message);
                     _store.MarkFailed(jobId, ex.Message);
                     _uow.SaveChanges();
                     _logger.Error(ex, "JobFailed {JobId}", jobId);
@@ -114,7 +114,7 @@ public class JobRunner : IJobRunner
 
                 if (result.Success)
                 {
-                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Output), result.OutputJson);
+                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Output!), result.OutputJson);
                     var ended = DateTimeOffset.UtcNow;
                     _store.MarkSucceeded(jobId, ended, (long)(ended - started).TotalMilliseconds);
                     _store.UpdateProgress(jobId, 100);
@@ -124,7 +124,7 @@ public class JobRunner : IJobRunner
                 else
                 {
                     var msg = result.ErrorMessage ?? "unknown error";
-                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error), msg);
+                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), msg);
                     _store.MarkFailed(jobId, msg);
                     _uow.SaveChanges();
                     _logger.Warning("JobFailed {JobId} {Error}", jobId, msg);
