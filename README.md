@@ -42,6 +42,24 @@ Switch the provider through `JobQueue:Database` in `appsettings.*.json`.
 2. Extend the `switch` statement in `Program.cs` to call `Use<Provider>()`.
 3. Configure `JobQueue:Database:Provider` and `ConnectionString` with the new settings.
 
+## Model dispatch service
+
+Jobs now specify a **model token** that determines which backend executes the
+LLM request. The `ModelDispatchService` resolves the token to a `ModelDocument`
+and routes the call to the appropriate system:
+
+- **Local models** &mdash; return the payload directly to the in-process
+  pipeline.
+- **Hosted LLM (OpenAI compatible)** &mdash; POST to `<baseUrl>/v1/chat/completions`
+  with a bearer token.
+- **Hosted LLM (Azure)** &mdash; POST to
+  `<baseUrl>/openai/deployments/{model}/chat/completions?api-version=2024-02-01`
+  using the `api-key` header.
+
+The service throws when the model token is unknown or when the provider type is
+not supported. It is consumed by the job `ProcessService` to execute jobs with
+the requested model.
+
 ## High-level Architecture
 
 ```

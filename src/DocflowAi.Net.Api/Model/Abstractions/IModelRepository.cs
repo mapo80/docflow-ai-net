@@ -6,6 +6,7 @@ public interface IModelRepository
 {
     IEnumerable<ModelDocument> GetAll();
     ModelDocument? GetById(Guid id);
+    ModelDocument? GetByName(string name);
     void Add(ModelDocument model, string? apiKey, string? hfToken);
     void Update(ModelDocument model, string? apiKey, string? hfToken);
     void Delete(Guid id);

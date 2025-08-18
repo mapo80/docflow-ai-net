@@ -123,7 +123,8 @@ builder.Services.AddScoped<DocflowAi.Net.Api.Templates.Abstractions.ITemplateRep
 builder.Services.AddScoped<ITemplateService, DocflowAi.Net.Api.Templates.Services.TemplateService>();
 builder.Services.Configure<ModelDownloadOptions>(builder.Configuration.GetSection(ModelDownloadOptions.SectionName));
 builder.Services.AddSingleton<IFileSystemService, FileSystemService>();
-builder.Services.AddSingleton<IProcessService, ProcessService>();
+builder.Services.AddHttpClient<IModelDispatchService, ModelDispatchService>();
+builder.Services.AddScoped<IProcessService, ProcessService>();
 builder.Services.AddScoped<IJobRunner, JobRunner>();
 builder.Services.AddSingleton<IConcurrencyGate, ConcurrencyGate>();
 builder.Services.AddHostedService<ReschedulerService>();

@@ -12,7 +12,13 @@ namespace DocflowAi.Net.Api.JobQueue.Processing;
 /// </summary>
 public class ProcessService : IProcessService
 {
+    private readonly IModelDispatchService _dispatcher;
     private readonly Serilog.ILogger _logger = Log.ForContext<ProcessService>();
+
+    public ProcessService(IModelDispatchService dispatcher)
+    {
+        _dispatcher = dispatcher;
+    }
 
     public async Task<ProcessResult> ExecuteAsync(ProcessInput input, CancellationToken ct)
     {
@@ -28,14 +34,8 @@ public class ProcessService : IProcessService
                 input.TemplateToken,
                 input.Model);
 
-            // Simulate some processing - this should be replaced with real logic.
-            var output = new
-            {
-                template = input.TemplateToken,
-                model = input.Model,
-                processedAtUtc = DateTimeOffset.UtcNow
-            };
-            var json = JsonSerializer.Serialize(output);
+            var payload = JsonSerializer.Serialize(new { template = input.TemplateToken });
+            var json = await _dispatcher.InvokeAsync(input.Model, payload, ct);
             sw.Stop();
             _logger.Information("ProcessCompleted {JobId} {ElapsedMs}", input.JobId, sw.ElapsedMilliseconds);
             return new ProcessResult(true, json, null);
