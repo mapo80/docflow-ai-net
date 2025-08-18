@@ -21,6 +21,7 @@ using Hangfire.MemoryStorage;
 using Hellang.Middleware.ProblemDetails;
 using FluentValidation;
 using DocflowAi.Net.Api.Model.Endpoints;
+using DocflowAi.Net.Api.Templates.Endpoints;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.RateLimiting;
@@ -31,6 +32,7 @@ using DocflowAi.Net.Api.Health;
 using Microsoft.OpenApi.Models;
 using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.JobQueue.Repositories;
+using DocflowAi.Net.Api.Model.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -117,6 +119,8 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<ISecretProtector, SecretProtector>();
 builder.Services.AddScoped<IModelRepository, ModelRepository>();
 builder.Services.AddScoped<IModelService, ModelService>();
+builder.Services.AddScoped<DocflowAi.Net.Api.Templates.Abstractions.ITemplateRepository, DocflowAi.Net.Api.Templates.Repositories.TemplateRepository>();
+builder.Services.AddScoped<ITemplateService, DocflowAi.Net.Api.Templates.Services.TemplateService>();
 builder.Services.Configure<ModelDownloadOptions>(builder.Configuration.GetSection(ModelDownloadOptions.SectionName));
 builder.Services.AddSingleton<IFileSystemService, FileSystemService>();
 builder.Services.AddSingleton<IProcessService, ProcessService>();
@@ -200,6 +204,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 DefaultJobSeeder.Build(app);
+DefaultModelSeeder.Build(app);
 
 app.UseSerilogRequestLogging(opts =>
 {
@@ -276,6 +281,7 @@ app.MapHealthChecks(
 app.MapModelEndpoints();
 app.MapModelManagementEndpoints();
 app.MapJobEndpoints();
+app.MapTemplateEndpoints();
 app.MapFallbackToFile("index.html");
 app.Run();
 
