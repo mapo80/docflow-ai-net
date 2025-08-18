@@ -224,6 +224,41 @@
         }
       }
     },
+    "/api/v1/jobs/{id}/files/{file}": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "operationId": "Jobs_File",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/jobs/{id}": {
       "get": {
         "tags": [
@@ -259,10 +294,9 @@
                   "updatedAt": "2024-01-01T00:00:00Z",
                   "metrics": { },
                   "paths": {
-                    "dir": "/data/jobs/0000",
-                    "input": "/data/jobs/0000/input.pdf",
-                    "output": "/data/jobs/0000/output.json",
-                    "error": "/data/jobs/0000/error.txt"
+                    "input": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf",
+                    "output": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json",
+                    "error": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt"
                   }
                 }
               }
@@ -357,7 +391,7 @@
         "operationId": "Model_Current",
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -531,10 +565,209 @@
           }
         }
       }
+    },
+    "/api/models": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "List models",
+        "operationId": "Models_List",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModelDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Create model",
+        "operationId": "Models_Create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateModelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/models/{id}": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Model details",
+        "operationId": "Models_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/models/{id}/download": {
+      "post": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Start model download",
+        "operationId": "Models_StartDownload",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/models/{id}/download-log": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Get download log",
+        "operationId": "Models_DownloadLog",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "CreateModelRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "baseUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "hfRepo": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelFile": {
+            "type": "string",
+            "nullable": true
+          },
+          "hfToken": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DownloadModelRequest": {
         "required": [
           "hfKey",
@@ -721,14 +954,80 @@
         },
         "additionalProperties": false
       },
+      "ModelDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "hfRepo": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelFile": {
+            "type": "string",
+            "nullable": true
+          },
+          "downloaded": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "downloadStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "hasApiKey": {
+            "type": "boolean"
+          },
+          "hasHfToken": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "ModelInfo": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "nullable": true },
-          "repo": { "type": "string", "nullable": true },
-          "file": { "type": "string", "nullable": true },
-          "contextSize": { "type": "integer", "format": "int32", "nullable": true },
-          "loadedAt": { "type": "string", "format": "date-time", "nullable": true }
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "repo": {
+            "type": "string",
+            "nullable": true
+          },
+          "file": {
+            "type": "string",
+            "nullable": true
+          },
+          "contextSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "loadedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
         },
         "additionalProperties": false
       },

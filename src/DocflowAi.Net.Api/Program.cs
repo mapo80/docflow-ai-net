@@ -13,6 +13,9 @@ using DocflowAi.Net.Api.JobQueue.Processing;
 using DocflowAi.Net.Api.JobQueue.Endpoints;
 using DocflowAi.Net.Api.JobQueue.Hosted;
 using DocflowAi.Net.Api.Contracts;
+using DocflowAi.Net.Api.Model.Abstractions;
+using DocflowAi.Net.Api.Model.Repositories;
+using DocflowAi.Net.Api.Model.Services;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Hellang.Middleware.ProblemDetails;
@@ -36,6 +39,7 @@ using System.IO;
 using System.Collections.Generic;
 using Hangfire.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using DocflowAi.Net.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +113,10 @@ builder.Services.AddDbContext<JobDbContext>((sp, opts) =>
 });
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddSingleton<ISecretProtector, SecretProtector>();
+builder.Services.AddScoped<IModelRepository, ModelRepository>();
+builder.Services.AddScoped<IModelService, ModelService>();
+builder.Services.Configure<ModelDownloadOptions>(builder.Configuration.GetSection(ModelDownloadOptions.SectionName));
 builder.Services.AddSingleton<IFileSystemService, FileSystemService>();
 builder.Services.AddSingleton<IProcessService, ProcessService>();
 builder.Services.AddScoped<IJobRunner, JobRunner>();
@@ -265,6 +273,7 @@ app.MapHealthChecks(
     }
 );
 app.MapModelEndpoints();
+app.MapModelManagementEndpoints();
 app.MapJobEndpoints();
 app.MapFallbackToFile("index.html");
 app.Run();

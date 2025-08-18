@@ -16,7 +16,7 @@ export default function Shell() {
   const items = [
     { key: '/jobs', icon: <AppstoreOutlined />, label: 'Jobs' },
     { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
-    { key: '/model', icon: <ExperimentOutlined />, label: 'Model' },
+    { key: '/models', icon: <ExperimentOutlined />, label: 'Models' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
     {
       key: 'hangfire',
