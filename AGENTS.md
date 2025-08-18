@@ -78,6 +78,7 @@ The native libraries of Tesseract (libtesseract.so.5) and Leptonica (liblept.so.
 To run OCR, provide the language tessdata files and set `OcrDataPath` accordingly.
 
 ## Testing guidelines
+- Integration tests in `tests/DocflowAi.Net.Tests.Integration` must be executed only when explicitly requested.
 - Frontend E2E tests are archived under `frontend/donotrun`. Do not implement or execute them, and never invoke Playwright commands (e.g., `npx playwright test`) unless explicitly requested.
 - Run frontend unit tests with `npm test -- --run` and build with `npm run build`.
 - Unit tests for new features or modifications must cover at least **90%** of the affected code.
