@@ -16,6 +16,8 @@ using System.Linq.Expressions;
 using System.IO;
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -53,14 +55,30 @@ public class ModelServiceTests
         public string Schedule<T>(Expression<Func<T, Task>> methodCall, TimeSpan delay) => Guid.NewGuid().ToString();
     }
 
-    private static IModelService CreateService(JobDbContext db, string dir, FakeBackgroundJobClient client)
+    private class StubHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly HttpStatusCode _status;
+        public StubHttpMessageHandler(HttpStatusCode status) => _status = status;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            => Task.FromResult(new HttpResponseMessage(_status));
+    }
+
+    private class FakeHttpClientFactory : IHttpClientFactory
+    {
+        private readonly HttpMessageHandler _handler;
+        public FakeHttpClientFactory(HttpMessageHandler handler) => _handler = handler;
+        public HttpClient CreateClient(string name) => new HttpClient(_handler, disposeHandler: false);
+    }
+
+    private static IModelService CreateService(JobDbContext db, string dir, FakeBackgroundJobClient client, HttpMessageHandler? handler = null)
     {
         var config = new ConfigurationBuilder().Build();
         var protector = new SecretProtector(config);
         var repo = new ModelRepository(db, protector);
         var logger = new LoggerFactory().CreateLogger<ModelService>();
         var opts = Microsoft.Extensions.Options.Options.Create(new ModelDownloadOptions { LogDirectory = dir, ModelDirectory = dir });
-        return new ModelService(repo, logger, client, opts);
+        var factory = new FakeHttpClientFactory(handler ?? new StubHttpMessageHandler(HttpStatusCode.OK));
+        return new ModelService(repo, logger, client, opts, factory);
     }
 
     [Fact]
@@ -98,6 +116,36 @@ public class ModelServiceTests
         service.Create(new CreateModelRequest { Name = "test", Type = "local", HfRepo = "r", ModelFile = "f" });
         Action act = () => service.Create(new CreateModelRequest { Name = "test", Type = "local", HfRepo = "r2", ModelFile = "f2" });
         act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void CreateLocalModel_VerifiesExistence()
+    {
+        var options = new DbContextOptionsBuilder<JobDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        using var db = new JobDbContext(options);
+        var client = new FakeBackgroundJobClient();
+        var handler = new StubHttpMessageHandler(HttpStatusCode.OK);
+        var service = CreateService(db, Path.GetTempPath(), client, handler);
+        var dto = service.Create(new CreateModelRequest { Name = "ok", Type = "local", HfRepo = "r", ModelFile = "f" });
+        dto.Name.Should().Be("ok");
+        db.Models.Should().ContainSingle(m => m.Name == "ok");
+    }
+
+    [Fact]
+    public void CreateLocalModel_NotFound_Throws()
+    {
+        var options = new DbContextOptionsBuilder<JobDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        using var db = new JobDbContext(options);
+        var client = new FakeBackgroundJobClient();
+        var handler = new StubHttpMessageHandler(HttpStatusCode.NotFound);
+        var service = CreateService(db, Path.GetTempPath(), client, handler);
+        Action act = () => service.Create(new CreateModelRequest { Name = "bad", Type = "local", HfRepo = "r", ModelFile = "f" });
+        act.Should().Throw<InvalidOperationException>();
+        db.Models.Should().BeEmpty();
     }
 
     [Fact]
