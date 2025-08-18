@@ -29,7 +29,7 @@ const JobNew: React.FC = () => {
   useEffect(() => {
     modelsApi.list().then((m) => {
       setModels(m);
-      const active = m.find((x) => x.isActive);
+      const active = m.find((x) => x.downloaded);
       if (active) setSelectedModelName(active.name);
     }).catch(() => {});
     templatesApi.list().then(setTemplates).catch(() => {});
@@ -37,8 +37,8 @@ const JobNew: React.FC = () => {
 
   const modelOptions = useMemo(() => models.map(m => ({
     value: m.name,
-    label: `${m.name} (${m.sourceType})`,
-    disabled: m.status !== "Available"
+    label: `${m.name} (${m.type})`,
+    disabled: !m.downloaded
   })), [models]);
 
   const templateOptions = useMemo(() => templates.map(t => ({

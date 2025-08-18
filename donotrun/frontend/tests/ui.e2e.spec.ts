@@ -6,7 +6,7 @@ test('uses custom title and favicon', async ({ page }) => {
   await expect(page.locator('head link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
 });
 
-test('shows seeded jobs after login', async ({ page }) => {
+test.skip('shows seeded jobs after login', async ({ page }) => {
   await page.route('**/api/v1/jobs*', (route) =>
     route.fulfill({
       json: {

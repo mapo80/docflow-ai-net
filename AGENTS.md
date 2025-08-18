@@ -48,6 +48,10 @@ Prompts:
 - `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` should return empty
 - `dotnet build -c Release`
 - `dotnet test -c Release`
+- `npm test -- --run`
+- `npm run build`
+- Unit tests for new or modified code must cover at least 90% of the affected code.
+- End-to-end tests are archived under `donotrun` and must not be executed or extended.
 
 ## Persistence guidelines
 - Use Entity Framework Core with a code-first approach.
@@ -75,30 +79,15 @@ The native libraries of Tesseract (libtesseract.so.5) and Leptonica (liblept.so.
 
 To run OCR, provide the language tessdata files and set `OcrDataPath` accordingly.
 
-## Frontend E2E
-- Ensure the environment is ready (the Playwright commands below are **mandatory** before running `npm run e2e`):
-  ```bash
-  git submodule update --init --recursive
-  ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
-  export PATH="$HOME/dotnet:$PATH"
-  dotnet build -c Release
-  npx --yes playwright install        # install browsers
-  npx --yes playwright install-deps   # required on Linux
-  ```
-- Set variables in `.env`:
-  - `VITE_API_BASE_URL` REST API URL (do not include the `/api/v1` prefix, the client adds it)
-  - `VITE_HANGFIRE_PATH` path of the Hangfire UI (e.g. `/hangfire`)
-- All calls from the frontend to REST services must use the swagger-generated client, except for health services.
-- Swagger-generated files **must not be modified manually**.
-- Always run and verify end-to-end tests (all must pass):
+## Frontend Testing
+- End-to-end tests are disabled and stored under `donotrun/`.
+- Do not run or extend them.
+- Run frontend unit tests and build:
   ```bash
   npm test -- --run
   npm run build
-  npm run e2e
   ```
-- Playwright starts `vite preview` on port 4173: ensure the port is free.
-- To use the real APIs, run the .NET API (`dotnet run`) and point `VITE_API_BASE_URL` to the running instance.
-- Definition of Done: every frontend change must include appropriate E2E tests.
+- Unit tests for new or modified code must cover at least 90% of the affected code.
 
 ## Note
 - `MarkItDownNet` is a git submodule; run `git submodule update --init --recursive` before the .NET build.

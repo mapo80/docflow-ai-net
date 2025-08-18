@@ -79,6 +79,10 @@ Input (PDF/JPG/PNG)
 
 ### Build & Test (local SDK)
 
+> **Note:** End-to-end tests are archived under `donotrun` and must not be executed or extended.
+> Unit tests are required for all changes and must cover at least 90% of the affected code.
+
+
 ```bash
 # install locally if needed
 chmod +x ./dotnet-install.sh

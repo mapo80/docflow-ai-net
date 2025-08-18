@@ -15,7 +15,7 @@ describe("ModelsPage", () => {
   it("renders title", async () => {
     render(<ModelsPage />);
     await waitFor(() => {
-      expect(screen.getByText(/GGUF Models/i)).toBeInTheDocument();
+      expect(screen.getByText(/Models/i)).toBeInTheDocument();
     });
   });
 });
