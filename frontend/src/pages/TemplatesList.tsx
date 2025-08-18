@@ -148,7 +148,7 @@ export default function TemplatesList() {
             </Select>
           </Form.Item>
         </Form>
-        <Button onClick={() => setModalId('new')} aria-label="Create Template">
+        <Button type="primary" onClick={() => setModalId('new')} aria-label="Create Template">
           Create Template
         </Button>
       </Space>
