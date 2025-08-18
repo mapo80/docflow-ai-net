@@ -31,6 +31,7 @@ using DocflowAi.Net.Api.Health;
 using Microsoft.OpenApi.Models;
 using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.JobQueue.Repositories;
+using DocflowAi.Net.Api.Model.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -200,6 +201,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 DefaultJobSeeder.Build(app);
+DefaultModelSeeder.Build(app);
 
 app.UseSerilogRequestLogging(opts =>
 {
