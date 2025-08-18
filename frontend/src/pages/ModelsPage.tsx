@@ -8,11 +8,14 @@ import {
   Space,
   message,
   Grid,
+  Popconfirm,
 } from 'antd';
 import type { Breakpoint } from 'antd/es/_util/responsiveObserver';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
+import EditOutlined from '@ant-design/icons/EditOutlined';
+import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 import ModelModal from '../components/ModelModal';
 import ModelLogModal from '../components/ModelLogModal';
 import { ModelsService, type ModelDto } from '../generated';
@@ -24,6 +27,7 @@ export default function ModelsPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'hosted-llm' | 'local'>('all');
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalId, setModalId] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
@@ -95,23 +99,55 @@ export default function ModelsPage() {
       title: 'Actions',
       render: (_: unknown, record: ModelDto) => (
         <Space>
-          {record.type === 'local' && (
+          {record.type === 'hosted-llm' && (
             <Button
-              icon={<DownloadOutlined />}
-              aria-label="Start download"
-              onClick={async () => {
-                await ModelsService.modelsStartDownload({ id: record.id! });
-                message.success('Download started');
-                load();
+              icon={<EditOutlined />}
+              aria-label="Edit model"
+              onClick={() => {
+                setModalId(record.id!);
+                setModalOpen(true);
               }}
             />
           )}
+          {record.type === 'hosted-llm' && (
+            <Popconfirm
+              title="Delete model?"
+              onConfirm={async () => {
+                await ModelsService.modelsDelete({ id: record.id! });
+                message.success('Model deleted');
+                load();
+              }}
+            >
+              <Button icon={<DeleteOutlined />} aria-label="Delete model" />
+            </Popconfirm>
+          )}
           {record.type === 'local' && (
-            <Button
-              icon={<FileTextOutlined />}
-              aria-label="View log"
-              onClick={() => setLogModel(record.id!)}
-            />
+            <>
+              <Button
+                icon={<DownloadOutlined />}
+                aria-label="Start download"
+                onClick={async () => {
+                  await ModelsService.modelsStartDownload({ id: record.id! });
+                  message.success('Download started');
+                  load();
+                }}
+              />
+              <Button
+                icon={<FileTextOutlined />}
+                aria-label="View log"
+                onClick={() => setLogModel(record.id!)}
+              />
+              <Popconfirm
+                title="Delete model?"
+                onConfirm={async () => {
+                  await ModelsService.modelsDelete({ id: record.id! });
+                  message.success('Model deleted');
+                  load();
+                }}
+              >
+                <Button icon={<DeleteOutlined />} aria-label="Delete model" />
+              </Popconfirm>
+            </>
           )}
         </Space>
       ),
@@ -130,6 +166,7 @@ export default function ModelsPage() {
           icon={<PlusOutlined />}
           aria-label="Create Model"
           onClick={() => {
+            setModalId(undefined);
             setModalOpen(true);
           }}
         >
@@ -173,15 +210,47 @@ export default function ModelsPage() {
                           message.success('Download started');
                           load();
                         }}
-                      />, 
+                      />,
                       <Button
                         key="log"
                         icon={<FileTextOutlined />}
                         aria-label="View log"
                         onClick={() => setLogModel(r.id!)}
                       />,
+                      <Popconfirm
+                        key="del"
+                        title="Delete model?"
+                        onConfirm={async () => {
+                          await ModelsService.modelsDelete({ id: r.id! });
+                          message.success('Model deleted');
+                          load();
+                        }}
+                      >
+                        <Button icon={<DeleteOutlined />} aria-label="Delete model" />
+                      </Popconfirm>,
                     ]
-                  : undefined
+                  : [
+                      <Button
+                        key="edit"
+                        icon={<EditOutlined />}
+                        aria-label="Edit model"
+                        onClick={() => {
+                          setModalId(r.id!);
+                          setModalOpen(true);
+                        }}
+                      />,
+                      <Popconfirm
+                        key="del"
+                        title="Delete model?"
+                        onConfirm={async () => {
+                          await ModelsService.modelsDelete({ id: r.id! });
+                          message.success('Model deleted');
+                          load();
+                        }}
+                      >
+                        <Button icon={<DeleteOutlined />} aria-label="Delete model" />
+                      </Popconfirm>,
+                    ]
               }
             >
               <List.Item.Meta
@@ -226,8 +295,9 @@ export default function ModelsPage() {
       {modalOpen && (
         <ModelModal
           open={modalOpen}
+          modelId={modalId}
           onCancel={() => setModalOpen(false)}
-          onCreated={load}
+          onSaved={load}
           existingNames={models.map((m) => m.name!).filter(Boolean) as string[]}
         />
       )}

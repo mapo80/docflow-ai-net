@@ -8,6 +8,7 @@ public record ModelDto(
     string Name,
     string Type,
     string? Provider,
+    string? BaseUrl,
     string? HfRepo,
     string? ModelFile,
     bool? Downloaded,

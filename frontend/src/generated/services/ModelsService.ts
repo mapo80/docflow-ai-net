@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { CreateModelRequest } from '../models/CreateModelRequest';
 import type { ModelDto } from '../models/ModelDto';
+import type { UpdateModelRequest } from '../models/UpdateModelRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -57,6 +58,49 @@ export class ModelsService {
             },
             errors: {
                 404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * Update model
+     * @returns ModelDto OK
+     * @throws ApiError
+     */
+    public static modelsUpdate({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: UpdateModelRequest,
+    }): CancelablePromise<ModelDto> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/models/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+            },
+        });
+    }
+    /**
+     * Delete model
+     * @returns void
+     * @throws ApiError
+     */
+    public static modelsDelete({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/models/{id}',
+            path: {
+                'id': id,
             },
         });
     }

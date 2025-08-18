@@ -83,6 +83,25 @@ public class ModelService : IModelService
         return ToDto(model);
     }
 
+    public ModelDto Update(Guid id, UpdateModelRequest request)
+    {
+        var existing = _repo.GetById(id) ?? throw new InvalidOperationException("model not found");
+        if (existing.Type != "hosted-llm")
+            throw new InvalidOperationException("only hosted models updatable");
+        existing.Name = request.Name;
+        existing.Provider = request.Provider;
+        existing.BaseUrl = request.BaseUrl;
+        _repo.Update(existing, request.ApiKey, null);
+        _repo.SaveChanges();
+        return ToDto(existing);
+    }
+
+    public void Delete(Guid id)
+    {
+        _repo.Delete(id);
+        _repo.SaveChanges();
+    }
+
     public void StartDownload(Guid id)
     {
         var model = _repo.GetById(id) ?? throw new InvalidOperationException("model not found");
@@ -161,6 +180,7 @@ public class ModelService : IModelService
             m.Name,
             m.Type,
             m.Provider,
+            m.BaseUrl,
             m.HfRepo,
             m.ModelFile,
             m.Downloaded,
