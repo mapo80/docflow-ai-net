@@ -6,13 +6,15 @@ import {
   Button,
   Space,
   Input,
-  Modal,
   Typography,
   message,
   Form,
   Select,
+  Popconfirm,
 } from 'antd';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
+import EditOutlined from '@ant-design/icons/EditOutlined';
+import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { TemplatesService, type TemplateSummary } from '../generated';
@@ -76,24 +78,25 @@ export default function TemplatesList() {
       title: 'Actions',
       render: (_: any, record: TemplateSummary) => (
         <Space>
-          <Button onClick={() => setModalId(record.id)} aria-label="Edit">
-            Edit
-          </Button>
           <Button
-            onClick={() =>
-              Modal.confirm({
-                title: 'Delete template?',
-                onOk: async () => {
-                  await TemplatesService.templatesDelete({ id: record.id! });
-                  message.success('Template deleted');
-                  load();
-                },
-              })
-            }
-            aria-label="Delete"
+            icon={<EditOutlined />}
+            onClick={() => setModalId(record.id)}
+            aria-label="Edit"
+          />
+          <Popconfirm
+            title="Delete template?"
+            onConfirm={async () => {
+              try {
+                await TemplatesService.templatesDelete({ id: record.id! });
+                message.success('Template deleted');
+                load();
+              } catch (e: any) {
+                if (e instanceof Error) showError(e.message);
+              }
+            }}
           >
-            Delete
-          </Button>
+            <Button icon={<DeleteOutlined />} aria-label="Delete" />
+          </Popconfirm>
         </Space>
       ),
     },
@@ -167,25 +170,27 @@ export default function TemplatesList() {
           renderItem={(item) => (
             <List.Item
               actions={[
-                <Button key="edit" onClick={() => setModalId(item.id)} aria-label="Edit">
-                  Edit
-                </Button>,
                 <Button
+                  key="edit"
+                  icon={<EditOutlined />}
+                  onClick={() => setModalId(item.id)}
+                  aria-label="Edit"
+                />,
+                <Popconfirm
                   key="del"
-                  onClick={() =>
-                    Modal.confirm({
-                      title: 'Delete template?',
-                    onOk: async () => {
+                  title="Delete template?"
+                  onConfirm={async () => {
+                    try {
                       await TemplatesService.templatesDelete({ id: item.id! });
-                        message.success('Template deleted');
-                        load();
-                      },
-                    })
-                  }
-                  aria-label="Delete"
+                      message.success('Template deleted');
+                      load();
+                    } catch (e: any) {
+                      if (e instanceof Error) showError(e.message);
+                    }
+                  }}
                 >
-                  Delete
-                </Button>,
+                  <Button icon={<DeleteOutlined />} aria-label="Delete" />
+                </Popconfirm>,
               ]}
             >
               <List.Item.Meta

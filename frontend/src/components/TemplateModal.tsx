@@ -3,8 +3,9 @@ import { Modal, Input, Button, Space, Grid } from 'antd';
 import MDEditor from '@uiw/react-md-editor';
 import dayjs from 'dayjs';
 import TemplateFieldsEditor from './TemplateFieldsEditor';
-import type { SimpleField } from '../templates/fieldsConversion';
-import { slugify, isSlug, simpleToObject, objectToSimple } from '../templates/fieldsConversion';
+import type { FieldItem } from './FieldsEditor';
+import { fieldsToJson, jsonToFields } from './FieldsEditor';
+import { slugify, isSlug } from '../templates/slug';
 import { TemplatesService } from '../generated';
 
 interface Props {
@@ -17,7 +18,7 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
   const [name, setName] = useState('');
   const [token, setToken] = useState('');
   const [prompt, setPrompt] = useState<string | undefined>('');
-  const [fields, setFields] = useState<SimpleField[]>([]);
+  const [fields, setFields] = useState<FieldItem[]>([]);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,11 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
         setName(t.name || '');
         setToken(t.token || '');
         setPrompt(t.promptMarkdown || '');
-        setFields(objectToSimple(t.fieldsJson as any));
+        try {
+          setFields(jsonToFields(JSON.stringify(t.fieldsJson ?? { fields: [] })));
+        } catch {
+          setFields([]);
+        }
         setCreatedAt(t.createdAt || null);
         setUpdatedAt(t.updatedAt || null);
       });
@@ -46,19 +51,19 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
     }
   }, [open, templateId]);
 
-  const hasEmptyKey = fields.some((f) => !f.key);
+  const hasEmptyName = fields.some((f) => !f.name);
   const duplicates = fields.some(
-    (f, i) => fields.findIndex((x) => x.key === f.key && x.value === f.value) !== i,
+    (f, i) => fields.findIndex((x) => x.name === f.name && x.type === f.type) !== i,
   );
   const invalid =
-    !name || !isSlug(token) || hasEmptyKey || duplicates || jsonError !== null;
+    !name || !isSlug(token) || hasEmptyName || duplicates || jsonError !== null;
 
   const handleSave = async () => {
     const payload = {
       name,
       token,
       promptMarkdown: prompt || null,
-      fieldsJson: simpleToObject(fields),
+      fieldsJson: JSON.parse(fieldsToJson(fields)),
     } as any;
     setLoading(true);
     try {
@@ -105,7 +110,7 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
           />
           <Button onClick={() => setToken(slugify(name))}>Auto-generate from name</Button>
         </Space>
-        <MDEditor value={prompt} onChange={setPrompt} />
+        <MDEditor value={prompt} onChange={setPrompt} preview="edit" />
         <TemplateFieldsEditor value={fields} onChange={setFields} onJsonError={setJsonError} />
         {templateId && (
           <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: '100%' }}>

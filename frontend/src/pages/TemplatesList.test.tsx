@@ -36,7 +36,9 @@ vi.mock('antd', () => {
     Input: ({ value, onChange, placeholder }: any) => (
       <input value={value} onChange={onChange} placeholder={placeholder} />
     ),
-    Modal: { confirm: ({ onOk }: any) => onOk() },
+    Popconfirm: ({ onConfirm, children }: any) => (
+      <span onClick={() => onConfirm()}>{children}</span>
+    ),
     Typography: { Text: ({ children }: any) => <span>{children}</span> },
     Space: ({ children }: any) => <div>{children}</div>,
     Form: Object.assign(({ children }: any) => <div>{children}</div>, {
@@ -81,10 +83,10 @@ test('create edit delete flows', async () => {
   await waitFor(() =>
     expect(listSpy).toHaveBeenLastCalledWith({ q: '', page: 1, pageSize: 10, sort: 'name asc' }),
   );
-  fireEvent.click(screen.getAllByText('Edit')[0]);
+  fireEvent.click(screen.getAllByLabelText('Edit')[0]);
   fireEvent.click(screen.getByText('modal'));
   await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(3));
-  fireEvent.click(screen.getAllByText('Delete')[0]);
+  fireEvent.click(screen.getAllByLabelText('Delete')[0]);
   await waitFor(() => expect(delSpy).toHaveBeenCalledWith({ id: '1' }));
   await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(4));
   fireEvent.click(screen.getByText('Create Template'));
