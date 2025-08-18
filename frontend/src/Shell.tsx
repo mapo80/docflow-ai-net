@@ -9,8 +9,7 @@ import FileAddOutlined from '@ant-design/icons/FileAddOutlined';
 import HeartOutlined from '@ant-design/icons/HeartOutlined';
 import LinkOutlined from '@ant-design/icons/LinkOutlined';
 import ExperimentOutlined from '@ant-design/icons/ExperimentOutlined';
-import MenuFoldOutlined from '@ant-design/icons/MenuFoldOutlined';
-import MenuUnfoldOutlined from '@ant-design/icons/MenuUnfoldOutlined';
+import MenuOutlined from '@ant-design/icons/MenuOutlined';
 import RobotOutlined from '@ant-design/icons/RobotOutlined';
 import { useState } from 'react';
 import { openHangfire } from './hangfire';
@@ -82,7 +81,7 @@ export default function Shell() {
           <Button
             type="text"
             aria-label="toggle-menu"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            icon={<MenuOutlined />}
             onClick={() => handleCollapse(!collapsed, 'clickTrigger')}
           />
           <RobotOutlined style={{ fontSize: 24 }} />
