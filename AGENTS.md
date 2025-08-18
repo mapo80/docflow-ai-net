@@ -83,6 +83,28 @@ To run OCR, provide the language tessdata files and set `OcrDataPath` accordingl
 - Unit tests for new features or modifications must cover at least **90%** of the affected code.
 - All calls from the frontend to REST services must use the swagger-generated client, except for health services.
 - Swagger-generated files **must not be modified manually**.
+## Updating frontend REST clients
+1. Start the API server:
+   ```bash
+   dotnet build -c Release
+   dotnet run -c Release --project src/DocflowAi.Net.Api
+   ```
+   The server must be reachable at `http://localhost:8080`.
+
+2. Download the Swagger specification:
+   ```bash
+   cd frontend
+   mkdir -p swagger/v1
+   curl http://localhost:8080/swagger/v1/swagger.json -o swagger/v1/swagger.json
+   ```
+
+3. Generate the client:
+   ```bash
+   npm run gen:api
+   ```
+
+4. Commit the updates:
+   Commit `frontend/swagger/v1/swagger.json` and the regenerated files in `frontend/src/generated`.
 
 ## Note
 - `MarkItDownNet` is a git submodule; run `git submodule update --init --recursive` before the .NET build.
