@@ -50,11 +50,13 @@ and routes the call to the appropriate system:
 
 - **Local models** &mdash; return the payload directly to the in-process
   pipeline.
-- **Hosted LLM (OpenAI compatible)** &mdash; POST to `<baseUrl>/v1/chat/completions`
-  with a bearer token.
-- **Hosted LLM (Azure)** &mdash; POST to
-  `<baseUrl>/openai/deployments/{model}/chat/completions?api-version=2024-02-01`
-  using the `api-key` header.
+- **Hosted LLM (OpenAI)** &mdash; uses the official `OpenAI` SDK to invoke chat
+  completions with bearer authentication.
+- **Hosted LLM (Azure OpenAI)** &mdash; uses the `Azure.AI.OpenAI` SDK to call the
+  specified deployment with the `api-key` header.
+
+All hosted calls run behind a Polly retry policy with exponential backoff and
+jitter, attempting up to three times before surfacing an error.
 
 The service throws when the model token is unknown or when the provider type is
 not supported. It is consumed by the job `ProcessService` to execute jobs with

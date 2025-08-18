@@ -14,6 +14,8 @@
     <ProjectReference Include="..\DocflowAi.Net.BBoxResolver\DocflowAi.Net.BBoxResolver.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <PackageReference Include="OpenAI" Version="2.3.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
@@ -54,24 +56,15 @@
   <!-- 1) SUBITO dopo ResolvePackageAssets: rimuovi le varianti non scelte -->
   <Target Name="FilterLlamaVariantsEarly" AfterTargets="ResolvePackageAssets">
     <ItemGroup>
-      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)"
-        Condition=" '%(RuntimeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'
-                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))
-                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
-      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
-        Condition=" '%(NativeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'
-                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))
-                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition=" '%(RuntimeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'&#xA;                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))&#xA;                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition=" '%(NativeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'&#xA;                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))&#xA;                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
     </ItemGroup>
   </Target>
 
   <!-- 2) Dopo la generazione della lista di publish: ulteriore pulizia -->
   <Target Name="FilterLlamaVariantsPublish" AfterTargets="ResolvePublishFiles">
     <ItemGroup>
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
-        Condition=" '%(ResolvedFileToPublish.PackageId)' == 'LLamaSharp.Backend.Cpu'
-                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '^runtimes/linux-x64/native/'))
-                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '/$(LlamaCpuVariant)/'))) " />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition=" '%(ResolvedFileToPublish.PackageId)' == 'LLamaSharp.Backend.Cpu'&#xA;                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '^runtimes/linux-x64/native/'))&#xA;                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '/$(LlamaCpuVariant)/'))) " />
     </ItemGroup>
   </Target>
 
