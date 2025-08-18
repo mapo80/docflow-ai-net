@@ -13,7 +13,6 @@ describe('HealthPage', () => {
       vi
         .fn()
         .mockResolvedValueOnce({ json: () => Promise.resolve({ status: 'ok', reasons: [] }) })
-        .mockResolvedValueOnce({ json: () => Promise.resolve({ status: 'ok', reasons: [] }) })
         .mockResolvedValueOnce({ json: () => Promise.resolve({ status: 'unhealthy', reasons: [] }) })
     );
     render(<HealthPage />);
@@ -24,7 +23,6 @@ describe('HealthPage', () => {
   it('shows loader while retrying', async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({ json: () => Promise.resolve({ status: 'ok', reasons: [] }) })
       .mockResolvedValueOnce({ json: () => Promise.resolve({ status: 'ok', reasons: [] }) })
       .mockResolvedValueOnce({ json: () => Promise.resolve({ status: 'ok', reasons: [] }) })
       .mockImplementationOnce(() => new Promise(() => {}));
