@@ -199,37 +199,43 @@ export default function JobsList() {
           loading={loading}
           pagination={pagination as PaginationProps}
           renderItem={(record) => (
-            <List.Item
-              key={record.id}
-              actions={[
-                <Link to={`/jobs/${record.id}`} title="View job">
-                  <Button type="link" icon={<EyeOutlined />} aria-label="View job" title="View job" />
-                </Link>,
-                ['Queued', 'Running'].includes(record.status!) && (
-                  <Button
-                    type="link"
-                    onClick={() => handleCancel(record.id!)}
-                    icon={<StopOutlined />}
-                    aria-label="Cancel job"
-                    title="Cancel job"
-                  />
-                ),
-              ]}
-            >
-              <List.Item.Meta
-                title={<Link to={`/jobs/${record.id}`}>{record.id}</Link>}
-                description={
-                  <>
-                    <JobStatusTag status={record.status!} derived={record.derivedStatus} />
-                    <div style={{ marginTop: 8 }}>
-                      <Progress percent={record.progress || 0} size="small" />
-                    </div>
-                    <div style={{ marginTop: 8 }}>
-                      {dayjs(record.updatedAt!).format('YYYY-MM-DD HH:mm')}
-                    </div>
-                  </>
-                }
-              />
+            <List.Item key={record.id}>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Link to={`/jobs/${record.id}`}>{record.id}</Link>
+                  <JobStatusTag status={record.status!} derived={record.derivedStatus} />
+                </div>
+                <Progress percent={record.progress || 0} size="small" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{dayjs(record.updatedAt!).format('YYYY-MM-DD HH:mm')}</span>
+                  <Space>
+                    <Link to={`/jobs/${record.id}`} title="View job">
+                      <Button icon={<EyeOutlined />} aria-label="View job" />
+                    </Link>
+                    {['Queued', 'Running'].includes(record.status!) && (
+                      <Button
+                        onClick={() => handleCancel(record.id!)}
+                        icon={<StopOutlined />}
+                        aria-label="Cancel job"
+                      />
+                    )}
+                    {record.paths?.output && (
+                      <Button
+                        onClick={() => window.open(record.paths!.output!, '_blank')}
+                        icon={<FileTextOutlined />}
+                        aria-label="View output"
+                      />
+                    )}
+                    {record.paths?.error && (
+                      <Button
+                        onClick={() => window.open(record.paths!.error!, '_blank')}
+                        icon={<FileExclamationOutlined />}
+                        aria-label="View error"
+                      />
+                    )}
+                  </Space>
+                </div>
+              </Space>
             </List.Item>
           )}
         />

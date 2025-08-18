@@ -73,6 +73,32 @@ public static class ModelManagementEndpoints
         .Produces<string>(StatusCodes.Status200OK, "text/plain")
         .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPatch("/{id:guid}", (Guid id, UpdateModelRequest request, IModelService service) =>
+        {
+            try
+            {
+                var model = service.Update(id, request);
+                return Results.Ok(model);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new ErrorResponse("error", ex.Message));
+            }
+        })
+        .WithName("Models_Update")
+        .WithSummary("Update model")
+        .Produces<ModelDto>(StatusCodes.Status200OK)
+        .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+
+        group.MapDelete("/{id:guid}", (Guid id, IModelService service) =>
+        {
+            service.Delete(id);
+            return Results.NoContent();
+        })
+        .WithName("Models_Delete")
+        .WithSummary("Delete model")
+        .Produces(StatusCodes.Status204NoContent);
+
         return builder;
     }
 }

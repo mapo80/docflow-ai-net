@@ -42,6 +42,8 @@ vi.mock('../generated', () => {
     ModelsService: {
       modelsList: vi.fn().mockResolvedValue(list),
       modelsStartDownload: vi.fn().mockResolvedValue({}),
+      modelsDelete: vi.fn().mockResolvedValue({}),
+      modelsUpdate: vi.fn().mockResolvedValue({}),
     },
   };
 });
@@ -68,9 +70,16 @@ describe('ModelsPage', () => {
     });
   });
 
-  it('shows created and updated dates', async () => {
+  it('shows actions for hosted model', async () => {
     render(<ModelsPage />);
     await screen.findByText('host');
+    expect(screen.getByLabelText('Edit model')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Delete model').length).toBeGreaterThan(0);
+  });
+
+  it('shows created and updated dates', async () => {
+    render(<ModelsPage />);
+    await screen.findAllByText('host');
     expect(screen.getAllByText('Created: 2024-01-01 00:00').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Updated: 2024-01-04 00:00').length).toBeGreaterThan(0);
   });

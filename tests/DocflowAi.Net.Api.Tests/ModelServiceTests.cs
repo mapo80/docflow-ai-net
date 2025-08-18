@@ -165,4 +165,47 @@ public class ModelServiceTests
         entity!.DownloadLogPath!.Should().Contain(model.Id.ToString());
         client.Enqueued.Should().NotBeNull();
     }
+
+    [Fact]
+    public void UpdateModel_ChangesFields()
+    {
+        var options = new DbContextOptionsBuilder<JobDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        using var db = new JobDbContext(options);
+        var client = new FakeBackgroundJobClient();
+        var service = CreateService(db, Path.GetTempPath(), client);
+        var model = service.Create(new CreateModelRequest
+        {
+            Name = "m1",
+            Type = "hosted-llm",
+            Provider = "openai",
+            BaseUrl = "https://a",
+            ApiKey = "k1",
+        });
+        var updated = service.Update(model.Id, new UpdateModelRequest
+        {
+            Name = "m2",
+            Provider = "azure-openai",
+            BaseUrl = "https://b",
+            ApiKey = "k2",
+        });
+        updated.Name.Should().Be("m2");
+        db.Models.Find(model.Id)!.Provider.Should().Be("azure-openai");
+        db.Models.Find(model.Id)!.ApiKeyEncrypted.Should().NotBe("k2");
+    }
+
+    [Fact]
+    public void DeleteModel_RemovesEntry()
+    {
+        var options = new DbContextOptionsBuilder<JobDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        using var db = new JobDbContext(options);
+        var client = new FakeBackgroundJobClient();
+        var service = CreateService(db, Path.GetTempPath(), client);
+        var model = service.Create(new CreateModelRequest { Name = "m1", Type = "local", HfRepo = "r", ModelFile = "f" });
+        service.Delete(model.Id);
+        db.Models.Should().BeEmpty();
+    }
 }

@@ -21,6 +21,7 @@ export type { PagedJobsResponse } from './models/PagedJobsResponse';
 export type { PathInfo } from './models/PathInfo';
 export type { SubmitAcceptedResponse } from './models/SubmitAcceptedResponse';
 export type { SwitchModelRequest } from './models/SwitchModelRequest';
+export type { UpdateModelRequest } from './models/UpdateModelRequest';
 export type { Void } from './models/Void';
 
 export { JobsService } from './services/JobsService';

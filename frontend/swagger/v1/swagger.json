@@ -662,6 +662,79 @@
             "description": "Not Found"
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Update model",
+        "operationId": "Models_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Delete model",
+        "operationId": "Models_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
       }
     },
     "/api/models/{id}/download": {
@@ -973,6 +1046,10 @@
             "type": "string",
             "nullable": true
           },
+          "baseUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "hfRepo": {
             "type": "string",
             "nullable": true
@@ -1129,6 +1206,33 @@
             "minimum": 1,
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateModelRequest": {
+        "required": [
+          "baseUrl",
+          "name",
+          "provider"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "baseUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
