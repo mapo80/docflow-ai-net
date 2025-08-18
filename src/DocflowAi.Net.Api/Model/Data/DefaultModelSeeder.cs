@@ -2,8 +2,10 @@ namespace DocflowAi.Net.Api.Model.Data;
 
 using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.Model.Models;
+using DocflowAi.Net.Api.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.IO;
 using System.Linq;
@@ -21,6 +23,10 @@ public static class DefaultModelSeeder
             return;
 
         using var scope = app.Services.CreateScope();
+        var cfg = scope.ServiceProvider.GetRequiredService<IOptions<JobQueueOptions>>().Value;
+        if (!cfg.SeedDefaults)
+            return;
+
         var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
         db.Database.EnsureCreated();
 
