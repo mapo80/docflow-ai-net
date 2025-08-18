@@ -25,7 +25,9 @@ End-to-end pipeline for extracting information from documents with **LLMs** and 
 
 ### Default Records
 
-At startup the API can optionally seed two sample jobs using files from the `dataset` directory. The flag `JobQueue:SeedDefaults` in `appsettings.json` controls this behavior and defaults to `true`.
+At startup the API can optionally seed two sample jobs and a sample template using files from the `dataset` directory. The flag `JobQueue:SeedDefaults` in `appsettings.json` controls this behavior and defaults to `true`.
+
+The template token is `template` and contains the invoice extraction prompt and field schema. It is referenced by the seeded jobs and can be reused when submitting new jobs by specifying `"template"` as the template token.
 
 ### Database Providers
 

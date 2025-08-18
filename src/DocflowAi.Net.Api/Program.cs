@@ -22,6 +22,7 @@ using Hellang.Middleware.ProblemDetails;
 using FluentValidation;
 using DocflowAi.Net.Api.Model.Endpoints;
 using DocflowAi.Net.Api.Templates.Endpoints;
+using DocflowAi.Net.Api.Templates.Data;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.RateLimiting;
@@ -206,6 +207,7 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 DefaultJobSeeder.Build(app);
 DefaultModelSeeder.Build(app);
+DefaultTemplateSeeder.Build(app);
 
 app.UseSerilogRequestLogging(opts =>
 {
