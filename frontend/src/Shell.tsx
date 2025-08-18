@@ -37,6 +37,7 @@ export default function Shell() {
     { key: '/jobs', icon: <AppstoreOutlined />, label: 'Jobs' },
     { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
     { key: '/models', icon: <ExperimentOutlined />, label: 'Models' },
+    { key: '/templates', icon: <AppstoreOutlined />, label: 'Templates' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
     {
       key: 'hangfire',

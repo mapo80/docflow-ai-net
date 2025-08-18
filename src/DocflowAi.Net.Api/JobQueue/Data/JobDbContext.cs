@@ -1,5 +1,6 @@
 using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Model.Models;
+using DocflowAi.Net.Api.Templates.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -11,6 +12,7 @@ public class JobDbContext : DbContext
 
     public DbSet<JobDocument> Jobs => Set<JobDocument>();
     public DbSet<ModelDocument> Models => Set<ModelDocument>();
+    public DbSet<TemplateDocument> Templates => Set<TemplateDocument>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,5 +49,15 @@ public class JobDbContext : DbContext
         model.Property(m => m.UpdatedAt).HasConversion(converter);
         model.Property(m => m.LastUsedAt).HasConversion(nullableConverter);
         model.Property(m => m.DownloadedAt).HasConversion(nullableConverter);
+
+        var template = modelBuilder.Entity<TemplateDocument>();
+        template.HasKey(t => t.Id);
+        template.HasIndex(t => t.Name).IsUnique();
+        template.HasIndex(t => t.Token).IsUnique();
+        template.Property(t => t.Name).HasMaxLength(200).IsRequired();
+        template.Property(t => t.Token).HasMaxLength(100).IsRequired();
+        template.Property(t => t.FieldsJson).IsRequired();
+        template.Property(t => t.CreatedAt).HasConversion(converter);
+        template.Property(t => t.UpdatedAt).HasConversion(converter);
     }
 }
