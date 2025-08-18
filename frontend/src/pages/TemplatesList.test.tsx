@@ -32,7 +32,7 @@ vi.mock('antd', () => {
       </div>
     ),
     Grid: { useBreakpoint },
-    Button: (props: any) => <button {...props} />,
+    Button: ({ icon, ...props }: any) => <button {...props} />,
     Input: ({ value, onChange, placeholder }: any) => (
       <input value={value} onChange={onChange} placeholder={placeholder} />
     ),
