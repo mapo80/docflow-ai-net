@@ -60,7 +60,7 @@ public class TestWebAppFactory : WebApplicationFactory<Program>
                 ["JobQueue:RateLimit:Submit:WindowSeconds"] = _windowSeconds.ToString(),
                 ["JobQueue:RateLimit:Submit:QueueLimit"] = "0",
                 ["Serilog:MinimumLevel:Default"] = "Information",
-                ["JobQueue:EnableDashboard"] = "false",
+                ["JobQueue:EnableHangfireDashboard"] = "false",
                 ["JobQueue:Queue:MaxQueueLength"] = _maxQueueLength.ToString(),
                 ["JobQueue:Concurrency:HangfireWorkerCount"] = _workerCount.ToString(),
                 ["JobQueue:UploadLimits:MaxRequestBodyMB"] = _uploadLimitMb.ToString(),

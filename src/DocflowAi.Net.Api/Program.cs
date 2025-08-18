@@ -65,7 +65,6 @@ builder.Services.Configure<BBoxOptions>(builder.Configuration.GetSection("BBox")
 builder.Services.PostConfigure<BBoxOptions>(o => builder.Configuration.GetSection("Resolver:TokenFirst").Bind(o));
 builder.Services.Configure<PointerOptions>(builder.Configuration.GetSection("Resolver:Pointer"));
 builder.Services.Configure<JobQueueOptions>(builder.Configuration.GetSection(JobQueueOptions.SectionName));
-builder.Services.Configure<HangfireDashboardAuthOptions>(builder.Configuration.GetSection(HangfireDashboardAuthOptions.SectionName));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
@@ -233,16 +232,14 @@ app.UseSwaggerUI();
 var fs = app.Services.GetRequiredService<IFileSystemService>();
 var jqOpts = app.Services.GetRequiredService<IOptions<JobQueueOptions>>().Value;
 fs.EnsureDirectory(jqOpts.DataRoot);
-if (jqOpts.EnableDashboard)
+if (jqOpts.EnableHangfireDashboard)
 {
-    var dashOpts = app.Services.GetRequiredService<IOptions<HangfireDashboardAuthOptions>>().Value;
-    var dashboardOptions = new DashboardOptions();
-    if (dashOpts.Enabled)
+    var apiOpts = app.Services.GetRequiredService<IOptions<ApiKeyOptions>>();
+    var dashboardOptions = new DashboardOptions
     {
-        var apiOpts = app.Services.GetRequiredService<IOptions<ApiKeyOptions>>();
-        dashboardOptions.Authorization = new[] { new ApiKeyDashboardFilter(apiOpts) };
-        Log.Information("HangfireDashboardAuthEnabled");
-    }
+        Authorization = new[] { new ApiKeyDashboardFilter(apiOpts) }
+    };
+    Log.Information("HangfireDashboardAuthEnabled");
     app.UseHangfireDashboard("/hangfire", dashboardOptions);
 }
 
