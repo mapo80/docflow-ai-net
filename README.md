@@ -90,6 +90,11 @@ chmod +x ./dotnet-install.sh
 ~/.dotnet/dotnet test
 ```
 
+## Testing guidelines
+
+- Frontend end-to-end tests are archived under `frontend/donotrun` and must not be executed or created.
+- Unit tests for new features and modifications must achieve at least **90%** coverage.
+
 ## Docker build
 
 ```bash
