@@ -11,6 +11,7 @@ import MarkdownPreview from '@uiw/react-markdown-preview';
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
 import Loader from '../components/Loader';
+import { useApiError } from '../components/ApiErrorProvider';
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -24,6 +25,7 @@ export default function JobDetail() {
   const [fields, setFields] = useState<
     { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
   >([]);
+  const { showError } = useApiError();
 
   const load = async () => {
     if (!id) return;
@@ -111,7 +113,11 @@ export default function JobDetail() {
       message.success('Job canceled');
       load();
     } catch (e) {
-      if (e instanceof ApiError) message.error(e.body?.errorCode);
+      if (e instanceof ApiError) {
+        // handled by interceptor
+      } else if (e instanceof Error) {
+        showError(e.message);
+      }
     }
   };
 

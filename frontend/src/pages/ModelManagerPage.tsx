@@ -22,6 +22,7 @@ import {
   type ModelDownloadStatus,
 } from '../generated';
 import dayjs from 'dayjs';
+import { useApiError } from '../components/ApiErrorProvider';
 
 type ModelStatus = ModelDownloadStatus & { message?: string };
 
@@ -32,6 +33,7 @@ export default function ModelManagerPage() {
   const [polling, setPolling] = useState(false);
   const [status, setStatus] = useState<ModelStatus | null>(null);
   const screens = Grid.useBreakpoint();
+  const { showError } = useApiError();
 
   const loadInfo = async () => {
     try {
@@ -66,7 +68,8 @@ export default function ModelManagerPage() {
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 429) setRetryAfter(e.body?.retry_after_seconds ?? 0);
-        else message.error(e.body?.message || e.body?.errorCode);
+      } else if (e instanceof Error) {
+        showError(e.message);
       }
     }
   };
@@ -80,7 +83,8 @@ export default function ModelManagerPage() {
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 429) setRetryAfter(e.body?.retry_after_seconds ?? 0);
-        else message.error(e.body?.message || e.body?.errorCode);
+      } else if (e instanceof Error) {
+        showError(e.message);
       }
     }
   };
@@ -98,7 +102,7 @@ export default function ModelManagerPage() {
       if (e instanceof ApiError && e.status === 429) {
         setRetryAfter(e.body?.retry_after_seconds ?? 0);
       } else {
-        message.error('Status error');
+        if (!(e instanceof ApiError)) showError('Status error');
         setPolling(false);
       }
     }

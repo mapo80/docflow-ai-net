@@ -3,6 +3,7 @@ import { test, vi, expect } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import JobDetail from './JobDetail';
 import { JobsService } from '../generated';
+import ApiErrorProvider from '../components/ApiErrorProvider';
 
 test('detail viewers render and have download', async () => {
   vi.spyOn(JobsService, 'jobsGetById').mockResolvedValue({
@@ -41,11 +42,13 @@ test('detail viewers render and have download', async () => {
     return Promise.resolve(new Response(''));
   });
   render(
-    <MemoryRouter initialEntries={['/jobs/1']}>
-      <Routes>
-        <Route path="/jobs/:id" element={<JobDetail />} />
-      </Routes>
-    </MemoryRouter>,
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
   );
   await screen.findByText('Job 1');
   await screen.findByText('company_name');

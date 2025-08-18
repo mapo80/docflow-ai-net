@@ -3,6 +3,7 @@ import { test, vi, expect } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import JobsList from './JobsList';
 import { JobsService } from '../generated';
+import ApiErrorProvider from '../components/ApiErrorProvider';
 
 vi.mock('antd', () => ({
   Table: ({ dataSource, pagination, columns }: any) => (
@@ -39,9 +40,11 @@ test('pagination and cancel', async () => {
     .mockResolvedValue({ items: [{ id: '1', status: 'Running', createdAt: '', updatedAt: '' } as any], page: 1, pageSize: 10, total: 20 });
   const cancelSpy = vi.spyOn(JobsService, 'jobsDelete').mockResolvedValue(undefined as any);
   render(
-    <MemoryRouter>
-      <JobsList />
-    </MemoryRouter>,
+    <ApiErrorProvider>
+      <MemoryRouter>
+        <JobsList />
+      </MemoryRouter>
+    </ApiErrorProvider>,
   );
   await waitFor(() => expect(getSpy).toHaveBeenCalledWith({ page: 1, pageSize: 10 }));
   fireEvent.click(screen.getByText('2'));

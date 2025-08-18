@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import Loader from './components/Loader';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ApiErrorProvider from './components/ApiErrorProvider';
 const Login = lazy(() => import('./pages/Login'));
 const Shell = lazy(() => import('./Shell'));
 const JobsList = lazy(() => import('./pages/JobsList'));
@@ -28,20 +29,22 @@ function App() {
     );
   }
   return (
-    <Suspense fallback={<Loader />}>
-      <Routes>
-        <Route path="/" element={<Shell />}>
-          <Route index element={<Navigate to="/jobs" />} />
-          <Route path="jobs" element={<JobsList />} />
-          <Route path="jobs/new" element={<JobNew />} />
-          <Route path="jobs/:id" element={<JobDetail />} />
-          <Route path="health" element={<HealthPage />} />
-          <Route path="model" element={<ModelManagerPage />} />
-          <Route path="models" element={<ModelsPage />} />
-          <Route path="*" element={<Navigate to="/jobs" />} />
-        </Route>
-      </Routes>
-    </Suspense>
+    <ApiErrorProvider>
+      <Suspense fallback={<Loader />}>
+        <Routes>
+          <Route path="/" element={<Shell />}>
+            <Route index element={<Navigate to="/jobs" />} />
+            <Route path="jobs" element={<JobsList />} />
+            <Route path="jobs/new" element={<JobNew />} />
+            <Route path="jobs/:id" element={<JobDetail />} />
+            <Route path="health" element={<HealthPage />} />
+            <Route path="model" element={<ModelManagerPage />} />
+            <Route path="models" element={<ModelsPage />} />
+            <Route path="*" element={<Navigate to="/jobs" />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </ApiErrorProvider>
   );
 }
 
