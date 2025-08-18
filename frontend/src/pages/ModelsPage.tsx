@@ -135,23 +135,25 @@ export default function ModelsPage() {
         >
           Create Model
         </Button>
-        <Input.Search
-          placeholder="Search by name"
-          allowClear
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ flex: 1, minWidth: 200 }}
-        />
-        <Select
-          value={typeFilter}
-          onChange={(v) => setTypeFilter(v)}
-          style={{ width: 160 }}
-          options={[
-            { value: 'all', label: 'All' },
-            { value: 'hosted-llm', label: 'Hosted LLM' },
-            { value: 'local', label: 'Local' },
-          ]}
-        />
+        <Space.Compact style={{ flex: 1, minWidth: 200 }}>
+          <Select
+            value={typeFilter}
+            onChange={(v) => setTypeFilter(v)}
+            style={{ width: 160 }}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'hosted-llm', label: 'Hosted LLM' },
+              { value: 'local', label: 'Local' },
+            ]}
+          />
+          <Input.Search
+            placeholder="Search by name"
+            allowClear
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ flex: 1 }}
+          />
+        </Space.Compact>
       </Space>
       {isMobile ? (
         <List
