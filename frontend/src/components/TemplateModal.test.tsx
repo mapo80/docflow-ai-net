@@ -46,7 +46,6 @@ vi.mock('./TemplateFieldsEditor', () => ({
   ),
 }));
 
-vi.mock('dayjs', () => ({ default: (v: any) => ({ format: () => v }) }));
 
 afterEach(() => {
   cleanup();
@@ -101,4 +100,19 @@ test('update flow', async () => {
   fireEvent.change(screen.getByPlaceholderText('Template Token'), { target: { value: 'b' } });
   fireEvent.click(screen.getByText('Save'));
   await waitFor(() => expect(updateSpy).toHaveBeenCalled());
+});
+
+test('does not show timestamps on edit', async () => {
+  vi.spyOn(TemplatesService, 'templatesGet').mockResolvedValue({
+    id: '1',
+    name: 'a',
+    token: 'a',
+    fieldsJson: {},
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-02T00:00:00Z',
+  } as any);
+  render(<TemplateModal open={true} templateId="1" onClose={() => {}} />);
+  await waitFor(() => screen.getByPlaceholderText('Template Name'));
+  expect(screen.queryByPlaceholderText('Created At')).toBeNull();
+  expect(screen.queryByPlaceholderText('Last Updated')).toBeNull();
 });
