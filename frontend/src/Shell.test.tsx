@@ -12,7 +12,7 @@ describe('Shell', () => {
       </MemoryRouter>,
     );
     const toggle = getByLabelText('toggle-menu');
-    expect(toggle.querySelector('svg[data-icon="menu-unfold"]')).not.toBeNull();
+    expect(toggle.querySelector('svg[data-icon="menu"]')).not.toBeNull();
     fireEvent.click(toggle);
     expect(localStorage.getItem('menuCollapsed')).toBe('false');
   });
