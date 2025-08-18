@@ -15,26 +15,14 @@ test('detail viewers render and have download', async () => {
     paths: {
       input: '/api/v1/jobs/1/files/input.pdf',
       output: '/api/v1/jobs/1/files/output.json',
-      fields: '/api/v1/jobs/1/files/fields',
       error: '/api/v1/jobs/1/files/error.txt',
     },
-    fields: [{ key: 'company_name', value: 'ACME', confidence: 0.9 }],
   } as any);
   vi.spyOn(global, 'fetch' as any).mockImplementation((url: RequestInfo) => {
     if (typeof url === 'string' && url.endsWith('output.json')) {
       return Promise.resolve(
         new Response(
-          JSON.stringify({ promptLength: 12, fieldsLength: 1 }),
-          { headers: { 'Content-Type': 'application/json' } },
-        ),
-      );
-    }
-    if (typeof url === 'string' && url.endsWith('fields')) {
-      return Promise.resolve(
-        new Response(
-          JSON.stringify([
-            { key: 'company_name', value: 'ACME', confidence: 0.9 },
-          ]),
+          JSON.stringify({ template: 't', model: 'm' }),
           { headers: { 'Content-Type': 'application/json' } },
         ),
       );
@@ -51,15 +39,12 @@ test('detail viewers render and have download', async () => {
     </ApiErrorProvider>,
   );
   await screen.findByText('Job 1');
-  await screen.findByText('company_name');
   await screen.getByRole('tab', { name: 'Files' }).click();
-  await waitFor(() => expect(screen.getAllByTitle('Download')).toHaveLength(3));
+  await waitFor(() => expect(screen.getAllByTitle('Download')).toHaveLength(2));
   const previews = await screen.findAllByTitle('Preview');
-  expect(previews).toHaveLength(2);
+  expect(previews).toHaveLength(1);
   await previews[0].click();
-  await screen.findByText((content) => content.includes('promptLength'));
+  await screen.findByText((content) => content.includes('template'));
   screen.getAllByLabelText('Close')[0].click();
-  await previews[1].click();
-  await screen.findByText('confidence');
   expect(screen.queryByText('error')).toBeNull();
 });

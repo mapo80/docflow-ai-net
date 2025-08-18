@@ -42,8 +42,6 @@ public static class DefaultJobSeeder
                 var okDir = Path.Combine(cfg.DataRoot, okId.ToString());
                 Directory.CreateDirectory(okDir);
                 File.Copy(Path.Combine(datasetRoot, "sample_invoice.pdf"), Path.Combine(okDir, "input.pdf"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-pdf", "prompt.txt"), Path.Combine(okDir, "prompt.txt"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-pdf", "fields.txt"), Path.Combine(okDir, "fields.txt"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-png-boxsolver-pointerstrategy", "result.json"), Path.Combine(okDir, "output.json"), true);
                 var okJob = new JobDocument
                 {
@@ -55,12 +53,12 @@ public static class DefaultJobSeeder
                     CreatedAt = now,
                     UpdatedAt = now,
                     Metrics = new JobDocument.MetricsInfo { StartedAt = now, EndedAt = now, DurationMs = 0 },
+                    Model = "model",
+                    TemplateToken = "template",
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = okDir,
                         Input = Path.Combine(okDir, "input.pdf"),
-                        Prompt = Path.Combine(okDir, "prompt.txt"),
-                        Fields = Path.Combine(okDir, "fields.txt"),
                         Output = Path.Combine(okDir, "output.json"),
                         Error = string.Empty
                     }
@@ -70,8 +68,6 @@ public static class DefaultJobSeeder
                 var errDir = Path.Combine(cfg.DataRoot, errId.ToString());
                 Directory.CreateDirectory(errDir);
                 File.Copy(Path.Combine(datasetRoot, "sample_invoice.png"), Path.Combine(errDir, "input.png"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-png", "prompt.txt"), Path.Combine(errDir, "prompt.txt"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-png", "fields.txt"), Path.Combine(errDir, "fields.txt"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-png", "llm_response.txt"), Path.Combine(errDir, "error.txt"), true);
                 var errJob = new JobDocument
                 {
@@ -84,12 +80,12 @@ public static class DefaultJobSeeder
                     UpdatedAt = now,
                     ErrorMessage = "Processing failed",
                     Metrics = new JobDocument.MetricsInfo(),
+                    Model = "model",
+                    TemplateToken = "template",
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = errDir,
                         Input = Path.Combine(errDir, "input.png"),
-                        Prompt = Path.Combine(errDir, "prompt.txt"),
-                        Fields = Path.Combine(errDir, "fields.txt"),
                         Output = string.Empty,
                         Error = Path.Combine(errDir, "error.txt")
                     }

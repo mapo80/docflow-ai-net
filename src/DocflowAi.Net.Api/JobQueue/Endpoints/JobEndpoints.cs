@@ -21,7 +21,7 @@ namespace DocflowAi.Net.Api.JobQueue.Endpoints;
 
 public static class JobEndpoints
 {
-    private record SubmitRequest(string FileBase64, string FileName, string? Prompt, string? Fields);
+    private record SubmitRequest(string FileBase64, string FileName, string Model, string TemplateToken);
 
     public static IEndpointRouteBuilder MapJobEndpoints(this IEndpointRouteBuilder builder)
     {
@@ -87,7 +87,7 @@ public static class JobEndpoints
             var job = store.Get(id);
             if (job == null) return Results.NotFound();
             var name = Path.GetFileName(file);
-            var candidates = new[] { job.Paths.Input, job.Paths.Prompt, job.Paths.Fields, job.Paths.Output, job.Paths.Error }
+            var candidates = new[] { job.Paths.Input, job.Paths.Output, job.Paths.Error }
                 .Where(p => !string.IsNullOrEmpty(p));
             var match = candidates.FirstOrDefault(p => Path.GetFileName(p!)
                 .Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -108,8 +108,9 @@ public static class JobEndpoints
             logger.LogInformation("SubmitJobStarted");
 
             SubmitRequest? payload = await req.ReadFromJsonAsync<SubmitRequest>();
-            if (payload is null || string.IsNullOrEmpty(payload.FileBase64) || string.IsNullOrEmpty(payload.FileName))
-                return Results.Json(new ErrorResponse("bad_request", "file required"), statusCode: 400);
+            if (payload is null || string.IsNullOrEmpty(payload.FileBase64) || string.IsNullOrEmpty(payload.FileName)
+                || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken))
+                return Results.Json(new ErrorResponse("bad_request", "file, model and template required"), statusCode: 400);
 
             var bytes = Convert.FromBase64String(payload.FileBase64);
             var optsVal = opts.Value;
@@ -166,9 +167,7 @@ public static class JobEndpoints
             var jobId = Guid.NewGuid();
             fs.CreateJobDirectory(jobId);
             var inputPath = await fs.SaveInputAtomic(jobId, formFile);
-            var promptPath = await fs.SaveTextAtomic(jobId, "prompt.txt", payload.Prompt ?? string.Empty);
-            var fieldsPath = await fs.SaveTextAtomic(jobId, "fields.json", payload.Fields ?? "{}");
-            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, promptFile = Path.GetFileName(promptPath), fieldsFile = Path.GetFileName(fieldsPath) });
+            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken });
             await fs.SaveTextAtomic(jobId, "manifest.json", manifest);
 
             var mode = req.Query.TryGetValue("mode", out var mv) ? mv.ToString() : null;
@@ -184,7 +183,9 @@ public static class JobEndpoints
                 AvailableAt = DateTimeOffset.UtcNow,
                 Hash = hash,
                 IdempotencyKey = idemKey,
-                Paths = new JobDocument.PathInfo { Dir = Path.GetDirectoryName(inputPath)!, Input = inputPath, Prompt = promptPath, Fields = fieldsPath, Output = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json"), Error = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt") }
+                Model = payload.Model,
+                TemplateToken = payload.TemplateToken,
+                Paths = new JobDocument.PathInfo { Dir = Path.GetDirectoryName(inputPath)!, Input = inputPath, Output = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json"), Error = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt") }
             };
             store.Create(doc);
             uow.SaveChanges();
@@ -330,12 +331,10 @@ public static class JobEndpoints
             {
                 Dir = string.Empty,
                 Input = ToPublicPath(job.Id, job.Paths.Input),
-                Prompt = ToPublicPath(job.Id, job.Paths.Prompt),
-                Fields = ToPublicPath(job.Id, job.Paths.Fields),
                 Output = ToPublicPath(job.Id, job.Paths.Output),
                 Error = ToPublicPath(job.Id, job.Paths.Error)
             };
-            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Immediate);
+            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Immediate, job.Model, job.TemplateToken);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
             return Results.Ok(resp);
         })
@@ -359,7 +358,9 @@ public static class JobEndpoints
                     ["input"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf"),
                     ["output"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json"),
                     ["error"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt")
-                }
+                },
+                ["model"] = new OpenApiString("model"),
+                ["templateToken"] = new OpenApiString("template")
             };
             op.Responses["404"].Content["application/json"].Example = new OpenApiObject
             {

@@ -21,7 +21,7 @@ public class ImmediateJobCancelTests : IClassFixture<TempDirFixture>
         using var factory = new TestWebAppFactory_Immediate(_fx.RootPath);
         factory.Fake.CurrentMode = FakeProcessService.Mode.Cancellable;
         var client = factory.CreateClient();
-        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
+        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf", model = "m", templateToken = "t" };
         using var cts = new CancellationTokenSource();
         using (TestCorrelator.CreateContext())
         {

@@ -21,13 +21,13 @@ public class IdempotencyAndDedupeTests : IClassFixture<TempDirFixture>
         new Random(1).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var req1 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "a.pdf" }) };
+        var req1 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "a.pdf", model = "m", templateToken = "t" }) };
         req1.Headers.Add("Idempotency-Key", "K1");
         var resp1 = await client.SendAsync(req1);
         resp1.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var id1 = (await resp1.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("job_id").GetGuid();
 
-        var req2 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "a.pdf" }) };
+        var req2 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "a.pdf", model = "m", templateToken = "t" }) };
         req2.Headers.Add("Idempotency-Key", "K1");
         var resp2 = await client.SendAsync(req2);
         resp2.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -45,11 +45,11 @@ public class IdempotencyAndDedupeTests : IClassFixture<TempDirFixture>
         new Random(2).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var resp1 = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "b.pdf" });
+        var resp1 = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "b.pdf", model = "m", templateToken = "t" });
         resp1.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var id1 = (await resp1.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("job_id").GetGuid();
 
-        var resp2 = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "b.pdf" });
+        var resp2 = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "b.pdf", model = "m", templateToken = "t" });
         resp2.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var id2 = (await resp2.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("job_id").GetGuid();
         id2.Should().Be(id1);
@@ -65,13 +65,13 @@ public class IdempotencyAndDedupeTests : IClassFixture<TempDirFixture>
         new Random(3).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var req1 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs?mode=immediate") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "c.pdf" }) };
+        var req1 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs?mode=immediate") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "c.pdf", model = "m", templateToken = "t" }) };
         req1.Headers.Add("Idempotency-Key", "K2");
         var resp1 = await client.SendAsync(req1);
         resp1.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var id1 = (await resp1.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("job_id").GetGuid();
 
-        var req2 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs?mode=immediate") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "c.pdf" }) };
+        var req2 = new HttpRequestMessage(HttpMethod.Post, "/api/v1/jobs?mode=immediate") { Content = JsonContent.Create(new { fileBase64 = base64, fileName = "c.pdf", model = "m", templateToken = "t" }) };
         req2.Headers.Add("Idempotency-Key", "K2");
         var resp2 = await client.SendAsync(req2);
         resp2.StatusCode.Should().Be(System.Net.HttpStatusCode.Accepted);
@@ -88,11 +88,11 @@ public class IdempotencyAndDedupeTests : IClassFixture<TempDirFixture>
         new Random(4).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var resp1 = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", new { fileBase64 = base64, fileName = "d.pdf" });
+        var resp1 = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", new { fileBase64 = base64, fileName = "d.pdf", model = "m", templateToken = "t" });
         resp1.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var id1 = (await resp1.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("job_id").GetGuid();
 
-        var resp2 = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", new { fileBase64 = base64, fileName = "d.pdf" });
+        var resp2 = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", new { fileBase64 = base64, fileName = "d.pdf", model = "m", templateToken = "t" });
         resp2.StatusCode.Should().Be(System.Net.HttpStatusCode.Accepted);
         var id2 = (await resp2.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("job_id").GetGuid();
         id2.Should().Be(id1);

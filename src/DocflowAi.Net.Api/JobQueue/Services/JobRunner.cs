@@ -79,8 +79,8 @@ public class JobRunner : IJobRunner
                 ProcessResult result;
                 try
                 {
-                    var input = new ProcessInput(jobId, job.Paths.Input, job.Paths.Prompt, job.Paths.Fields);
-                    result = await timeoutPolicy.ExecuteAsync((token) => _process.ExecuteAsync(input, token), leaseCts.Token);
+                    var input = new ProcessInput(jobId, job.Paths.Input, job.TemplateToken, job.Model);
+                    result = await timeoutPolicy.ExecuteAsync(token => _process.ExecuteAsync(input, token), leaseCts.Token);
                 }
                 catch (OperationCanceledException)
                 {

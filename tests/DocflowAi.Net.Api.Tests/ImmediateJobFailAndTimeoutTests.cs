@@ -21,7 +21,7 @@ public class ImmediateJobFailAndTimeoutTests : IClassFixture<TempDirFixture>
         using var factory = new TestWebAppFactory_Immediate(_fx.RootPath);
         factory.Fake.CurrentMode = FakeProcessService.Mode.Fail;
         var client = factory.CreateClient();
-        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
+        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf", model = "m", templateToken = "t" };
         var res = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);
         res.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var body = await res.Content.ReadFromJsonAsync<JsonElement>();
@@ -40,7 +40,7 @@ public class ImmediateJobFailAndTimeoutTests : IClassFixture<TempDirFixture>
         using var factory = new TestWebAppFactory_Immediate(_fx.RootPath, timeoutSeconds:1);
         factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
         var client = factory.CreateClient();
-        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
+        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf", model = "m", templateToken = "t" };
         var res = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);
         res.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var body = await res.Content.ReadFromJsonAsync<JsonElement>();

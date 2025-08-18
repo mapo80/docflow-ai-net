@@ -1,6 +1,6 @@
 namespace DocflowAi.Net.Api.JobQueue.Processing;
 
-public record ProcessInput(Guid JobId, string InputPath, string? PromptPath, string? FieldsPath);
+public record ProcessInput(Guid JobId, string InputPath, string TemplateToken, string Model);
 public record ProcessResult(bool Success, string OutputJson, string? ErrorMessage);
 
 public interface IProcessService
