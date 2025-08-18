@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { test, vi, expect } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import JobDetail from './JobDetail';
-import { JobsService } from '../generated';
+import { JobsService, ModelsService, TemplatesService } from '../generated';
 import ApiErrorProvider from '../components/ApiErrorProvider';
 
 test('detail viewers render and have download', async () => {
@@ -12,11 +12,17 @@ test('detail viewers render and have download', async () => {
     createdAt: '',
     updatedAt: '',
     attempts: 1,
+    model: 'm',
+    templateToken: 't',
     paths: {
       input: '/api/v1/jobs/1/files/input.pdf',
       output: '/api/v1/jobs/1/files/output.json',
       error: '/api/v1/jobs/1/files/error.txt',
     },
+  } as any);
+  vi.spyOn(ModelsService, 'modelsList').mockResolvedValue([{ name: 'm' } as any]);
+  vi.spyOn(TemplatesService, 'templatesList').mockResolvedValue({
+    items: [{ token: 't', name: 'template' }],
   } as any);
   vi.spyOn(global, 'fetch' as any).mockImplementation((url: RequestInfo) => {
     if (typeof url === 'string' && url.endsWith('output.json')) {

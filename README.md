@@ -29,6 +29,15 @@ At startup the API can optionally seed two sample jobs and a sample template usi
 
 The template token is `template` and contains the invoice extraction prompt and field schema. It is referenced by the seeded jobs and can be reused when submitting new jobs by specifying `"template"` as the template token.
 
+### Job submission parameters
+
+Each job must reference two tokens:
+
+- `model` — the model token to execute (see `/api/models` for available models).
+- `templateToken` — the template token describing the prompt and fields (see `/api/templates`).
+
+Clients should send these tokens to `POST /api/v1/jobs` and they are persisted on the job record. The job detail endpoint returns the tokens so that consumers can look up full model or template information later.
+
 ### Database Providers
 
 The job queue persistence layer uses Entity Framework Core and supports the following providers:

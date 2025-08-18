@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { JobsService, type JobDetailResponse, OpenAPI, ApiError } from '../generated';
+import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
 import { Descriptions, Progress, Button, message, Space, Modal, Tabs, Table } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
@@ -16,6 +16,8 @@ import { useApiError } from '../components/ApiErrorProvider';
 export default function JobDetail() {
   const { id } = useParams();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
+  const [modelInfo, setModelInfo] = useState<any | null>(null);
+  const [templateInfo, setTemplateInfo] = useState<any | null>(null);
   const [preview, setPreview] = useState<
     | { label: string; type: 'json'; content: any }
     | { label: string; type: 'markdown'; content: string }
@@ -45,6 +47,26 @@ export default function JobDetail() {
     if (!job || ['Succeeded', 'Failed', 'Cancelled'].includes(job.status!)) return;
     const t = setInterval(load, 3000);
     return () => clearInterval(t);
+  }, [job]);
+
+  useEffect(() => {
+    if (!job) return;
+    (async () => {
+      try {
+        const ms = await ModelsService.modelsList();
+        setModelInfo(ms.find((m: any) => m.name === job.model) || null);
+      } catch {
+        setModelInfo(null);
+      }
+      try {
+        const ts = await TemplatesService.templatesList({ pageSize: 100 });
+        setTemplateInfo(
+          ts.items?.find((t: any) => t.token === job.templateToken) || null,
+        );
+      } catch {
+        setTemplateInfo(null);
+      }
+    })();
   }, [job]);
 
   useEffect(() => {
@@ -226,6 +248,12 @@ export default function JobDetail() {
           <Progress percent={job.progress || 0} />
         </Descriptions.Item>
         <Descriptions.Item label="Attempts">{job.attempts}</Descriptions.Item>
+        <Descriptions.Item label="Model">
+          {modelInfo?.name || job.model}
+        </Descriptions.Item>
+        <Descriptions.Item label="Template">
+          {templateInfo?.name || job.templateToken}
+        </Descriptions.Item>
         <Descriptions.Item label="Immediate">{job.immediate ? 'Yes' : 'No'}</Descriptions.Item>
         <Descriptions.Item label="Created">{job.createdAt}</Descriptions.Item>
         <Descriptions.Item label="Updated">{job.updatedAt}</Descriptions.Item>

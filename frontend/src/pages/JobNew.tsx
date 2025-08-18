@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Alert, Button, Card, Checkbox, Form, Input, Upload, notification } from 'antd';
+import { useEffect, useState } from 'react';
+import { Alert, Button, Card, Checkbox, Form, Input, Upload, notification, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
-import { ApiError, OpenAPI } from '../generated';
+import { ApiError, OpenAPI, ModelsService, TemplatesService } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 import { useApiError } from '../components/ApiErrorProvider';
@@ -60,6 +60,8 @@ export async function submitPayload(
 
 export default function JobNew() {
   const [file, setFile] = useState<File | null>(null);
+  const [models, setModels] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [model, setModel] = useState('');
   const [templateToken, setTemplateToken] = useState('');
   const [immediate, setImmediate] = useState(false);
@@ -69,6 +71,23 @@ export default function JobNew() {
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const navigate = useNavigate();
   const { showError } = useApiError();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const ms = await ModelsService.modelsList();
+        setModels(ms);
+      } catch {
+        /* ignore */
+      }
+      try {
+        const ts = await TemplatesService.templatesList({ pageSize: 100 });
+        setTemplates(ts.items || []);
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
 
   const handleSubmit = async () => {
     if (!file) {
@@ -147,12 +166,21 @@ export default function JobNew() {
           </Upload.Dragger>
         </Form.Item>
         <Form.Item label="Model" required>
-          <Input value={model} onChange={(e) => setModel(e.target.value)} />
+          <Select
+            showSearch
+            placeholder="Select model"
+            options={models.map((m) => ({ value: m.name, label: m.name }))}
+            value={model || undefined}
+            onChange={(v) => setModel(v)}
+          />
         </Form.Item>
         <Form.Item label="Template" required>
-          <Input
-            value={templateToken}
-            onChange={(e) => setTemplateToken(e.target.value)}
+          <Select
+            showSearch
+            placeholder="Select template"
+            options={templates.map((t) => ({ value: t.token, label: t.name }))}
+            value={templateToken || undefined}
+            onChange={(v) => setTemplateToken(v)}
           />
         </Form.Item>
         <Form.Item>
