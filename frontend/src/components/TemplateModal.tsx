@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal, Input, Button, Space, Grid } from 'antd';
 import MDEditor from '@uiw/react-md-editor';
-import dayjs from 'dayjs';
 import TemplateFieldsEditor from './TemplateFieldsEditor';
 import type { FieldItem } from './FieldsEditor';
 import { fieldsToJson, jsonToFields } from './FieldsEditor';
@@ -19,8 +18,6 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
   const [token, setToken] = useState('');
   const [prompt, setPrompt] = useState<string | undefined>('');
   const [fields, setFields] = useState<FieldItem[]>([]);
-  const [createdAt, setCreatedAt] = useState<string | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
   const screens = Grid.useBreakpoint();
@@ -38,16 +35,12 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
         } catch {
           setFields([]);
         }
-        setCreatedAt(t.createdAt || null);
-        setUpdatedAt(t.updatedAt || null);
       });
     } else {
       setName('');
       setToken('');
       setPrompt('');
       setFields([]);
-      setCreatedAt(null);
-      setUpdatedAt(null);
     }
   }, [open, templateId]);
 
@@ -97,35 +90,35 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
       destroyOnClose
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Input
-          placeholder="Template Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: '100%' }}>
+        <div>
+          <label htmlFor="tpl-name">Template Name</label>
           <Input
-            placeholder="Template Token"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
+            id="tpl-name"
+            placeholder="Template Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
-          <Button onClick={() => setToken(slugify(name))}>Auto-generate from name</Button>
-        </Space>
-        <MDEditor value={prompt} onChange={setPrompt} preview="edit" />
-        <TemplateFieldsEditor value={fields} onChange={setFields} onJsonError={setJsonError} />
-        {templateId && (
+        </div>
+        <div>
+          <label htmlFor="tpl-token">Template Token</label>
           <Space direction={isMobile ? 'vertical' : 'horizontal'} style={{ width: '100%' }}>
             <Input
-              value={createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm') : ''}
-              disabled
-              placeholder="Created At"
+              id="tpl-token"
+              placeholder="Template Token"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
             />
-            <Input
-              value={updatedAt ? dayjs(updatedAt).format('YYYY-MM-DD HH:mm') : ''}
-              disabled
-              placeholder="Last Updated"
-            />
+            <Button onClick={() => setToken(slugify(name))}>Auto-generate from name</Button>
           </Space>
-        )}
+        </div>
+        <div>
+          <label htmlFor="tpl-prompt">Prompt</label>
+          <MDEditor id="tpl-prompt" value={prompt} onChange={setPrompt} preview="edit" />
+        </div>
+        <div>
+          <label>Fields</label>
+          <TemplateFieldsEditor value={fields} onChange={setFields} onJsonError={setJsonError} />
+        </div>
       </Space>
     </Modal>
   );

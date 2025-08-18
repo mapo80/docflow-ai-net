@@ -134,7 +134,7 @@ export default function TemplatesList() {
           layout={isMobile ? 'vertical' : 'inline'}
           style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 8 }}
         >
-          <Form.Item style={{ marginBottom: 0 }}>
+          <Form.Item label="Search" style={{ marginBottom: 0 }}>
             <Input
               placeholder="Search"
               aria-label="Search templates"
@@ -144,7 +144,7 @@ export default function TemplatesList() {
               style={{ width: isMobile ? '100%' : 200 }}
             />
           </Form.Item>
-          <Form.Item style={{ marginBottom: 0 }}>
+          <Form.Item label="Sort" style={{ marginBottom: 0 }}>
             <Select
               value={sort}
               onChange={(v) => setSort(v)}

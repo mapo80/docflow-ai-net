@@ -58,7 +58,9 @@ export default function TemplateFieldsEditor({ value, onChange, onJsonError }: P
           label: 'JSON',
           children: (
             <>
+              <label htmlFor="fields-json">Fields JSON</label>
               <Input.TextArea
+                id="fields-json"
                 rows={isMobile ? 6 : 4}
                 value={json}
                 onChange={(e) => handleJsonChange(e.target.value)}
