@@ -11,6 +11,7 @@ import JobStatusTag from '../components/JobStatusTag';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import type { PaginationProps } from 'antd';
+import { useApiError } from '../components/ApiErrorProvider';
 
 const terminal = ['Succeeded', 'Failed', 'Cancelled'];
 
@@ -23,6 +24,7 @@ export default function JobsList() {
   const [retry, setRetry] = useState<number | null>(null);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
+  const { showError } = useApiError();
 
   const load = async () => {
     setLoading(true);
@@ -74,7 +76,9 @@ export default function JobsList() {
       load();
     } catch (e) {
       if (e instanceof ApiError) {
-        message.error(e.body?.errorCode);
+        // handled by interceptor
+      } else if (e instanceof Error) {
+        showError(e.message);
       }
     }
   };

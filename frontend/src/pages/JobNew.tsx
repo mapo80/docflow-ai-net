@@ -9,7 +9,6 @@ import {
   Upload,
   Tabs,
   Space,
-  message,
   notification,
   Drawer,
 } from 'antd';
@@ -25,6 +24,7 @@ import FieldsEditor, {
 import { ApiError, OpenAPI } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
+import { useApiError } from '../components/ApiErrorProvider';
 
 export function isValidJson(str: string): boolean {
   try {
@@ -99,6 +99,7 @@ export default function JobNew() {
   const [result, setResult] = useState<any | null>(null);
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { showError } = useApiError();
 
   useEffect(() => {
     const preset = localStorage.getItem('jobPreset');
@@ -123,16 +124,16 @@ export default function JobNew() {
 
   const handleSubmit = async () => {
     if (!file) {
-      message.error('File is required');
+      showError('File is required');
       return;
     }
     const err = validateFile(file);
     if (err) {
-      message.error(err);
+      showError(err);
       return;
     }
     if (fieldsMode === 'json' && !isValidJson(jsonFields)) {
-      message.error('Invalid fields JSON');
+      showError('Invalid fields JSON');
       return;
     }
     const payload = await buildPayload(
@@ -163,15 +164,9 @@ export default function JobNew() {
           setRetryAfter(e.body.retry_after_seconds ?? 0);
         } else if (e.status === 429) {
           notification.warning({ message: 'queue_full' });
-        } else if (e.status === 413) {
-          message.error('File too large');
-        } else if (e.status === 507) {
-          notification.error({ message: 'insufficient storage' });
-        } else {
-          notification.error({ message: e.body?.errorCode });
         }
       } else {
-        notification.error({ message: 'Error' });
+        showError('Error');
       }
     } finally {
       setLoading(false);
@@ -204,7 +199,7 @@ export default function JobNew() {
             beforeUpload={(f) => {
               const e = validateFile(f);
               if (e) {
-                message.error(e);
+                showError(e);
                 return Upload.LIST_IGNORE;
               }
               setFile(f);
@@ -264,7 +259,7 @@ export default function JobNew() {
                           try {
                             setVisualFields(jsonToFields(jsonFields));
                           } catch {
-                            message.error('Invalid JSON');
+                            showError('Invalid JSON');
                           }
                         }}
                       >

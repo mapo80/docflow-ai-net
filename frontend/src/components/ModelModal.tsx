@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  Button,
-  Space,
-  message,
-} from 'antd';
-import { ModelsService, type CreateModelRequest } from '../generated';
+import { Modal, Form, Input, Select, Button, Space, message } from 'antd';
+import { ModelsService, type CreateModelRequest, ApiError } from '../generated';
+import { useApiError } from './ApiErrorProvider';
 
 interface ModelModalProps {
   open: boolean;
@@ -26,6 +19,7 @@ export default function ModelModal({
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const type = Form.useWatch('type', form) || 'hosted-llm';
+  const { showError } = useApiError();
 
   useEffect(() => {
     if (open) {
@@ -52,7 +46,7 @@ export default function ModelModal({
       onCreated();
       onCancel();
     } catch (e) {
-      if (e instanceof Error) message.error(e.message);
+      if (!(e instanceof ApiError) && e instanceof Error) showError(e.message);
     } finally {
       setSaving(false);
     }
