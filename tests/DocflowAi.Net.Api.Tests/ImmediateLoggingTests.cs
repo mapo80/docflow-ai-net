@@ -16,7 +16,7 @@ public class ImmediateLoggingTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory_Immediate(_fx.RootPath);
         var client = factory.CreateClient();
-        var payload1 = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
+        var payload1 = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf", model = "m", templateToken = "t" };
         using (TestCorrelator.CreateContext())
         {
             factory.Fake.CurrentMode = FakeProcessService.Mode.Success;
@@ -27,7 +27,7 @@ public class ImmediateLoggingTests : IClassFixture<TempDirFixture>
         using (TestCorrelator.CreateContext())
         {
             factory.Fake.CurrentMode = FakeProcessService.Mode.Fail;
-            var payload2 = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf" };
+            var payload2 = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf", model = "m", templateToken = "t" };
             var resp = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload2);
             resp.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
             TestCorrelator.GetLogEventsFromCurrentContext();

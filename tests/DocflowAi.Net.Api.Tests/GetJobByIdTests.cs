@@ -38,12 +38,12 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             Hash = "h",
+            Model = "m",
+            TemplateToken = "t",
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
                 Input = Path.Combine(dir, "i.pdf"),
-                Prompt = Path.Combine(dir, "p.md"),
-                Fields = Path.Combine(dir, "f.json"),
                 Output = outputPath,
                 Error = Path.Combine(dir, "e.txt")
             },
@@ -89,6 +89,8 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             Hash = "h",
+            Model = "m",
+            TemplateToken = "t",
             Paths = new JobDocument.PathInfo { Dir = dir, Output = outputPath }
         };
         store.Create(job);

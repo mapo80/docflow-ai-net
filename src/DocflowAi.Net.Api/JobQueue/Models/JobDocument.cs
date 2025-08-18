@@ -17,6 +17,8 @@ public class JobDocument
     public string Hash { get; set; } = string.Empty;
     public PathInfo Paths { get; set; } = new();
     public string? ErrorMessage { get; set; }
+    public string Model { get; set; } = string.Empty;
+    public string TemplateToken { get; set; } = string.Empty;
 
     public class MetricsInfo
     {
@@ -29,8 +31,6 @@ public class JobDocument
     {
         public string Dir { get; set; } = string.Empty;
         public string Input { get; set; } = string.Empty;
-        public string? Prompt { get; set; }
-        public string? Fields { get; set; }
         public string Output { get; set; } = string.Empty;
         public string Error { get; set; } = string.Empty;
     }

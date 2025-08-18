@@ -15,4 +15,4 @@ public record SubmitAcceptedResponse(Guid job_id, string status_url, string? das
 public record ImmediateJobResponse(Guid job_id, string status, long? duration_ms = null, string? error = null);
 
 /// <summary>Detailed job information.</summary>
-public record JobDetailResponse(Guid Id, string Status, string DerivedStatus, int Progress, int Attempts, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, JobDocument.MetricsInfo Metrics, JobDocument.PathInfo Paths, string? ErrorMessage, bool Immediate);
+public record JobDetailResponse(Guid Id, string Status, string DerivedStatus, int Progress, int Attempts, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, JobDocument.MetricsInfo Metrics, JobDocument.PathInfo Paths, string? ErrorMessage, bool Immediate, string Model, string TemplateToken);

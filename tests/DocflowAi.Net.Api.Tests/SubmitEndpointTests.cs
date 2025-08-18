@@ -25,7 +25,7 @@ public class SubmitEndpointTests : IClassFixture<TempDirFixture>
         new Random(1).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", prompt = "hi", fields = "{}" });
+        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", model = "m", templateToken = "t" });
         resp.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
         var id = json.GetProperty("job_id").GetGuid();
@@ -33,8 +33,8 @@ public class SubmitEndpointTests : IClassFixture<TempDirFixture>
         var dir = Path.Combine(factory.DataRootPath, id.ToString("N"));
         Directory.Exists(dir).Should().BeTrue();
         File.Exists(Path.Combine(dir, "input.pdf")).Should().BeTrue();
-        File.Exists(Path.Combine(dir, "prompt.txt")).Should().BeTrue();
-        File.Exists(Path.Combine(dir, "fields.json")).Should().BeTrue();
+        File.Exists(Path.Combine(dir, "prompt.txt")).Should().BeFalse();
+        File.Exists(Path.Combine(dir, "fields.json")).Should().BeFalse();
         File.Exists(Path.Combine(dir, "manifest.json")).Should().BeTrue();
 
         using var scope = factory.Services.CreateScope();

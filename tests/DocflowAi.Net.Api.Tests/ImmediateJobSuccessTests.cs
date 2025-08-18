@@ -24,7 +24,7 @@ public class ImmediateJobSuccessTests : IClassFixture<TempDirFixture>
         using var ctx = TestCorrelator.CreateContext();
         var client = factory.CreateClient();
         var pdf = new byte[]{1,2,3,4};
-        var payload = new { fileBase64 = Convert.ToBase64String(pdf), fileName = "a.pdf" };
+        var payload = new { fileBase64 = Convert.ToBase64String(pdf), fileName = "a.pdf", model = "m", templateToken = "t" };
         var res = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);
         res.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var body = await res.Content.ReadFromJsonAsync<JsonElement>();

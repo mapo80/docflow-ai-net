@@ -6,7 +6,7 @@ namespace DocflowAi.Net.Api.JobQueue.Processing;
 
 /// <summary>
 /// Default implementation of <see cref="IProcessService"/>. Currently a placeholder
-/// that simulates a processing pipeline by reading optional prompt and fields
+/// that simulates a processing pipeline by logging model and template information
 /// and returning a dummy JSON payload. It is designed to be replaced by the real
 /// pipeline in future steps.
 /// </summary>
@@ -20,18 +20,19 @@ public class ProcessService : IProcessService
         try
         {
             var fileInfo = new FileInfo(input.InputPath);
-            var hasPrompt = input.PromptPath != null && File.Exists(input.PromptPath);
-            var hasFields = input.FieldsPath != null && File.Exists(input.FieldsPath);
-            _logger.Information("ProcessStarted {JobId} {Bytes} {FileExt} {HasPrompt} {HasFields}",
-                input.JobId, fileInfo.Length, fileInfo.Extension, hasPrompt, hasFields);
+            _logger.Information(
+                "ProcessStarted {JobId} {Bytes} {FileExt} {Template} {Model}",
+                input.JobId,
+                fileInfo.Length,
+                fileInfo.Extension,
+                input.TemplateToken,
+                input.Model);
 
-            string prompt = hasPrompt ? await File.ReadAllTextAsync(input.PromptPath!, ct) : string.Empty;
-            string fields = hasFields ? await File.ReadAllTextAsync(input.FieldsPath!, ct) : "{}";
             // Simulate some processing - this should be replaced with real logic.
             var output = new
             {
-                promptLength = prompt.Length,
-                fieldsLength = fields.Length,
+                template = input.TemplateToken,
+                model = input.Model,
                 processedAtUtc = DateTimeOffset.UtcNow
             };
             var json = JsonSerializer.Serialize(output);

@@ -25,7 +25,7 @@ public class ImmediateBackpressureTests : IClassFixture<TempDirFixture>
         var uow = factory.GetService<IUnitOfWork>();
         store.Create(existing);
         uow.SaveChanges();
-        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
+        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf", model = "m", templateToken = "t" };
         using (TestCorrelator.CreateContext())
         {
             var resp = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);

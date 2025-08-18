@@ -21,10 +21,10 @@ public class ImmediateCapacityAndFallbackTests : IClassFixture<TempDirFixture>
         using var factory = new TestWebAppFactory_Immediate(_fx.RootPath, fallback:false);
         factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
         var client = factory.CreateClient();
-        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
+        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf", model = "m", templateToken = "t" };
         var first = client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload); // running
         await Task.Delay(200); // ensure started
-        var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf" };
+        var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf", model = "m", templateToken = "t" };
         var second = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", secondPayload);
         second.StatusCode.Should().Be(System.Net.HttpStatusCode.TooManyRequests);
         second.Headers.Should().ContainKey("Retry-After");
@@ -38,11 +38,11 @@ public class ImmediateCapacityAndFallbackTests : IClassFixture<TempDirFixture>
         using var factory = new TestWebAppFactory_Immediate(_fx.RootPath, fallback:true);
         factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
         var client = factory.CreateClient();
-        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf" };
+        var payload = new { fileBase64 = Convert.ToBase64String(new byte[]{1}), fileName = "a.pdf", model = "m", templateToken = "t" };
         var first = client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", payload);
         for (var i = 0; i < 50 && factory.Fake.MaxConcurrent == 0; i++)
             await Task.Delay(100);
-        var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf" };
+        var secondPayload = new { fileBase64 = Convert.ToBase64String(new byte[]{2}), fileName = "b.pdf", model = "m", templateToken = "t" };
         var second = await client.PostAsJsonAsync("/api/v1/jobs?mode=immediate", secondPayload);
         second.StatusCode.Should().Be(System.Net.HttpStatusCode.Accepted);
         var body = await second.Content.ReadFromJsonAsync<JsonElement>();

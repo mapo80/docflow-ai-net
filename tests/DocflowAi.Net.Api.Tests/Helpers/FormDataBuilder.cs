@@ -9,17 +9,15 @@ public static class FormDataBuilder
         byte[] fileBytes,
         string fileName,
         string contentType,
-        string? promptTextOrJson = null,
-        string? fieldsJson = null)
+        string model,
+        string templateToken)
     {
         var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(fileBytes);
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
         content.Add(fileContent, "file", fileName);
-        if (promptTextOrJson != null)
-            content.Add(new StringContent(promptTextOrJson, Encoding.UTF8, "text/plain"), "prompt");
-        if (fieldsJson != null)
-            content.Add(new StringContent(fieldsJson, Encoding.UTF8, "application/json"), "fields");
+        content.Add(new StringContent(model, Encoding.UTF8, "text/plain"), "model");
+        content.Add(new StringContent(templateToken, Encoding.UTF8, "text/plain"), "templateToken");
         return content;
     }
 }

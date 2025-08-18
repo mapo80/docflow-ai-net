@@ -38,7 +38,9 @@ public static class DbTestHelper
             CreatedAt = createdAt,
             UpdatedAt = createdAt,
             Hash = faker.Random.Hash(),
-            Paths = new JobDocument.PathInfo { Dir = "", Input = "", Prompt = null, Fields = null, Output = "", Error = "" },
+            Model = "m",
+            TemplateToken = "t",
+            Paths = new JobDocument.PathInfo { Dir = "", Input = "", Output = "", Error = "" },
             Metrics = new JobDocument.MetricsInfo()
         };
     }
