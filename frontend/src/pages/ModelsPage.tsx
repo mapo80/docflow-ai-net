@@ -1,7 +1,7 @@
 import DataLoader from "@/components/DataLoader";
 import React, { useEffect, useState } from "react";
 import { Card, Button, message } from "antd";
-import AddModelModal from "@/components/models/AddModelModal";
+import ModelModal from "@/components/models/ModelModal";
 import ModelTable from "@/components/models/ModelTable";
 import api, { type AddModelRequest, type ModelDto } from "@/services/modelsApi";
 
@@ -9,6 +9,7 @@ const ModelsPage: React.FC = () => {
   const [models, setModels] = useState<ModelDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<ModelDto | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -28,33 +29,28 @@ const ModelsPage: React.FC = () => {
     return () => clearInterval(id);
   }, []);
 
-  const onAdd = async (req: AddModelRequest) => {
+  const onSave = async (req: AddModelRequest) => {
     try {
-      await api.add(req);
-      message.success("Model added");
+      if (editing) {
+        await api.update(editing.id, req);
+        message.success("Model updated");
+      } else {
+        await api.add(req);
+        message.success("Model added");
+      }
       await load();
     } catch (e: any) {
-      message.error(e.message ?? "Failed to add");
+      message.error(e.message ?? "Failed to save");
     }
   };
 
   const onDownload = async (id: string) => {
     try {
-      await api.download(id);
+      await api.startDownload(id);
       message.success("Download started");
       await load();
     } catch (e: any) {
       message.error(e.message ?? "Failed to start download");
-    }
-  };
-
-  const onActivate = async (id: string) => {
-    try {
-      await api.activate(id);
-      message.success("Model activated");
-      await load();
-    } catch (e: any) {
-      message.error(e.message ?? "Failed to activate");
     }
   };
 
@@ -72,10 +68,10 @@ const ModelsPage: React.FC = () => {
 
   return (
     <div style={{ padding: 16, display: "grid", gap: 16 }}>
-      <Card title="GGUF Models" extra={<Button type="primary" onClick={() => setOpen(true)}>Add</Button>}>
-        <ModelTable data={models} onDownload={onDownload} onActivate={onActivate} onDelete={onDelete} loading={loading} />
+      <Card title="Models" extra={<Button type="primary" onClick={() => { setEditing(null); setOpen(true); }}>Add</Button>}>
+        <ModelTable data={models} onDownload={onDownload} onDelete={onDelete} onEdit={(m) => { setEditing(m); setOpen(true); }} loading={loading} />
       </Card>
-      <AddModelModal open={open} onCancel={() => setOpen(false)} onSubmit={onAdd} />
+      <ModelModal open={open} model={editing} onCancel={() => { setOpen(false); setEditing(null); }} onSubmit={onSave} />
     </div>
   );
 };

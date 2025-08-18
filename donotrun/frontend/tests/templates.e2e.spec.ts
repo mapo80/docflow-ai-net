@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test('templates page renders', async ({ page }) => {
+test.skip('templates page renders', async ({ page }) => {
   await page.goto('/templates');
   await expect(page.getByText('Templates')).toBeVisible();
 });

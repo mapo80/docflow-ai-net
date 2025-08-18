@@ -195,6 +195,7 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 
 app.MapModelCatalogEndpoints();
+DefaultModelSeeder.Build(app);
 DefaultJobSeeder.Build(app);
 
 app.UseSerilogRequestLogging(opts =>

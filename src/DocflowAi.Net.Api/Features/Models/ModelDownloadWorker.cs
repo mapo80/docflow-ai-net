@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+using System.Net.Http.Headers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace DocflowAi.Net.Api.Features.Models;
@@ -33,6 +35,10 @@ public class ModelDownloadWorker : BackgroundService
                 using var scope = _sp.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<ModelCatalogDbContext>();
                 var http = scope.ServiceProvider.GetRequiredService<HttpClient>();
+                var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                var token = cfg["HF_TOKEN"];
+                if (!string.IsNullOrWhiteSpace(token))
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 var downloaders = scope.ServiceProvider.GetRequiredService<IEnumerable<Downloaders.IModelDownloader>>();
 
                 var model = await db.Models.FirstOrDefaultAsync(m => m.Id == id, stoppingToken);
