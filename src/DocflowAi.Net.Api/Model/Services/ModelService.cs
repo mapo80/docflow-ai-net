@@ -21,17 +21,20 @@ public class ModelService : IModelService
     private readonly ILogger<ModelService> _logger;
     private readonly IBackgroundJobClient _jobs;
     private readonly ModelDownloadOptions _options;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public ModelService(
         IModelRepository repo,
         ILogger<ModelService> logger,
         IBackgroundJobClient jobs,
-        IOptions<ModelDownloadOptions> options)
+        IOptions<ModelDownloadOptions> options,
+        IHttpClientFactory httpClientFactory)
     {
         _repo = repo;
         _logger = logger;
         _jobs = jobs;
         _options = options.Value;
+        _httpClientFactory = httpClientFactory;
     }
 
     public IEnumerable<ModelDto> GetAll() => _repo.GetAll().Select(ToDto);
@@ -46,6 +49,20 @@ public class ModelService : IModelService
     {
         if (_repo.ExistsByName(request.Name))
             throw new InvalidOperationException("model name exists");
+
+        if (request.Type == "local")
+        {
+            if (string.IsNullOrWhiteSpace(request.HfRepo) || string.IsNullOrWhiteSpace(request.ModelFile))
+                throw new InvalidOperationException("missing repo info");
+            var url = $"https://huggingface.co/{request.HfRepo}/resolve/main/{request.ModelFile}";
+            using var client = _httpClientFactory.CreateClient();
+            using var head = new HttpRequestMessage(HttpMethod.Head, url);
+            if (!string.IsNullOrEmpty(request.HfToken))
+                head.Headers.Authorization = new AuthenticationHeaderValue("Bearer", request.HfToken);
+            using var resp = client.SendAsync(head).GetAwaiter().GetResult();
+            if (!resp.IsSuccessStatusCode)
+                throw new InvalidOperationException("huggingface model not found");
+        }
 
         var model = new ModelDocument
         {

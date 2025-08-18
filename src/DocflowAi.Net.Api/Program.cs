@@ -67,6 +67,7 @@ builder.Services.Configure<HangfireDashboardAuthOptions>(builder.Configuration.G
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
 builder.Services.AddAuthorization();
+builder.Services.AddHttpClient();
 
 builder.Services.AddControllers();
 
