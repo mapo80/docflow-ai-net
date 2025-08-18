@@ -1,6 +1,5 @@
-using System.Net;
-using System.Net.Http;
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DocflowAi.Net.Api.JobQueue.Processing;
@@ -15,15 +14,32 @@ namespace DocflowAi.Net.Api.Tests;
 
 public class ModelDispatchServiceTests
 {
-    private sealed class FakeHandler : HttpMessageHandler
+    private sealed class TestService : ModelDispatchService
     {
-        private readonly HttpResponseMessage _response;
-        public HttpRequestMessage? Request { get; private set; }
-        public FakeHandler(HttpResponseMessage response) => _response = response;
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        private readonly Queue<Func<Task<string>>> _openAi;
+        private readonly Queue<Func<Task<string>>> _azure;
+        public int OpenAiCalls { get; private set; }
+        public int AzureCalls { get; private set; }
+
+        public TestService(IModelRepository repo, ISecretProtector protector,
+            IEnumerable<Func<Task<string>>> openAiBehaviors,
+            IEnumerable<Func<Task<string>>> azureBehaviors)
+            : base(repo, protector)
         {
-            Request = request;
-            return Task.FromResult(_response);
+            _openAi = new Queue<Func<Task<string>>>(openAiBehaviors);
+            _azure = new Queue<Func<Task<string>>>(azureBehaviors);
+        }
+
+        protected override Task<string> InvokeOpenAiAsync(ModelDocument model, string payload, CancellationToken ct)
+        {
+            OpenAiCalls++;
+            return _openAi.Dequeue()();
+        }
+
+        protected override Task<string> InvokeAzureAsync(ModelDocument model, string payload, CancellationToken ct)
+        {
+            AzureCalls++;
+            return _azure.Dequeue()();
         }
     }
 
@@ -33,56 +49,55 @@ public class ModelDispatchServiceTests
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("local").Returns(new ModelDocument { Name = "local", Type = "local" });
         var protector = Substitute.For<ISecretProtector>();
-        var handler = new FakeHandler(new HttpResponseMessage(HttpStatusCode.OK));
-        var client = new HttpClient(handler);
-        var svc = new ModelDispatchService(repo, client, protector);
+        var svc = new ModelDispatchService(repo, protector);
 
         var payload = "{\"ping\":true}";
         var result = await svc.InvokeAsync("local", payload, CancellationToken.None);
 
         result.Should().Be(payload);
-        handler.Request.Should().BeNull();
     }
 
     [Fact]
-    public async Task OpenAiModel_CallsExpectedEndpoint()
+    public async Task OpenAiModel_RetriesAndReturnsResult()
     {
-        var model = new ModelDocument { Name = "gpt", Type = "hosted-llm", Provider = "openai", BaseUrl = "https://api.example", ApiKeyEncrypted = "enc" };
+        var model = new ModelDocument { Name = "gpt", Type = "hosted-llm", Provider = "openai" };
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("gpt").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
-        protector.Unprotect("enc").Returns("secret");
-        var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{\"ok\":true}") };
-        var handler = new FakeHandler(response);
-        var client = new HttpClient(handler);
-        var svc = new ModelDispatchService(repo, client, protector);
+
+        var behaviors = new List<Func<Task<string>>>
+        {
+            () => throw new Exception(),
+            () => throw new Exception(),
+            () => Task.FromResult("ok")
+        };
+        var svc = new TestService(repo, protector, behaviors, Array.Empty<Func<Task<string>>>());
 
         var result = await svc.InvokeAsync("gpt", "{}", CancellationToken.None);
 
-        result.Should().Be("{\"ok\":true}");
-        handler.Request!.RequestUri.Should().Be(new Uri("https://api.example/v1/chat/completions"));
-        handler.Request.Headers.Authorization!.Parameter.Should().Be("secret");
-        handler.Request.Content!.Headers.ContentType!.MediaType.Should().Be("application/json");
+        result.Should().Be("ok");
+        svc.OpenAiCalls.Should().Be(3);
     }
 
     [Fact]
-    public async Task AzureModel_CallsExpectedEndpoint()
+    public async Task AzureModel_RetriesAndReturnsResult()
     {
-        var model = new ModelDocument { Name = "azureModel", Type = "hosted-llm", Provider = "azure", BaseUrl = "https://azure.example", ApiKeyEncrypted = "enc" };
+        var model = new ModelDocument { Name = "az", Type = "hosted-llm", Provider = "azure" };
         var repo = Substitute.For<IModelRepository>();
-        repo.GetByName("azureModel").Returns(model);
+        repo.GetByName("az").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
-        protector.Unprotect("enc").Returns("secret");
-        var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{\"ok\":true}") };
-        var handler = new FakeHandler(response);
-        var client = new HttpClient(handler);
-        var svc = new ModelDispatchService(repo, client, protector);
 
-        var result = await svc.InvokeAsync("azureModel", "{}", CancellationToken.None);
+        var behaviors = new List<Func<Task<string>>>
+        {
+            () => throw new Exception(),
+            () => Task.FromResult("ok")
+        };
+        var svc = new TestService(repo, protector, Array.Empty<Func<Task<string>>>(), behaviors);
 
-        result.Should().Be("{\"ok\":true}");
-        handler.Request!.RequestUri.Should().Be(new Uri("https://azure.example/openai/deployments/azureModel/chat/completions?api-version=2024-02-01"));
-        handler.Request.Headers.GetValues("api-key").Single().Should().Be("secret");
+        var result = await svc.InvokeAsync("az", "{}", CancellationToken.None);
+
+        result.Should().Be("ok");
+        svc.AzureCalls.Should().Be(2);
     }
 
     [Fact]
@@ -92,8 +107,7 @@ public class ModelDispatchServiceTests
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("bad").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
-        var handler = new FakeHandler(new HttpResponseMessage(HttpStatusCode.OK));
-        var svc = new ModelDispatchService(repo, new HttpClient(handler), protector);
+        var svc = new ModelDispatchService(repo, protector);
 
         var act = () => svc.InvokeAsync("bad", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<NotSupportedException>();
@@ -102,14 +116,13 @@ public class ModelDispatchServiceTests
     [Fact]
     public async Task UnknownType_Throws()
     {
-        var model = new ModelDocument { Name = "bad", Type = "mystery" };
+        var model = new ModelDocument { Name = "mystery", Type = "strange" };
         var repo = Substitute.For<IModelRepository>();
-        repo.GetByName("bad").Returns(model);
+        repo.GetByName("mystery").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
-        var handler = new FakeHandler(new HttpResponseMessage(HttpStatusCode.OK));
-        var svc = new ModelDispatchService(repo, new HttpClient(handler), protector);
+        var svc = new ModelDispatchService(repo, protector);
 
-        var act = () => svc.InvokeAsync("bad", "{}", CancellationToken.None);
+        var act = () => svc.InvokeAsync("mystery", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<NotSupportedException>();
     }
 
@@ -119,8 +132,7 @@ public class ModelDispatchServiceTests
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("missing").Returns((ModelDocument?)null);
         var protector = Substitute.For<ISecretProtector>();
-        var handler = new FakeHandler(new HttpResponseMessage(HttpStatusCode.OK));
-        var svc = new ModelDispatchService(repo, new HttpClient(handler), protector);
+        var svc = new ModelDispatchService(repo, protector);
 
         var act = () => svc.InvokeAsync("missing", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<InvalidOperationException>();

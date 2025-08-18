@@ -1,5 +1,11 @@
-using System.Net.Http.Headers;
-using System.Text;
+using System.ClientModel;
+using System.Text.Json;
+using Azure.AI.OpenAI;
+using Azure.AI.OpenAI.Chat;
+using OpenAI;
+using OpenAI.Chat;
+using Polly;
+using Polly.Retry;
 using DocflowAi.Net.Api.Model.Abstractions;
 using DocflowAi.Net.Api.Model.Models;
 using DocflowAi.Net.Application.Abstractions;
@@ -14,16 +20,23 @@ namespace DocflowAi.Net.Api.JobQueue.Processing;
 public class ModelDispatchService : IModelDispatchService
 {
     private readonly IModelRepository _repo;
-    private readonly HttpClient _httpClient;
     private readonly ISecretProtector _protector;
     private readonly Serilog.ILogger _logger = Log.ForContext<ModelDispatchService>();
-    private const string AzureApiVersion = "2024-02-01";
+    private readonly AsyncRetryPolicy _retryPolicy;
 
-    public ModelDispatchService(IModelRepository repo, HttpClient httpClient, ISecretProtector protector)
+    public ModelDispatchService(IModelRepository repo, ISecretProtector protector)
     {
         _repo = repo;
-        _httpClient = httpClient;
         _protector = protector;
+        _retryPolicy = Policy
+            .Handle<Exception>(ex => ex is not OperationCanceledException)
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: attempt =>
+                    TimeSpan.FromMilliseconds(Math.Pow(2, attempt) * 100) +
+                    TimeSpan.FromMilliseconds(Random.Shared.Next(0, 100)),
+                onRetry: (ex, delay, attempt, _) =>
+                    _logger.Warning(ex, "Retrying model call in {Delay}ms (attempt {Attempt})", delay.TotalMilliseconds, attempt));
     }
 
     public async Task<string> InvokeAsync(string modelToken, string payload, CancellationToken ct)
@@ -47,37 +60,45 @@ public class ModelDispatchService : IModelDispatchService
 
     private async Task<string> HandleHostedAsync(ModelDocument model, string payload, CancellationToken ct)
     {
-        if (model.Provider == "openai")
+        return model.Provider switch
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{model.BaseUrl}/v1/chat/completions")
-            {
-                Content = new StringContent(payload, Encoding.UTF8, "application/json")
-            };
-            if (!string.IsNullOrEmpty(model.ApiKeyEncrypted))
-            {
-                var apiKey = _protector.Unprotect(model.ApiKeyEncrypted);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            }
-            var response = await _httpClient.SendAsync(request, ct);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync(ct);
-        }
-        if (model.Provider == "azure")
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post,
-                $"{model.BaseUrl}/openai/deployments/{model.Name}/chat/completions?api-version={AzureApiVersion}")
-            {
-                Content = new StringContent(payload, Encoding.UTF8, "application/json")
-            };
-            if (!string.IsNullOrEmpty(model.ApiKeyEncrypted))
-            {
-                var apiKey = _protector.Unprotect(model.ApiKeyEncrypted);
-                request.Headers.Add("api-key", apiKey);
-            }
-            var response = await _httpClient.SendAsync(request, ct);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync(ct);
-        }
-        throw new NotSupportedException($"Unknown hosted provider '{model.Provider}'");
+            "openai" => await CallOpenAiAsync(model, payload, ct),
+            "azure" => await CallAzureAsync(model, payload, ct),
+            _ => throw new NotSupportedException($"Unknown hosted provider '{model.Provider}'")
+        };
+    }
+
+    private Task<string> CallOpenAiAsync(ModelDocument model, string payload, CancellationToken ct)
+        => _retryPolicy.ExecuteAsync(innerCt => InvokeOpenAiAsync(model, payload, innerCt), ct);
+
+    private Task<string> CallAzureAsync(ModelDocument model, string payload, CancellationToken ct)
+        => _retryPolicy.ExecuteAsync(innerCt => InvokeAzureAsync(model, payload, innerCt), ct);
+
+    /// <summary>Invokes the OpenAI API using the official SDK.</summary>
+    protected virtual async Task<string> InvokeOpenAiAsync(ModelDocument model, string payload, CancellationToken ct)
+    {
+        var apiKey = string.IsNullOrEmpty(model.ApiKeyEncrypted)
+            ? string.Empty
+            : _protector.Unprotect(model.ApiKeyEncrypted);
+        var credential = new ApiKeyCredential(apiKey);
+        var options = new OpenAIClientOptions { Endpoint = new Uri(model.BaseUrl) };
+        var client = new ChatClient(model.Name, credential, options);
+        var messages = new[] { new UserChatMessage(payload) };
+        var completion = await client.CompleteChatAsync(messages, cancellationToken: ct);
+        return JsonSerializer.Serialize(completion);
+    }
+
+    /// <summary>Invokes Azure OpenAI using its SDK.</summary>
+    protected virtual async Task<string> InvokeAzureAsync(ModelDocument model, string payload, CancellationToken ct)
+    {
+        var apiKey = string.IsNullOrEmpty(model.ApiKeyEncrypted)
+            ? string.Empty
+            : _protector.Unprotect(model.ApiKeyEncrypted);
+        var credential = new ApiKeyCredential(apiKey);
+        var client = new AzureOpenAIClient(new Uri(model.BaseUrl), credential);
+        var chat = client.GetChatClient(model.Name);
+        var messages = new[] { new UserChatMessage(payload) };
+        var completion = await chat.CompleteChatAsync(messages, cancellationToken: ct);
+        return JsonSerializer.Serialize(completion);
     }
 }
