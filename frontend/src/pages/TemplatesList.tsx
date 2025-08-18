@@ -12,6 +12,7 @@ import {
   Form,
   Select,
 } from 'antd';
+import PlusOutlined from '@ant-design/icons/PlusOutlined';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { TemplatesService, type TemplateSummary } from '../generated';
@@ -115,12 +116,20 @@ export default function TemplatesList() {
     <div>
       <Space
         direction={isMobile ? 'vertical' : 'horizontal'}
-        style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}
+        style={{ width: '100%', marginBottom: 16 }}
         wrap
       >
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setModalId('new')}
+          aria-label="Create Template"
+        >
+          Create Template
+        </Button>
         <Form
           layout={isMobile ? 'vertical' : 'inline'}
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
+          style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 8 }}
         >
           <Form.Item style={{ marginBottom: 0 }}>
             <Input
@@ -148,9 +157,6 @@ export default function TemplatesList() {
             </Select>
           </Form.Item>
         </Form>
-        <Button type="primary" onClick={() => setModalId('new')} aria-label="Create Template">
-          Create Template
-        </Button>
       </Space>
       {isMobile ? (
         <List
