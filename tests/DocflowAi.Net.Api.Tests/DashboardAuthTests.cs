@@ -15,8 +15,7 @@ public class DashboardAuthTests : IClassFixture<TempDirFixture>
     {
         var extra = new Dictionary<string,string?>
         {
-            ["JobQueue:EnableDashboard"] = "true",
-            ["HangfireDashboardAuth:Enabled"] = "true",
+            ["JobQueue:EnableHangfireDashboard"] = "true",
             ["Api:Keys:0"] = "k"
         };
         using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
@@ -30,8 +29,7 @@ public class DashboardAuthTests : IClassFixture<TempDirFixture>
     {
         var extra = new Dictionary<string, string?>
         {
-            ["JobQueue:EnableDashboard"] = "true",
-            ["HangfireDashboardAuth:Enabled"] = "true",
+            ["JobQueue:EnableHangfireDashboard"] = "true",
             ["Api:Keys:0"] = "k"
         };
         using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
@@ -44,25 +42,29 @@ public class DashboardAuthTests : IClassFixture<TempDirFixture>
     }
 
     [Fact]
-    public async Task Static_assets_require_api_key_in_query_string()
+    public async Task Static_assets_are_served_after_initial_authorization()
     {
         var extra = new Dictionary<string, string?>
         {
-            ["JobQueue:EnableDashboard"] = "true",
-            ["HangfireDashboardAuth:Enabled"] = "true",
+            ["JobQueue:EnableHangfireDashboard"] = "true",
             ["Api:Keys:0"] = "k"
         };
         using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
-        var client = factory.CreateClient();
-        var resp = await client.GetAsync("/hangfire?api_key=k");
+
+        var authorizedClient = factory.CreateClient();
+        var resp = await authorizedClient.GetAsync("/hangfire?api_key=k");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await resp.Content.ReadAsStringAsync();
-        var match = System.Text.RegularExpressions.Regex.Match(content, "href=\"(?<p>/hangfire/[^\"]+)\"");
+        var match = System.Text.RegularExpressions.Regex.Match(content, "href=\\\"(?<p>/hangfire/[^\\\"]+)\\\"");
         match.Success.Should().BeTrue("resource path should be present");
         var assetPath = match.Groups["p"].Value;
-        var unauthorized = await client.GetAsync(assetPath);
+
+        var unauthorizedClient = factory.CreateClient();
+        var unauthorized = await unauthorizedClient.GetAsync(assetPath);
         unauthorized.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        var authorized = await client.GetAsync(assetPath + "?api_key=k");
+
+        var authorized = await authorizedClient.GetAsync(assetPath);
         authorized.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
+
