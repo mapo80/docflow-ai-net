@@ -41,7 +41,7 @@ vi.mock('@uiw/react-md-editor', () => ({ default: ({ value, onChange }: any) => 
 vi.mock('./TemplateFieldsEditor', () => ({
   default: ({ onChange }: any) => (
     <div>
-      <button onClick={() => onChange([{ key: 'k', value: '1' }])}>add</button>
+      <button onClick={() => onChange([{ name: 'k', type: 'string' }])}>add</button>
     </div>
   ),
 }));
@@ -81,7 +81,9 @@ test('create flow', async () => {
   expect(createSpy).toHaveBeenCalled();
   expect(onClose).not.toHaveBeenCalled();
   await waitFor(() => expect(onClose).toHaveBeenCalledWith(true));
-  expect(createSpy.mock.calls[0][0].requestBody.fieldsJson).toEqual({ k: 1 });
+  expect(createSpy.mock.calls[0][0].requestBody.fieldsJson).toEqual({
+    fields: [{ name: 'k', type: 'string' }],
+  });
 });
 
 test('update flow', async () => {
