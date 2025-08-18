@@ -17,13 +17,30 @@ public class DefaultModelSeederTests : IClassFixture<TempDirFixture>
         var extra = new Dictionary<string, string?>
         {
             ["LLM_MODEL_REPO"] = "repo/name",
-            ["LLM_MODEL_FILE"] = "model.gguf"
+            ["LLM_MODEL_FILE"] = "model.gguf",
+            ["JobQueue:SeedDefaults"] = "true"
         };
         await using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-API-Key", "dev-secret-key-change-me");
         var models = await client.GetFromJsonAsync<List<ModelDto>>("/api/models");
         models!.Should().ContainSingle(m => m.HfRepo == "repo/name" && m.ModelFile == "model.gguf");
+    }
+
+    [Fact]
+    public async Task Does_Not_Seed_When_Disabled()
+    {
+        var extra = new Dictionary<string, string?>
+        {
+            ["LLM_MODEL_REPO"] = "repo/name",
+            ["LLM_MODEL_FILE"] = "model.gguf",
+            ["JobQueue:SeedDefaults"] = "false"
+        };
+        await using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-API-Key", "dev-secret-key-change-me");
+        var models = await client.GetFromJsonAsync<List<ModelDto>>("/api/models");
+        models!.Should().BeEmpty();
     }
 }
 
