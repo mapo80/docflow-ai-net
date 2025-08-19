@@ -1,0 +1,11 @@
+[
+  {"Key":"nominativo","Description":"","Type":"string","Required":false},
+  {"Key":"codice_fiscale","Description":"","Type":"string","Required":false},
+  {"Key":"datore_lavoro","Description":"","Type":"string","Required":false},
+  {"Key":"retribuzione_lorda","Description":"","Type":"string","Required":false},
+  {"Key":"retribuzione_netta","Description":"","Type":"string","Required":false},
+  {"Key":"mensilita","Description":"","Type":"string","Required":false},
+  {"Key":"cqs","Description":"","Type":"string","Required":false},
+  {"Key":"altre_mensilita","Description":"","Type":"string","Required":false},
+  {"Key":"non_continuativi","Description":"","Type":"string","Required":false}
+]
