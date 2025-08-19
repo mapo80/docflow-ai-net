@@ -56,8 +56,7 @@ vi.mock('antd', () => {
       ),
       { Option: ({ value, children }: any) => <option value={value}>{children}</option> },
     ),
-    Badge: ({ text }: any) => <span>{text}</span>,
-  };
+    message: { success: vi.fn() },
 });
 
 test('create edit delete flows', async () => {

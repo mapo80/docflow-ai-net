@@ -71,7 +71,7 @@ Prompts:
 - Every page must render flawlessly on mobile devices without horizontal scrolling.
 - When displaying tabular data, follow Ant Design's responsive table guidelines, switching to stacked lists on small screens when needed. See: https://ant.design/components/table/#responsive
 - Use clear icons to convey service health and other status information at a glance.
-- After creating a job, model, template, or any future entity in the frontend, display a green success badge with the message "<Entity> created successfully.".
+- After creating a job, model, template, or any future entity in the frontend, display a green success notification with the message "<Entity> created successfully.".
 - Use the shared notification component to show a green success notification for create, update, or delete actions and a red notification on errors.
 
 # Operations
