@@ -60,7 +60,7 @@ export default function ModelModal({
             apiKey: updateKey ? values.apiKey : undefined,
           },
         });
-        message.success('Model updated');
+        notify('success', 'Model updated');
         onSaved(false);
       } else {
         const req: CreateModelRequest = {
@@ -74,7 +74,7 @@ export default function ModelModal({
           hfToken: values.hfToken,
         };
         await ModelsService.modelsCreate({ requestBody: req });
-        message.success('Model created successfully.');
+        notify('success', 'Model created successfully.');
         onSaved(true);
       }
       onCancel();

@@ -10,7 +10,7 @@
     huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
       qwen2.5-0.5b-instruct-q4_0.gguf \
       --local-dir ./models --token "$HF_TOKEN"
-  export MODELS_DIR="$(pwd)/models"
+  export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
   ```
 - Output is always **valid JSON** due to **GBNF grammar** at inference, then validated against **Extraction Profiles**.
 
@@ -71,7 +71,8 @@ Prompts:
 - Every page must render flawlessly on mobile devices without horizontal scrolling.
 - When displaying tabular data, follow Ant Design's responsive table guidelines, switching to stacked lists on small screens when needed. See: https://ant.design/components/table/#responsive
 - Use clear icons to convey service health and other status information at a glance.
-- After creating a job, model, template, or any future entity in the frontend, display a green success badge with the message "<Entity> created successfully.".
+- After creating a job, model, template, or any future entity in the frontend, display a green success notification with the message "<Entity> created successfully.".
+- Use the shared notification component to show a green success notification for create, update, or delete actions and a red notification on errors.
 
 # Operations
 The native libraries of Tesseract (libtesseract.so.5) and Leptonica (liblept.so.5) are already present in `src/MarkItDownNet/TesseractOCR/x64` and are copied automatically next to the binaries. Installing system packages or creating symbolic links is not required.

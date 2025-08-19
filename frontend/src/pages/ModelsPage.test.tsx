@@ -19,11 +19,6 @@ vi.mock('../components/ModelModal', () => ({
     ) : null,
 }));
 
-vi.mock('../components/ModelModal', () => ({
-  default: ({ onSaved, open }: any) =>
-    open ? <button onClick={() => onSaved(true)}>modal</button> : null,
-}));
-
 vi.mock('../generated', () => {
   const list = [
     {
@@ -104,14 +99,14 @@ describe('ModelsPage', () => {
     expect(screen.getAllByText('Created: 2024-01-01 00:00').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Updated: 2024-01-04 00:00').length).toBeGreaterThan(0);
   });
-
-  it('shows success badge after model creation', async () => {
+  
+  it('notifies after model creation', async () => {
     render(<ModelsPage />);
     await screen.findAllByText('host');
     fireEvent.click(screen.getAllByText('Create Model')[0]);
     fireEvent.click(screen.getByText('modal'));
     await waitFor(() =>
-      expect(screen.getByText('Model created successfully.')).toBeInTheDocument(),
+      expect(mockNotify).toHaveBeenCalledWith('success', 'Model created successfully.'),
     );
   });
 });

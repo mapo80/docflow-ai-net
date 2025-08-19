@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Badge, Descriptions, Progress, Button, message, Space, Modal, Tabs, Table } from 'antd';
+import { Descriptions, Progress, Button, Space, Modal, Tabs, Table } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
@@ -248,11 +248,6 @@ export default function JobDetail() {
 
   return (
     <div>
-      {(location.state as any)?.newJob && (
-        <div style={{ marginBottom: 16 }}>
-          <Badge status="success" text="Job created successfully." />
-        </div>
-      )}
       <Descriptions title={`Job ${job.id}`} bordered column={1} size="small">
         <Descriptions.Item label="Status">
           <JobStatusTag status={job.status!} derived={job.derivedStatus} />
