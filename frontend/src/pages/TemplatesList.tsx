@@ -16,7 +16,7 @@ import EditOutlined from '@ant-design/icons/EditOutlined';
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { TemplatesService, type TemplateSummary } from '../generated';
+import { TemplatesService, type TemplateSummary, ApiError } from '../generated';
 import TemplateModal from '../components/TemplateModal';
 import { useApiError } from '../components/ApiErrorProvider';
 import notify from '../components/notification';
@@ -42,7 +42,7 @@ export default function TemplatesList() {
       setTemplates(res.items || []);
       setTotal(res.total || 0);
     } catch (e: any) {
-      if (e instanceof Error) showError(e.message);
+      if (!(e instanceof ApiError) && e instanceof Error) showError(e.message);
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,8 @@ export default function TemplatesList() {
                 notify('success', 'Template deleted');
                 load();
               } catch (e: any) {
-                if (e instanceof Error) showError(e.message);
+                if (!(e instanceof ApiError) && e instanceof Error)
+                  showError(e.message);
               }
             }}
           >
@@ -185,7 +186,8 @@ export default function TemplatesList() {
                       notify('success', 'Template deleted');
                       load();
                     } catch (e: any) {
-                      if (e instanceof Error) showError(e.message);
+                      if (!(e instanceof ApiError) && e instanceof Error)
+                        showError(e.message);
                     }
                   }}
                 >
