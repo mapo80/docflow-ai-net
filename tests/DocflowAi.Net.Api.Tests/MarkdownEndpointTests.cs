@@ -13,7 +13,7 @@ namespace DocflowAi.Net.Api.Tests;
 public class MarkdownEndpointTests
 {
     [Fact]
-    public async Task Convert_returns_markdown_text()
+    public async Task Convert_returns_markdown_json()
     {
         var file = new FormFile(new MemoryStream(new byte[] {1,2,3}), 0, 3, "file", "test.png");
         var result = await MarkdownEndpoints.ConvertFileAsync(file, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
@@ -23,8 +23,9 @@ public class MarkdownEndpointTests
         ctx.Response.Body = ms;
         await result.ExecuteAsync(ctx);
         ms.Position = 0;
-        var text = await new StreamReader(ms).ReadToEndAsync();
-        Assert.Equal("FAKE", text);
+        var json = await new StreamReader(ms).ReadToEndAsync();
+        var obj = System.Text.Json.JsonSerializer.Deserialize<MarkdownResult>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.Equal("FAKE", obj!.Markdown);
     }
 
     [Fact]

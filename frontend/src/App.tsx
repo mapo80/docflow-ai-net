@@ -11,6 +11,7 @@ const HealthPage = lazy(() => import('./pages/HealthPage'));
 const ModelManagerPage = lazy(() => import('./pages/ModelManagerPage'));
 const ModelsPage = lazy(() => import('./pages/ModelsPage'));
 const TemplatesList = lazy(() => import('./pages/TemplatesList'));
+const MarkdownPage = lazy(() => import('./pages/MarkdownPage'));
 import { OpenAPI } from './generated';
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
             <Route path="model" element={<ModelManagerPage />} />
             <Route path="models" element={<ModelsPage />} />
             <Route path="templates" element={<TemplatesList />} />
+            <Route path="markdown" element={<MarkdownPage />} />
             <Route path="*" element={<Navigate to="/jobs" />} />
           </Route>
         </Routes>

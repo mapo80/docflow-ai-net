@@ -13,11 +13,12 @@ public static class MarkdownEndpoints
     {
         var group = builder.MapGroup("/api/v1/markdown")
             .WithTags("Markdown")
-            .RequireRateLimiting("General");
+            .RequireRateLimiting("General")
+            .RequireAuthorization();
 
         group.MapPost(string.Empty, ConvertFileAsync)
         .Accepts<IFormFile>("multipart/form-data")
-        .Produces<string>(StatusCodes.Status200OK, "text/plain")
+        .Produces<MarkdownResult>(StatusCodes.Status200OK, "application/json")
         .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
         .WithName("Markdown_Convert");
 
@@ -37,6 +38,6 @@ public static class MarkdownEndpoints
         else
             result = await conv.ConvertImageAsync(stream, opts.Value);
 
-        return Results.Text(result.Markdown, "text/plain");
+        return Results.Json(result);
     }
 }
