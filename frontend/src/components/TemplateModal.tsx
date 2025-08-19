@@ -81,7 +81,7 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
       onCancel={() => onClose(false)}
       width="100%"
       style={{ top: 0, padding: 0 }}
-      bodyStyle={{ height: 'calc(100vh - 110px)', overflow: 'auto' }}
+      styles={{ body: { height: 'calc(100vh - 110px)', overflow: 'auto' } }}
       footer={
         <Space>
           <Button onClick={() => onClose(false)}>Cancel</Button>
@@ -90,7 +90,7 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
           </Button>
         </Space>
       }
-      destroyOnClose
+      destroyOnHidden
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         <div>

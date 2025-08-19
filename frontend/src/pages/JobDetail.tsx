@@ -333,11 +333,13 @@ export default function JobDetail() {
           onCancel={() => setPreview(null)}
           width="100%"
           style={{ top: 0 }}
-          bodyStyle={{
-            height: '100vh',
-            overflow: 'auto',
-            padding: 0,
-            backgroundColor: '#fff',
+          styles={{
+            body: {
+              height: '100vh',
+              overflow: 'auto',
+              padding: 0,
+              backgroundColor: '#fff',
+            },
           }}
           rootClassName="fullscreen-modal"
         >

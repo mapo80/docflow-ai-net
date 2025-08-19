@@ -93,7 +93,7 @@ export default function ModelModal({
       maskClosable={false}
       style={{ top: 0 }}
       width="100%"
-      bodyStyle={{ height: 'calc(100vh - 108px)', overflowY: 'auto' }}
+      styles={{ body: { height: 'calc(100vh - 108px)', overflowY: 'auto' } }}
       footer={
         <Space>
           <Button onClick={onCancel} disabled={saving}>
