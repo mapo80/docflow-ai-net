@@ -14,7 +14,7 @@ vi.mock('antd', () => ({
         colorSuccess: 'green',
         colorError: 'red',
         colorWarning: 'orange',
-        colorTextLightSolid: 'white',
+        fontWeightStrong: 'bold',
       },
     }),
   },
@@ -36,10 +36,10 @@ test('notify forwards to antd notification', () => {
     description: undefined,
     duration: 2,
     showProgress: true,
-    style: { backgroundColor: 'green', color: 'white' },
+    style: { backgroundColor: 'green', color: '#fff', fontWeight: 'bold' },
   });
-  expect(first.icon.props.style).toEqual({ color: 'white' });
-  expect(first.closeIcon.props.style).toEqual({ color: 'white' });
+  expect(first.icon.props.style).toEqual({ color: '#fff' });
+  expect(first.closeIcon.props.style).toEqual({ color: '#fff' });
   const second = api.open.mock.calls[1][0];
   expect(second).toMatchObject({
     type: 'error',
@@ -47,8 +47,8 @@ test('notify forwards to antd notification', () => {
     description: 'bad',
     duration: 2,
     showProgress: true,
-    style: { backgroundColor: 'red', color: 'white' },
+    style: { backgroundColor: 'red', color: '#fff', fontWeight: 'bold' },
   });
-  expect(second.icon.props.style).toEqual({ color: 'white' });
-  expect(second.closeIcon.props.style).toEqual({ color: 'white' });
+  expect(second.icon.props.style).toEqual({ color: '#fff' });
+  expect(second.closeIcon.props.style).toEqual({ color: '#fff' });
 });

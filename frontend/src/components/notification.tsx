@@ -17,7 +17,7 @@ let tokenRef:
       | 'colorSuccess'
       | 'colorError'
       | 'colorWarning'
-      | 'colorTextLightSolid'
+      | 'fontWeightStrong'
     >
   | undefined;
 
@@ -49,7 +49,7 @@ export function notify(
       : type === 'error'
         ? tokenRef?.colorError
         : tokenRef?.colorWarning;
-  const color = tokenRef?.colorTextLightSolid;
+  const color = '#fff';
   const icon =
     type === 'success'
       ? <CheckCircleFilled style={{ color }} />
@@ -65,6 +65,7 @@ export function notify(
     style: {
       backgroundColor,
       color,
+      fontWeight: tokenRef?.fontWeightStrong ?? 'bold',
     },
     icon,
     closeIcon: <CloseOutlined style={{ color }} />,
