@@ -1181,6 +1181,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1188,6 +1192,14 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          },
+          "templateToken": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false,

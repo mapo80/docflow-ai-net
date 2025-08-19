@@ -3,7 +3,16 @@ using DocflowAi.Net.Api.JobQueue.Models;
 namespace DocflowAi.Net.Api.Contracts;
 
 /// <summary>Summary information for a job.</summary>
-public record JobSummary(Guid Id, string Status, string DerivedStatus, int Progress, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
+public record JobSummary(
+    Guid Id,
+    string Status,
+    string DerivedStatus,
+    int Progress,
+    int Attempts,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    string Model,
+    string TemplateToken);
 
 /// <summary>Paged list of jobs.</summary>
 public record PagedJobsResponse(int Page, int PageSize, int Total, IReadOnlyList<JobSummary> Items);

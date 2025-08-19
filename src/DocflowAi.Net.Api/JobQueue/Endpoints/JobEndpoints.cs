@@ -43,7 +43,17 @@ public static class JobEndpoints
                 p,
                 ps,
                 total,
-                items.Select(i => new JobSummary(i.Id, i.Status, MapDerivedStatus(i.Status), i.Progress, i.CreatedAt, i.UpdatedAt)).ToList()
+                items.Select(i => new JobSummary(
+                    i.Id,
+                    i.Status,
+                    MapDerivedStatus(i.Status),
+                    i.Progress,
+                    i.Attempts,
+                    i.CreatedAt,
+                    i.UpdatedAt,
+                    i.Model,
+                    i.TemplateToken
+                )).ToList()
             );
             return Results.Ok(response);
         })

@@ -36,8 +36,12 @@ export default function JobDetail() {
     try {
       const res = await JobsService.jobsGetById({ id });
       setJob(res);
-    } catch {
-      /* ignore */
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 404) {
+        showError('Job not found');
+      } else if (e instanceof Error) {
+        showError(e.message);
+      }
     }
   };
 
