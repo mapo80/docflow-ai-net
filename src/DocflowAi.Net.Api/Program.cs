@@ -44,6 +44,7 @@ using Hangfire.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using DocflowAi.Net.Infrastructure.Security;
 using Hangfire.Console.Extensions;
+using Microsoft.Data.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -212,6 +213,18 @@ if (!string.IsNullOrEmpty(port))
 }
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var cfg = scope.ServiceProvider.GetRequiredService<IOptions<JobQueueOptions>>().Value;
+    Directory.CreateDirectory(cfg.DataRoot);
+    if (cfg.Database.Provider.Equals("sqlite", StringComparison.OrdinalIgnoreCase))
+    {
+        var csb = new SqliteConnectionStringBuilder(cfg.Database.ConnectionString);
+        var dbDir = Path.GetDirectoryName(csb.DataSource);
+        if (!string.IsNullOrEmpty(dbDir))
+            Directory.CreateDirectory(dbDir);
+    }
+}
 DefaultModelSeeder.Build(app);
 DefaultTemplateSeeder.Build(app);
 DefaultJobSeeder.Build(app);
