@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Button, Space, message } from 'antd';
+import { Modal, Form, Input, Select, Button, Space } from 'antd';
 import { ModelsService, type CreateModelRequest, type ModelDto, ApiError } from '../generated';
 import { useApiError } from './ApiErrorProvider';
+import notify from './notification';
 
 interface ModelModalProps {
   open: boolean;
@@ -133,10 +134,10 @@ export default function ModelModal({
         </Form.Item>
         {type === 'hosted-llm' && (
           <>
-            <Form.Item name="provider" label="Provider" rules={[{ required: true }]}>
+            <Form.Item name="provider" label="Provider" rules={[{ required: true }]}> 
               <Select options={[{ value: 'openai', label: 'openai' }, { value: 'azure-openai', label: 'azure-openai' }]} />
             </Form.Item>
-            <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, type: 'url' }]}>
+            <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, type: 'url' }]}> 
               <Input />
             </Form.Item>
             {editing && initial?.hasApiKey && (

@@ -4,6 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import JobsList from './JobsList';
 import { JobsService } from '../generated';
 import ApiErrorProvider from '../components/ApiErrorProvider';
+import { notify } from '../components/notification';
+
+const { mockNotify } = vi.hoisted(() => ({ mockNotify: vi.fn() }));
+vi.mock('../components/notification', () => ({ notify: mockNotify, default: mockNotify }));
 
 vi.mock('antd', () => ({
   Table: ({ dataSource, pagination, columns }: any) => (
@@ -31,7 +35,6 @@ vi.mock('antd', () => ({
   Badge: () => <div />,
   Alert: () => null,
   Space: ({ children }: any) => <div>{children}</div>,
-  message: { success: vi.fn(), error: vi.fn() },
 }));
 
 test('pagination and cancel', async () => {
@@ -51,4 +54,5 @@ test('pagination and cancel', async () => {
   await waitFor(() => expect(getSpy).toHaveBeenLastCalledWith({ page: 2, pageSize: 10 }));
   fireEvent.click(screen.getByTitle('Cancel job'));
   await waitFor(() => expect(cancelSpy).toHaveBeenCalledWith({ id: '1' }));
+  expect(notify).toHaveBeenCalledWith('success', 'Job canceled');
 });

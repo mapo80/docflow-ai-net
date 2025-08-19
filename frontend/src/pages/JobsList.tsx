@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Table, Space, Button, Progress, Badge, Alert, message, List, Grid } from 'antd';
+import { Table, Space, Button, Progress, Badge, Alert, List, Grid } from 'antd';
 import FileAddOutlined from '@ant-design/icons/FileAddOutlined';
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
@@ -8,6 +8,7 @@ import FileExclamationOutlined from '@ant-design/icons/FileExclamationOutlined';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { JobsService, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
+import notify from '../components/notification';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import type { PaginationProps } from 'antd';
@@ -72,7 +73,7 @@ export default function JobsList() {
   const handleCancel = async (id: string) => {
     try {
       await JobsService.jobsDelete({ id });
-      message.success('Job canceled');
+      notify('success', 'Job canceled');
       load();
     } catch (e) {
       if (e instanceof ApiError) {

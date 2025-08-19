@@ -7,6 +7,7 @@ import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 import JobStatusTag from '../components/JobStatusTag';
+import notify from '../components/notification';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
@@ -133,7 +134,7 @@ export default function JobDetail() {
     if (!id) return;
     try {
       await JobsService.jobsDelete({ id });
-      message.success('Job canceled');
+      notify('success', 'Job canceled');
       load();
     } catch (e) {
       if (e instanceof ApiError) {
@@ -238,6 +239,12 @@ export default function JobDetail() {
       ),
     },
   ];
+
+  useEffect(() => {
+    if ((location.state as any)?.newJob) {
+      notify('success', 'Job created successfully.');
+    }
+  }, [location.state]);
 
   return (
     <div>

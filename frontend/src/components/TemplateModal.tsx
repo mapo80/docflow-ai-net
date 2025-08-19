@@ -6,6 +6,7 @@ import type { FieldItem } from './FieldsEditor';
 import { fieldsToJson, jsonToFields } from './FieldsEditor';
 import { slugify, isSlug } from '../templates/slug';
 import { TemplatesService } from '../generated';
+import notify from './notification'; // shared notification helper
 
 interface Props {
   open: boolean;

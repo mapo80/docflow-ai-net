@@ -5,6 +5,7 @@ import { ApiError, OpenAPI, ModelsService, TemplatesService } from '../generated
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 import { useApiError } from '../components/ApiErrorProvider';
+import notify from '../components/notification';
 
 export function validateFile(
   file: File,
@@ -123,7 +124,7 @@ export default function JobNew() {
         if (e.status === 429 && e.body?.errorCode === 'immediate_capacity') {
           setRetryAfter(e.body.retry_after_seconds ?? 0);
         } else if (e.status === 429) {
-          notification.warning({ message: 'queue_full' });
+          notify('warning', 'queue_full');
         }
       } else {
         showError('Error');

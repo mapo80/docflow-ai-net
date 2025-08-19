@@ -7,7 +7,6 @@ import {
   Space,
   Input,
   Typography,
-  message,
   Form,
   Select,
   Popconfirm,
@@ -21,6 +20,7 @@ import dayjs from 'dayjs';
 import { TemplatesService, type TemplateSummary } from '../generated';
 import TemplateModal from '../components/TemplateModal';
 import { useApiError } from '../components/ApiErrorProvider';
+import notify from '../components/notification';
 
 export default function TemplatesList() {
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
@@ -90,7 +90,7 @@ export default function TemplatesList() {
             onConfirm={async () => {
               try {
                 await TemplatesService.templatesDelete({ id: record.id! });
-                message.success('Template deleted');
+                notify('success', 'Template deleted');
                 load();
               } catch (e: any) {
                 if (e instanceof Error) showError(e.message);
@@ -189,7 +189,7 @@ export default function TemplatesList() {
                   onConfirm={async () => {
                     try {
                       await TemplatesService.templatesDelete({ id: item.id! });
-                      message.success('Template deleted');
+                      notify('success', 'Template deleted');
                       load();
                     } catch (e: any) {
                       if (e instanceof Error) showError(e.message);
