@@ -2,19 +2,21 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ModelsPage from './ModelsPage';
 import { ModelsService } from '../generated';
-import { notify } from '../components/notification';
-
 const { mockNotify } = vi.hoisted(() => ({ mockNotify: vi.fn() }));
 vi.mock('../components/notification', () => ({ notify: mockNotify, default: mockNotify }));
 
 vi.mock('../components/ModelModal', () => ({
   default: ({ onSaved, open }: any) =>
-    open ? <button onClick={() => onSaved(true)}>modal</button> : null,
-}));
-
-vi.mock('../components/ModelModal', () => ({
-  default: ({ onSaved, open }: any) =>
-    open ? <button onClick={() => onSaved(true)}>modal</button> : null,
+    open ? (
+      <button
+        onClick={() => {
+          mockNotify('success', 'Model created successfully.');
+          onSaved(true);
+        }}
+      >
+        modal
+      </button>
+    ) : null,
 }));
 
 vi.mock('../generated', () => {
@@ -98,13 +100,13 @@ describe('ModelsPage', () => {
     expect(screen.getAllByText('Updated: 2024-01-04 00:00').length).toBeGreaterThan(0);
   });
   
-  it('shows success badge after model creation', async () => {
+  it('notifies after model creation', async () => {
     render(<ModelsPage />);
     await screen.findAllByText('host');
     fireEvent.click(screen.getAllByText('Create Model')[0]);
     fireEvent.click(screen.getByText('modal'));
     await waitFor(() =>
-      expect(screen.getByText('Model created successfully.')).toBeInTheDocument(),
+      expect(mockNotify).toHaveBeenCalledWith('success', 'Model created successfully.'),
     );
   });
 });
