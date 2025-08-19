@@ -1,9 +1,7 @@
 using System.Net;
 using System.Net.Http;
-using DocflowAi.Net.Application.Configuration;
 using DocflowAi.Net.Infrastructure.Llm;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using FluentAssertions;
 
 namespace DocflowAi.Net.Tests.Unit;
@@ -11,7 +9,7 @@ namespace DocflowAi.Net.Tests.Unit;
 public class LlmModelServiceTests
 {
     [Fact]
-    public void Ctor_UsesConfiguredModel_WhenFileExists()
+    public void Ctor_PicksFirstModel_WhenFileExists()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
@@ -19,13 +17,12 @@ public class LlmModelServiceTests
         var dest = Path.Combine(tempDir, "file.gguf");
         File.WriteAllBytes(dest, new byte[] {1});
 
-        var opts = Options.Create(new LlmOptions { ModelPath = dest, ContextTokens = 7 });
         var logger = LoggerFactory.Create(b => { }).CreateLogger<LlmModelService>();
-        var svc = new LlmModelService(new HttpClient(new ThrowHandler()), opts, logger);
+        var svc = new LlmModelService(new HttpClient(new ThrowHandler()), logger);
 
         var info = svc.GetCurrentModel();
         info.File.Should().Be("file.gguf");
-        info.ContextSize.Should().Be(7);
+        info.ContextSize.Should().BeNull();
         info.LoadedAt.Should().NotBeNull();
 
         Environment.SetEnvironmentVariable("MODELS_DIR", null);
@@ -33,30 +30,7 @@ public class LlmModelServiceTests
     }
 
     [Fact]
-    public void Ctor_PicksFirstAvailable_WhenConfiguredMissing()
-    {
-        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempDir);
-        Environment.SetEnvironmentVariable("MODELS_DIR", tempDir);
-        var dest = Path.Combine(tempDir, "auto.gguf");
-        File.WriteAllBytes(dest, new byte[] {1});
-
-        var opts = Options.Create(new LlmOptions { ModelPath = "/missing.bin", ContextTokens = 3 });
-        var logger = LoggerFactory.Create(b => { }).CreateLogger<LlmModelService>();
-        var svc = new LlmModelService(new HttpClient(new ThrowHandler()), opts, logger);
-
-        var info = svc.GetCurrentModel();
-        info.File.Should().Be("auto.gguf");
-        info.ContextSize.Should().Be(3);
-        info.LoadedAt.Should().NotBeNull();
-        opts.Value.ModelPath.Should().Be(dest);
-
-        Environment.SetEnvironmentVariable("MODELS_DIR", null);
-        Directory.Delete(tempDir, true);
-    }
-
-    [Fact]
-    public async Task SwitchModelAsync_SetsOptions_WhenFileExists()
+    public async Task SwitchModelAsync_SetsCurrentModel_WhenFileExists()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
@@ -64,15 +38,12 @@ public class LlmModelServiceTests
         var dest = Path.Combine(tempDir, "file.bin");
         await File.WriteAllBytesAsync(dest, new byte[] {1});
 
-        var opts = Options.Create(new LlmOptions { ModelPath = "default", ContextTokens = 1 });
         var logger = LoggerFactory.Create(b => { }).CreateLogger<LlmModelService>();
         var client = new HttpClient(new ThrowHandler());
-        var svc = new LlmModelService(client, opts, logger);
+        var svc = new LlmModelService(client, logger);
 
         await svc.SwitchModelAsync("file.bin", 5);
 
-        opts.Value.ModelPath.Should().Be(dest);
-        opts.Value.ContextTokens.Should().Be(5);
         var info = svc.GetCurrentModel();
         info.File.Should().Be("file.bin");
         info.ContextSize.Should().Be(5);
@@ -91,11 +62,10 @@ public class LlmModelServiceTests
         Directory.CreateDirectory(tempDir);
         Environment.SetEnvironmentVariable("MODELS_DIR", tempDir);
 
-        var opts = Options.Create(new LlmOptions { ModelPath = "default", ContextTokens = 1 });
         var logger = LoggerFactory.Create(b => { }).CreateLogger<LlmModelService>();
         var handler = new SlowHandler();
         var client = new HttpClient(handler);
-        var svc = new LlmModelService(client, opts, logger);
+        var svc = new LlmModelService(client, logger);
 
         await svc.DownloadModelAsync("k", "repo", "file.bin", CancellationToken.None);
 
@@ -123,11 +93,10 @@ public class LlmModelServiceTests
         Directory.CreateDirectory(tempDir);
         Environment.SetEnvironmentVariable("MODELS_DIR", tempDir);
 
-        var opts = Options.Create(new LlmOptions { ModelPath = "default", ContextTokens = 1 });
         var logger = LoggerFactory.Create(b => { }).CreateLogger<LlmModelService>();
         var handler = new NotFoundHandler();
         var client = new HttpClient(handler);
-        var svc = new LlmModelService(client, opts, logger);
+        var svc = new LlmModelService(client, logger);
 
         await Assert.ThrowsAsync<FileNotFoundException>(() => svc.DownloadModelAsync("k", "repo", "file.bin", CancellationToken.None));
 

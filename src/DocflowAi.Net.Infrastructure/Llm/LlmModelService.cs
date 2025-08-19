@@ -4,9 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using DocflowAi.Net.Application.Abstractions;
-using DocflowAi.Net.Application.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Linq;
 
 namespace DocflowAi.Net.Infrastructure.Llm;
@@ -14,7 +12,6 @@ namespace DocflowAi.Net.Infrastructure.Llm;
 public sealed class LlmModelService : ILlmModelService
 {
     private readonly HttpClient _httpClient;
-    private readonly LlmOptions _options;
     private readonly ILogger<LlmModelService> _logger;
     private readonly string _modelsDir;
 
@@ -23,36 +20,18 @@ public sealed class LlmModelService : ILlmModelService
     private long _downloadedBytes;
     private ModelInfo _currentModel;
 
-    public LlmModelService(HttpClient httpClient, IOptions<LlmOptions> options, ILogger<LlmModelService> logger)
+    public LlmModelService(HttpClient httpClient, ILogger<LlmModelService> logger)
     {
         _httpClient = httpClient;
-        _options = options.Value;
         _logger = logger;
 
         _modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR")
-            ?? (!string.IsNullOrEmpty(_options.ModelPath)
-                ? Path.GetDirectoryName(_options.ModelPath)!
-                : Path.Combine(AppContext.BaseDirectory, "models"));
+            ?? Path.Combine(AppContext.BaseDirectory, "models");
         Directory.CreateDirectory(_modelsDir);
 
-        string? fileName = null;
-        var configured = _options.ModelPath;
-        if (!string.IsNullOrEmpty(configured) && File.Exists(configured))
-        {
-            fileName = Path.GetFileName(configured);
-        }
-        else
-        {
-            var first = Directory.EnumerateFiles(_modelsDir, "*.gguf").FirstOrDefault();
-            if (first != null)
-            {
-                _options.ModelPath = first;
-                fileName = Path.GetFileName(first);
-                _logger.LogInformation("Initial model set to {ModelPath}", first);
-            }
-        }
-
-        _currentModel = new ModelInfo(null, null, fileName, _options.ContextTokens, fileName != null ? DateTime.UtcNow : null);
+        var first = Directory.EnumerateFiles(_modelsDir, "*.gguf").FirstOrDefault();
+        var fileName = first != null ? Path.GetFileName(first) : null;
+        _currentModel = new ModelInfo(null, null, fileName, null, fileName != null ? DateTime.UtcNow : null);
     }
 
     public async Task DownloadModelAsync(string hfKey, string modelRepo, string modelFile, CancellationToken ct)
@@ -89,8 +68,6 @@ public sealed class LlmModelService : ILlmModelService
         var dest = Path.Combine(_modelsDir, modelFile);
         if (!File.Exists(dest))
             throw new FileNotFoundException($"Model {modelFile} not found");
-        _options.ModelPath = dest;
-        _options.ContextTokens = contextSize;
         _currentModel = new ModelInfo(null, null, modelFile, contextSize, DateTime.UtcNow);
         _logger.LogInformation("LLM model switched to {ModelPath}", dest);
         return Task.CompletedTask;
