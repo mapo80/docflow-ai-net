@@ -1,4 +1,5 @@
 import { notification } from 'antd';
+import 'antd/es/notification/style';
 
 export type AppNotificationType = 'success' | 'error' | 'warning';
 
