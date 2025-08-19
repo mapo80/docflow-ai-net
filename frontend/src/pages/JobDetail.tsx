@@ -140,6 +140,12 @@ export default function JobDetail() {
     fetchFields();
   }, [job]);
 
+  useEffect(() => {
+    if ((location.state as any)?.newJob) {
+      notify('success', 'Job created successfully.');
+    }
+  }, [location.state]);
+
   const handleCancel = async () => {
     if (!id) return;
     try {
@@ -251,12 +257,6 @@ export default function JobDetail() {
       ),
     },
   ];
-
-  useEffect(() => {
-    if ((location.state as any)?.newJob) {
-      notify('success', 'Job created successfully.');
-    }
-  }, [location.state]);
 
   return (
     <div>
