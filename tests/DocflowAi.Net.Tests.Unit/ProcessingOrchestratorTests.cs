@@ -13,6 +13,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Microsoft.Extensions.Options;
 namespace DocflowAi.Net.Tests.Unit;
 public class ProcessingOrchestratorTests {
     [Fact] public async Task ProcessAsync_InvokesServices_AndReturnsResult() {
@@ -26,7 +27,12 @@ public class ProcessingOrchestratorTests {
         resolver.Setup(r => r.ResolveAsync(It.IsAny<DocumentIndex>(), It.IsAny<IReadOnlyList<ExtractedField>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>(), null)).ToList());
         var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("fake")), 0, 4, "file", "test.png") { Headers = new HeaderDictionary(), ContentType = "image/png" };
-        var orchestrator = new ProcessingOrchestrator(mdClient.Object, llama.Object, resolver.Object, new LoggerFactory().CreateLogger<ProcessingOrchestrator>());
+        var orchestrator = new ProcessingOrchestrator(
+            mdClient.Object,
+            llama.Object,
+            resolver.Object,
+            new LoggerFactory().CreateLogger<ProcessingOrchestrator>(),
+            Options.Create(new MarkdownOptions()));
         var res = await orchestrator.ProcessAsync(file, "tpl", "prompt", new List<FieldSpec>(), default);
         res.Should().BeEquivalentTo(expected);
         mdClient.VerifyAll(); llama.VerifyAll();
@@ -45,7 +51,12 @@ public class ProcessingOrchestratorTests {
         resolver.Setup(r => r.ResolveAsync(It.IsAny<DocumentIndex>(), It.IsAny<IReadOnlyList<ExtractedField>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>(), null)).ToList());
         var file = new FormFile(new MemoryStream(Encoding.UTF8.GetBytes("fake")), 0, 4, "file", "test.png") { Headers = new HeaderDictionary(), ContentType = "image/png" };
-        var orchestrator = new ProcessingOrchestrator(mdClient.Object, llama.Object, resolver.Object, new LoggerFactory().CreateLogger<ProcessingOrchestrator>());
+        var orchestrator = new ProcessingOrchestrator(
+            mdClient.Object,
+            llama.Object,
+            resolver.Object,
+            new LoggerFactory().CreateLogger<ProcessingOrchestrator>(),
+            Options.Create(new MarkdownOptions()));
         var res = await orchestrator.ProcessAsync(file, "tpl", "prompt", new List<string> { "Key" }, default);
         res.Should().BeEquivalentTo(expected);
     }

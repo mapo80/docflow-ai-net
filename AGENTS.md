@@ -4,19 +4,25 @@
   - `X-API-Key`
   - optional `X-Reasoning: think|no_think|auto`
 - Ensure a GGUF model is mounted at `/models` (compose does it).
-- For local tests download `qwen2.5-0.5b-instruct-q4_0.gguf` into `./models`:
+- For local tests download `Qwen3-0.6B-Q4_0.gguf` into `./models` using an HF token:
   ```bash
   export HF_TOKEN="<your token>"
-    huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
-      qwen2.5-0.5b-instruct-q4_0.gguf \
-      --local-dir ./models --token "$HF_TOKEN"
-  export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
+  hf download unsloth/Qwen3-0.6B-GGUF \
+    Qwen3-0.6B-Q4_0.gguf \
+    --local-dir ./models --token "$HF_TOKEN"
+  export MODELS_DIR="$(pwd)/models"
+  export LLM__DefaultModelRepo="unsloth/Qwen3-0.6B-GGUF"
+  export LLM__DefaultModelFile="Qwen3-0.6B-Q4_0.gguf"
   ```
 - Output is always **valid JSON** due to **GBNF grammar** at inference, then validated against **Extraction Profiles**.
 
 Prompts:
 - The server injects `/think` or `/no_think` automatically based on header/config.
 - Do not add explanations; responses must be pure JSON.
+
+## Dataset CLI
+- Use `dotnet run --project tools/DatasetCli -- --dataset <path> --output <file>` to process a dataset via the REST API.
+- The API server must be running at `http://localhost:8080` and a model file must exist under `./models`.
 ## Workflow
 
 - Initialize submodules:
@@ -43,6 +49,7 @@ Prompts:
 - Adapter: `src/DocflowAi.Net.Infrastructure/Markdown/MarkdownNetConverter.cs`
 - Dependency Injection: `src/DocflowAi.Net.Api/Program.cs`
 - Tests: `tests/DocflowAi.Net.Tests.Integration/MarkdownNetConverterTests.cs`
+- Test endpoint: `POST /api/v1/markdown` accepts a file and returns its markdown
 
 ## Pre-PR checklist
 - `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` should return empty

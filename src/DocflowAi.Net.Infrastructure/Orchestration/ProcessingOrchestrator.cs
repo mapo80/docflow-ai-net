@@ -8,6 +8,7 @@ using DocflowAi.Net.Domain.Extraction;
 using DocflowAi.Net.BBoxResolver;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DocflowAi.Net.Infrastructure.Orchestration;
 
@@ -17,17 +18,20 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
     private readonly ILlamaExtractor _llama;
     private readonly IResolverOrchestrator _resolver;
     private readonly ILogger<ProcessingOrchestrator> _logger;
+    private readonly MarkdownOptions _mdOptions;
 
     public ProcessingOrchestrator(
         IMarkdownConverter converter,
         ILlamaExtractor llama,
         IResolverOrchestrator resolver,
-        ILogger<ProcessingOrchestrator> logger)
+        ILogger<ProcessingOrchestrator> logger,
+        IOptions<MarkdownOptions> mdOptions)
     {
         _converter = converter;
         _llama = llama;
         _resolver = resolver;
         _logger = logger;
+        _mdOptions = mdOptions.Value;
     }
 
     public async Task<DocumentAnalysisResult> ProcessAsync(
@@ -64,16 +68,15 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
         try
         {
             MarkdownResult mdResult;
-            var options = new MarkdownOptions();
             if (file.ContentType == "application/pdf" || file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogInformation("Converting PDF for {FileName}", file.FileName);
-                mdResult = await _converter.ConvertPdfAsync(stream, options);
+                mdResult = await _converter.ConvertPdfAsync(stream, _mdOptions);
             }
             else if (file.ContentType.StartsWith("image/") || new[]{".png",".jpg",".jpeg"}.Any(e => file.FileName.EndsWith(e, StringComparison.OrdinalIgnoreCase)))
             {
                 _logger.LogInformation("Converting image for {FileName}", file.FileName);
-                mdResult = await _converter.ConvertImageAsync(stream, options);
+                mdResult = await _converter.ConvertImageAsync(stream, _mdOptions);
             }
             else
             {

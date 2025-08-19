@@ -3,7 +3,7 @@ set -euo pipefail
 API_KEY="${API_KEY:-dev-secret-key-change-me}"
 REASONING="${REASONING:-no_think}"
 API_URL="${API_URL:-http://localhost:5214}"
-MODEL_PATH="${MODEL_PATH:-../models/qwen3-1_5-instruct-q4_0.gguf}"
+MODEL_PATH="${MODEL_PATH:-../models/Qwen3-0.6B-Q4_0.gguf}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 proj_root="$(cd "${here}/.." && pwd)"
 pretty() { python3 - <<'PY' || cat

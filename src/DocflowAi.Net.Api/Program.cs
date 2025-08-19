@@ -1,6 +1,7 @@
 using System.Reflection;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Configuration;
+using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Infrastructure.Llm;
 using DocflowAi.Net.Infrastructure.Markdown;
 using DocflowAi.Net.Infrastructure.Orchestration;
@@ -23,6 +24,7 @@ using FluentValidation;
 using DocflowAi.Net.Api.Model.Endpoints;
 using DocflowAi.Net.Api.Templates.Endpoints;
 using DocflowAi.Net.Api.Templates.Data;
+using DocflowAi.Net.Api.Markdown.Endpoints;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.RateLimiting;
@@ -67,6 +69,7 @@ builder.Services.Configure<BBoxOptions>(builder.Configuration.GetSection("BBox")
 builder.Services.PostConfigure<BBoxOptions>(o => builder.Configuration.GetSection("Resolver:TokenFirst").Bind(o));
 builder.Services.Configure<PointerOptions>(builder.Configuration.GetSection("Resolver:Pointer"));
 builder.Services.Configure<JobQueueOptions>(builder.Configuration.GetSection(JobQueueOptions.SectionName));
+builder.Services.Configure<MarkdownOptions>(builder.Configuration.GetSection("Markdown"));
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
@@ -299,6 +302,7 @@ app.MapHealthChecks(
         }
     }
 );
+app.MapMarkdownEndpoints();
 app.MapModelEndpoints();
 app.MapModelManagementEndpoints();
 app.MapJobEndpoints();
