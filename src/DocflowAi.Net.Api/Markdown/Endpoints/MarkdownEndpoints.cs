@@ -5,6 +5,7 @@ using DocflowAi.Net.Api.Contracts;
 using DocflowAi.Net.Infrastructure.Markdown;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Options;
 
 namespace DocflowAi.Net.Api.Markdown.Endpoints;
@@ -17,6 +18,8 @@ public static class MarkdownEndpoints
             .WithTags("Markdown")
             .RequireRateLimiting("General")
             .RequireAuthorization();
+
+        group.DisableAntiforgery();
 
         group.MapPost(string.Empty, ConvertFileAsync)
         .Accepts<IFormFile>("multipart/form-data")
