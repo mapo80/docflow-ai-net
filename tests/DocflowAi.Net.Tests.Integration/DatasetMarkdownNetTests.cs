@@ -77,4 +77,21 @@ public class DatasetMarkdownNetTests
             result.Markdown.Should().Contain(w);
         }
     }
+
+    [Fact]
+    public async Task PayrollImages_AreConvertibleToMarkdown()
+    {
+        if (!HasTesseract) return;
+        var payrollDir = Path.Combine(Root, "dataset", "busta-paga");
+        foreach (var imgPath in Directory.EnumerateFiles(payrollDir)
+                     .Where(p => p.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                 p.EndsWith(".png", StringComparison.OrdinalIgnoreCase)))
+        {
+            await using var fs = File.OpenRead(imgPath);
+            var result = await _converter.ConvertImageAsync(fs, new MarkdownOptions());
+            result.Markdown.Should().NotBeNullOrWhiteSpace();
+            result.Boxes.Should().NotBeNull();
+            result.Boxes.Should().NotBeEmpty();
+        }
+    }
 }

@@ -1,3 +1,5 @@
 # busta_paga_05.png
 
-Conversion failed: `Tesseract.Interop.LeptonicaApi.Initialize` could not load native dependencies, so no markdown or fields were produced.
+Conversion failed: Failed to find library "libleptonica-1.82.0.so" for platform x64.
+
+The required Tesseract and Leptonica libraries are bundled under `src/MarkItDownNet/TesseractOCR/x64`; ensure they are copied alongside the binaries.
