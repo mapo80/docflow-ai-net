@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Descriptions, Button, Space, Modal, Tabs, Table } from 'antd';
+import { Descriptions, Button, Space, Modal, Tabs, Table, Alert } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
@@ -29,6 +29,7 @@ export default function JobDetail() {
   const [fields, setFields] = useState<
     { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
   >([]);
+  const [error, setError] = useState<string | null>(null);
   const { showError } = useApiError();
 
   const load = async () => {
@@ -36,10 +37,15 @@ export default function JobDetail() {
     try {
       const res = await JobsService.jobsGetById({ id });
       setJob(res);
+      setError(null);
     } catch (e) {
+      setJob(null);
       if (e instanceof ApiError && e.status === 404) {
-        showError('Job not found');
+        const msg = 'Job not found';
+        setError(msg);
+        showError(msg);
       } else if (e instanceof Error) {
+        setError(e.message);
         showError(e.message);
       }
     }
@@ -205,7 +211,9 @@ export default function JobDetail() {
     }
   };
 
-  if (!job) return <Loader />;
+  if (!job) {
+    return error ? <Alert type="error" message={error} /> : <Loader />;
+  }
 
   const artifacts = Object.entries(job.paths || {})
     .filter(([k, v]) => v && (k !== 'error' || job.status !== 'Succeeded'))
@@ -249,8 +257,6 @@ export default function JobDetail() {
       notify('success', 'Job created successfully.');
     }
   }, [location.state]);
-
-  if (!job) return <Loader />;
 
   return (
     <div>
