@@ -39,12 +39,12 @@ public static class DefaultTemplateSeeder
                 prompt = File.ReadAllText(promptPath);
         }
 
-        var fields = new
+        var fields = new[]
         {
-            company_name = "",
-            document_type = "",
-            invoice_number = "",
-            invoice_date = ""
+            new { name = "company_name", type = "string" },
+            new { name = "document_type", type = "string" },
+            new { name = "invoice_number", type = "string" },
+            new { name = "invoice_date", type = "string" }
         };
 
         var now = DateTimeOffset.UtcNow;

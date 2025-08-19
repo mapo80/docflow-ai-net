@@ -31,11 +31,11 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
         setName(t.name || '');
         setToken(t.token || '');
         setPrompt(t.promptMarkdown || '');
-        try {
-          setFields(jsonToFields(JSON.stringify(t.fieldsJson ?? { fields: [] })));
-        } catch {
-          setFields([]);
-        }
+          try {
+            setFields(jsonToFields(JSON.stringify(t.fieldsJson ?? [])));
+          } catch {
+            setFields([]);
+          }
       });
     } else {
       setName('');

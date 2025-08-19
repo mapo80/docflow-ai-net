@@ -33,8 +33,8 @@ public class TemplateService : ITemplateService
     {
         ValidateName(request.Name, null);
         ValidateToken(request.Token, null);
-        if (request.FieldsJson.ValueKind != JsonValueKind.Object)
-            throw new ArgumentException("fieldsJson must be an object");
+        if (request.FieldsJson.ValueKind != JsonValueKind.Array)
+            throw new ArgumentException("fieldsJson must be an array");
 
         var doc = new TemplateDocument
         {
@@ -66,8 +66,8 @@ public class TemplateService : ITemplateService
             existing.PromptMarkdown = request.PromptMarkdown;
         if (request.FieldsJson.HasValue)
         {
-            if (request.FieldsJson.Value.ValueKind != JsonValueKind.Object)
-                throw new ArgumentException("fieldsJson must be an object");
+            if (request.FieldsJson.Value.ValueKind != JsonValueKind.Array)
+                throw new ArgumentException("fieldsJson must be an array");
             existing.FieldsJson = request.FieldsJson.Value.GetRawText();
         }
         _repo.Update(existing);

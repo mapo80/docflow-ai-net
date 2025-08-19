@@ -9,13 +9,13 @@ export interface FieldItem {
 }
 
 export function fieldsToJson(fields: FieldItem[]): string {
-  return JSON.stringify({ fields }, null, 2);
+  return JSON.stringify(fields, null, 2);
 }
 
 export function jsonToFields(json: string): FieldItem[] {
   const parsed = JSON.parse(json);
-  if (!parsed || !Array.isArray(parsed.fields)) return [];
-  return parsed.fields as FieldItem[];
+  if (!Array.isArray(parsed)) return [];
+  return parsed as FieldItem[];
 }
 
 interface Props {
