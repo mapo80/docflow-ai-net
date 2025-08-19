@@ -43,8 +43,9 @@ export default function MarkdownPage() {
       setResult(res);
       setElapsed(performance.now() - start);
     } catch (e) {
-      if (e instanceof ApiError) showError(e.body?.detail || e.message);
-      else if (e instanceof Error) showError(e.message);
+      if (e instanceof ApiError) {
+        // handled by ApiErrorProvider
+      } else if (e instanceof Error) showError(e.message);
       else showError(String(e));
     } finally {
       setLoading(false);

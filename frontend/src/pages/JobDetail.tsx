@@ -42,7 +42,10 @@ export default function JobDetail() {
       if (e instanceof ApiError && e.status === 404) {
         const msg = 'Job not found';
         setError(msg);
-        showError(msg);
+        // handled by ApiErrorProvider
+      } else if (e instanceof ApiError) {
+        setError(e.message);
+        // handled by ApiErrorProvider
       } else if (e instanceof Error) {
         setError(e.message);
         showError(e.message);

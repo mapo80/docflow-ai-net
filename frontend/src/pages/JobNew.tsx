@@ -109,7 +109,7 @@ export default function JobNew() {
       if (e instanceof ApiError && e.status === 429) {
         notify('warning', 'queue_full');
       } else if (e instanceof ApiError) {
-        showError(e.body?.detail || e.message);
+        // handled by ApiErrorProvider
       } else if (e instanceof Error) {
         showError(e.message);
       } else {
