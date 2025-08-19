@@ -5,7 +5,6 @@ import {
   Card,
   Descriptions,
   Alert,
-  message,
   Grid,
   Progress,
   Result,
@@ -13,6 +12,7 @@ import {
 } from 'antd';
 import ModelDownloadForm from '../components/ModelDownloadForm';
 import RetryAfterBanner from '../components/RetryAfterBanner';
+import notify from '../components/notification';
 import ModelSwitchSelect from '../components/ModelSwitchSelect';
 import {
   ModelService,
@@ -63,7 +63,7 @@ export default function ModelManagerPage() {
   const handleSwitch = async (file: string, ctx: number) => {
     try {
       await ModelService.modelSwitch({ requestBody: { modelFile: file, contextSize: ctx } });
-      message.success('Model activated');
+      notify('success', 'Model activated');
       await loadInfo();
     } catch (e) {
       if (e instanceof ApiError) {
@@ -77,7 +77,7 @@ export default function ModelManagerPage() {
   const handleDownload = async (req: DownloadModelRequest) => {
     try {
       await ModelService.modelDownload({ requestBody: req });
-      message.success('Download started');
+      notify('success', 'Download started');
       setStatus(null);
       setPolling(true);
     } catch (e) {
@@ -95,7 +95,7 @@ export default function ModelManagerPage() {
       setStatus(s);
       if (s.completed) {
         setPolling(false);
-        message.success('Download completed');
+        notify('success', 'Download completed');
         await loadAvailable();
       }
     } catch (e) {

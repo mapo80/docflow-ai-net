@@ -6,9 +6,9 @@ import {
   Input,
   Select,
   Space,
-  message,
   Grid,
   Popconfirm,
+  Badge,
 } from 'antd';
 import type { Breakpoint } from 'antd/es/_util/responsiveObserver';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
@@ -20,6 +20,7 @@ import ModelModal from '../components/ModelModal';
 import ModelLogModal from '../components/ModelLogModal';
 import { ModelsService, type ModelDto } from '../generated';
 import dayjs from 'dayjs';
+import notify from '../components/notification';
 
 export default function ModelsPage() {
   const [models, setModels] = useState<ModelDto[]>([]);
@@ -32,6 +33,7 @@ export default function ModelsPage() {
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
   const [logModel, setLogModel] = useState<string | null>(null);
+  const [created, setCreated] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -114,7 +116,7 @@ export default function ModelsPage() {
               title="Delete model?"
               onConfirm={async () => {
                 await ModelsService.modelsDelete({ id: record.id! });
-                message.success('Model deleted');
+                notify('success', 'Model deleted');
                 load();
               }}
             >
@@ -128,7 +130,7 @@ export default function ModelsPage() {
                 aria-label="Start download"
                 onClick={async () => {
                   await ModelsService.modelsStartDownload({ id: record.id! });
-                  message.success('Download started');
+                  notify('success', 'Download started');
                   load();
                 }}
               />
@@ -141,7 +143,7 @@ export default function ModelsPage() {
                 title="Delete model?"
                 onConfirm={async () => {
                   await ModelsService.modelsDelete({ id: record.id! });
-                  message.success('Model deleted');
+                  notify('success', 'Model deleted');
                   load();
                 }}
               >
@@ -156,6 +158,11 @@ export default function ModelsPage() {
 
   return (
     <div>
+      {created && (
+        <div style={{ marginBottom: 16 }}>
+          <Badge status="success" text="Model created successfully." />
+        </div>
+      )}
       <Space
         direction={isMobile ? 'vertical' : 'horizontal'}
         style={{ width: '100%', marginBottom: 16 }}
@@ -207,7 +214,7 @@ export default function ModelsPage() {
                         aria-label="Start download"
                         onClick={async () => {
                           await ModelsService.modelsStartDownload({ id: r.id! });
-                          message.success('Download started');
+                          notify('success', 'Download started');
                           load();
                         }}
                       />,
@@ -222,7 +229,7 @@ export default function ModelsPage() {
                         title="Delete model?"
                         onConfirm={async () => {
                           await ModelsService.modelsDelete({ id: r.id! });
-                          message.success('Model deleted');
+                          notify('success', 'Model deleted');
                           load();
                         }}
                       >
@@ -244,7 +251,7 @@ export default function ModelsPage() {
                         title="Delete model?"
                         onConfirm={async () => {
                           await ModelsService.modelsDelete({ id: r.id! });
-                          message.success('Model deleted');
+                          notify('success', 'Model deleted');
                           load();
                         }}
                       >
@@ -297,7 +304,10 @@ export default function ModelsPage() {
           open={modalOpen}
           modelId={modalId}
           onCancel={() => setModalOpen(false)}
-          onSaved={load}
+          onSaved={(isCreated) => {
+            if (isCreated) setCreated(true);
+            load();
+          }}
           existingNames={models.map((m) => m.name!).filter(Boolean) as string[]}
         />
       )}
@@ -311,4 +321,3 @@ export default function ModelsPage() {
     </div>
   );
 }
-

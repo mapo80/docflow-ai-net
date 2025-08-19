@@ -7,10 +7,10 @@ import {
   Space,
   Input,
   Typography,
-  message,
   Form,
   Select,
   Popconfirm,
+  Badge,
 } from 'antd';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
 import EditOutlined from '@ant-design/icons/EditOutlined';
@@ -20,6 +20,7 @@ import dayjs from 'dayjs';
 import { TemplatesService, type TemplateSummary } from '../generated';
 import TemplateModal from '../components/TemplateModal';
 import { useApiError } from '../components/ApiErrorProvider';
+import notify from '../components/notification';
 
 export default function TemplatesList() {
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
@@ -31,6 +32,7 @@ export default function TemplatesList() {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState('createdAt desc');
   const [modalId, setModalId] = useState<string | undefined>();
+  const [created, setCreated] = useState(false);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
   const { showError } = useApiError();
@@ -88,7 +90,7 @@ export default function TemplatesList() {
             onConfirm={async () => {
               try {
                 await TemplatesService.templatesDelete({ id: record.id! });
-                message.success('Template deleted');
+                notify('success', 'Template deleted');
                 load();
               } catch (e: any) {
                 if (e instanceof Error) showError(e.message);
@@ -117,6 +119,11 @@ export default function TemplatesList() {
 
   return (
     <div>
+      {created && (
+        <div style={{ marginBottom: 16 }}>
+          <Badge status="success" text="Template created successfully." />
+        </div>
+      )}
       <Space
         direction={isMobile ? 'vertical' : 'horizontal'}
         style={{ width: '100%', marginBottom: 16 }}
@@ -182,7 +189,7 @@ export default function TemplatesList() {
                   onConfirm={async () => {
                     try {
                       await TemplatesService.templatesDelete({ id: item.id! });
-                      message.success('Template deleted');
+                      notify('success', 'Template deleted');
                       load();
                     } catch (e: any) {
                       if (e instanceof Error) showError(e.message);
@@ -214,8 +221,12 @@ export default function TemplatesList() {
           open={true}
           templateId={modalId === 'new' ? undefined : modalId}
           onClose={(changed) => {
+            const wasNew = modalId === 'new';
             setModalId(undefined);
-            if (changed) load();
+            if (changed) {
+              if (wasNew) setCreated(true);
+              load();
+            }
           }}
         />
       )}
