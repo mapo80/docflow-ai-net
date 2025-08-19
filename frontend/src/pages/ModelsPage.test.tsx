@@ -2,6 +2,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ModelsPage from './ModelsPage';
 import { ModelsService } from '../generated';
+import { notify } from '../components/notification';
+
+const { mockNotify } = vi.hoisted(() => ({ mockNotify: vi.fn() }));
+vi.mock('../components/notification', () => ({ notify: mockNotify, default: mockNotify }));
+
+vi.mock('../components/ModelModal', () => ({
+  default: ({ onSaved, open }: any) =>
+    open ? <button onClick={() => onSaved(true)}>modal</button> : null,
+}));
 
 vi.mock('../generated', () => {
   const list = [
@@ -51,7 +60,7 @@ vi.mock('../generated', () => {
 describe('ModelsPage', () => {
   it('filters by type', async () => {
     render(<ModelsPage />);
-    await screen.findByText('host');
+    await screen.findAllByText('host');
     const select = screen.getByRole('combobox');
     fireEvent.mouseDown(select);
     fireEvent.click(screen.getByTitle('Local'));
@@ -72,7 +81,7 @@ describe('ModelsPage', () => {
 
   it('shows actions for hosted model', async () => {
     render(<ModelsPage />);
-    await screen.findByText('host');
+    await screen.findAllByText('host');
     expect(screen.getByLabelText('Edit model')).toBeInTheDocument();
     expect(screen.getAllByLabelText('Delete model').length).toBeGreaterThan(0);
   });
@@ -83,5 +92,14 @@ describe('ModelsPage', () => {
     expect(screen.getAllByText('Created: 2024-01-01 00:00').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Updated: 2024-01-04 00:00').length).toBeGreaterThan(0);
   });
-});
 
+  it('shows success badge after model creation', async () => {
+    render(<ModelsPage />);
+    await screen.findAllByText('host');
+    fireEvent.click(screen.getAllByText('Create Model')[0]);
+    fireEvent.click(screen.getByText('modal'));
+    await waitFor(() =>
+      expect(screen.getByText('Model created successfully.')).toBeInTheDocument(),
+    );
+  });
+});

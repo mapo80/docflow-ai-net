@@ -6,6 +6,7 @@ import type { FieldItem } from './FieldsEditor';
 import { fieldsToJson, jsonToFields } from './FieldsEditor';
 import { slugify, isSlug } from '../templates/slug';
 import { TemplatesService } from '../generated';
+import notify from './notification';
 
 interface Props {
   open: boolean;
@@ -62,8 +63,10 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
     try {
       if (templateId) {
         await TemplatesService.templatesUpdate({ id: templateId, requestBody: payload });
+        notify('success', 'Template updated');
       } else {
         await TemplatesService.templatesCreate({ requestBody: payload });
+        notify('success', 'Template created successfully.');
       }
       onClose(true);
     } finally {
