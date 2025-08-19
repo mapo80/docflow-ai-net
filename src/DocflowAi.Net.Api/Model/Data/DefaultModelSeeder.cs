@@ -17,8 +17,8 @@ public static class DefaultModelSeeder
 {
     public static void Build(WebApplication app)
     {
-        var repo = app.Configuration["LLM_MODEL_REPO"];
-        var file = app.Configuration["LLM_MODEL_FILE"];
+        var repo = app.Configuration["LLM:DefaultModelRepo"];
+        var file = app.Configuration["LLM:DefaultModelFile"];
         if (string.IsNullOrWhiteSpace(repo) || string.IsNullOrWhiteSpace(file))
             return;
 
@@ -35,7 +35,8 @@ public static class DefaultModelSeeder
 
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Seeder");
         var now = DateTimeOffset.UtcNow;
-        var modelPath = app.Configuration["LLM:ModelPath"];
+        var modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR") ?? "/home/appuser/models";
+        var modelPath = Path.Combine(modelsDir, file);
         var model = new ModelDocument
         {
             Id = Guid.NewGuid(),

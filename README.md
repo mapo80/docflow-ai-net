@@ -133,8 +133,8 @@ export HF_TOKEN=hf_************************
 
 DOCKER_BUILDKIT=1 docker build \
   --secret id=hf_token,env=HF_TOKEN \
-  --build-arg LLM_MODEL_REPO=unsloth/Qwen3-1.7B-GGUF \
-  --build-arg LLM_MODEL_FILE=Qwen3-1.7B-UD-Q4_K_XL.gguf \
+  --build-arg LLM_DEFAULT_MODEL_REPO=unsloth/Qwen3-1.7B-GGUF \
+  --build-arg LLM_DEFAULT_MODEL_FILE=Qwen3-1.7B-UD-Q4_K_XL.gguf \
   --build-arg LLM_MODEL_REV=main \
   -t docflow-ai-net:with-model .
 

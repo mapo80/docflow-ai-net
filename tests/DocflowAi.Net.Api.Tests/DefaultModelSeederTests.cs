@@ -16,8 +16,8 @@ public class DefaultModelSeederTests : IClassFixture<TempDirFixture>
     {
         var extra = new Dictionary<string, string?>
         {
-            ["LLM_MODEL_REPO"] = "repo/name",
-            ["LLM_MODEL_FILE"] = "model.gguf",
+            ["LLM:DefaultModelRepo"] = "repo/name",
+            ["LLM:DefaultModelFile"] = "model.gguf",
             ["JobQueue:SeedDefaults"] = "true"
         };
         await using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);
@@ -32,8 +32,8 @@ public class DefaultModelSeederTests : IClassFixture<TempDirFixture>
     {
         var extra = new Dictionary<string, string?>
         {
-            ["LLM_MODEL_REPO"] = "repo/name",
-            ["LLM_MODEL_FILE"] = "model.gguf",
+            ["LLM:DefaultModelRepo"] = "repo/name",
+            ["LLM:DefaultModelFile"] = "model.gguf",
             ["JobQueue:SeedDefaults"] = "false"
         };
         await using var factory = new TestWebAppFactory(_fx.RootPath, extra: extra);

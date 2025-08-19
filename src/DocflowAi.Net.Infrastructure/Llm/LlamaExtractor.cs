@@ -30,6 +30,7 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
     private readonly string? _gbnf;
 
     public LlamaExtractor(
+        ILlmModelService modelService,
         IOptions<LlmOptions> options,
         IReasoningModeAccessor modeAccessor,
         ILogger<LlamaExtractor> logger)
@@ -38,10 +39,17 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         _opts = options.Value;
         _modeAccessor = modeAccessor;
 
-        _logger.LogInformation("Loading LLama model from {ModelPath}", _opts.ModelPath);
-        var modelParams = new ModelParams(_opts.ModelPath)
+        var modelsDir = Environment.GetEnvironmentVariable("MODELS_DIR")
+            ?? Path.Combine(AppContext.BaseDirectory, "models");
+        var info = modelService.GetCurrentModel();
+        if (info.File == null)
+            throw new FileNotFoundException("No model available");
+        var modelPath = Path.Combine(modelsDir, info.File);
+        var ctxSize = info.ContextSize ?? 4096;
+        _logger.LogInformation("Loading LLama model from {ModelPath}", modelPath);
+        var modelParams = new ModelParams(modelPath)
         {
-            ContextSize = (uint)_opts.ContextTokens,
+            ContextSize = (uint)ctxSize,
             GpuLayerCount = 0,
             Threads = _opts.Threads
         };

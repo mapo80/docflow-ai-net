@@ -47,7 +47,7 @@ public class TestWebAppFactory_Step3B : WebApplicationFactory<Program>
                 ["JobQueue:Timeouts:JobTimeoutSeconds"] = "3",
                 ["Serilog:Using:0"] = "Serilog.Sinks.TestCorrelator",
                 ["Serilog:WriteTo:0:Name"] = "TestCorrelator",
-                ["JobQueue:EnableDashboard"] = "false",
+                ["JobQueue:EnableHangfireDashboard"] = "false",
                 ["JobQueue:SeedDefaults"] = "false"
             };
             config.AddInMemoryCollection(dict);

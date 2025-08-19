@@ -10,7 +10,7 @@
     huggingface-cli download Qwen/Qwen2.5-0.5B-Instruct-GGUF \
       qwen2.5-0.5b-instruct-q4_0.gguf \
       --local-dir ./models --token "$HF_TOKEN"
-  export LLM__ModelPath="$(pwd)/models/qwen2.5-0.5b-instruct-q4_0.gguf"
+  export MODELS_DIR="$(pwd)/models"
   ```
 - Output is always **valid JSON** due to **GBNF grammar** at inference, then validated against **Extraction Profiles**.
 

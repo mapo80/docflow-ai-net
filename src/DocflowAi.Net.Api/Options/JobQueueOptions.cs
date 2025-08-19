@@ -13,7 +13,7 @@ namespace DocflowAi.Net.Api.Options;
         public ImmediateOptions Immediate { get; set; } = new();
         public CleanupOptions Cleanup { get; set; } = new();
         public int JobTTLDays { get; set; } = 14;
-        public bool EnableDashboard { get; set; } = true;
+        public bool EnableHangfireDashboard { get; set; } = true;
         public bool SeedDefaults { get; set; } = true;
 
     public class DatabaseOptions

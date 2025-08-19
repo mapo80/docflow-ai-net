@@ -25,7 +25,7 @@ Derived status is computed from the database status only:
 - `error.txt` (on error)
 
 ## Configuration
-See `appsettings.json` section `JobQueue` for paths, rate limits and cleanup schedule. Dashboard auth can be enabled with `HangfireDashboardAuth` and uses the same API keys as the REST API.
+See `appsettings.json` section `JobQueue` for paths, rate limits and cleanup schedule. Setting `JobQueue.EnableHangfireDashboard` exposes the dashboard and requires the same API keys as the REST API.
 
 ### Immediate mode
 Jobs can be executed inline by calling `POST /api/v1/jobs?mode=immediate` when `JobQueue.Immediate.Enabled=true`.
