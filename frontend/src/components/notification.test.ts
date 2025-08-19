@@ -1,18 +1,27 @@
 import { vi, test, expect } from 'vitest';
-import { notify } from './notification';
-import { notification } from 'antd';
+import { render } from '@testing-library/react';
+import { notify, NotificationProvider } from './notification';
+
+const api = {
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+};
 
 vi.mock('antd', () => ({
   notification: {
-    success: vi.fn(),
-    error: vi.fn(),
-    warning: vi.fn(),
+    useNotification: () => [api, <div key="n" />],
   },
 }));
 
 test('notify forwards to antd notification', () => {
+  render(
+    <NotificationProvider>
+      <div />
+    </NotificationProvider>,
+  );
   notify('success', 'ok');
-  expect(notification.success).toHaveBeenCalledWith({ message: 'ok', description: undefined });
+  expect(api.success).toHaveBeenCalledWith({ message: 'ok', description: undefined });
   notify('error', 'fail', 'bad');
-  expect(notification.error).toHaveBeenCalledWith({ message: 'fail', description: 'bad' });
+  expect(api.error).toHaveBeenCalledWith({ message: 'fail', description: 'bad' });
 });
