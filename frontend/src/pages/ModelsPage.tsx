@@ -6,7 +6,6 @@ import {
   Input,
   Select,
   Space,
-  message,
   Grid,
   Popconfirm,
   Badge,
@@ -21,6 +20,7 @@ import ModelModal from '../components/ModelModal';
 import ModelLogModal from '../components/ModelLogModal';
 import { ModelsService, type ModelDto } from '../generated';
 import dayjs from 'dayjs';
+import notify from '../components/notification';
 
 export default function ModelsPage() {
   const [models, setModels] = useState<ModelDto[]>([]);
@@ -116,7 +116,7 @@ export default function ModelsPage() {
               title="Delete model?"
               onConfirm={async () => {
                 await ModelsService.modelsDelete({ id: record.id! });
-                message.success('Model deleted');
+                notify('success', 'Model deleted');
                 load();
               }}
             >
@@ -130,7 +130,7 @@ export default function ModelsPage() {
                 aria-label="Start download"
                 onClick={async () => {
                   await ModelsService.modelsStartDownload({ id: record.id! });
-                  message.success('Download started');
+                  notify('success', 'Download started');
                   load();
                 }}
               />
@@ -143,7 +143,7 @@ export default function ModelsPage() {
                 title="Delete model?"
                 onConfirm={async () => {
                   await ModelsService.modelsDelete({ id: record.id! });
-                  message.success('Model deleted');
+                  notify('success', 'Model deleted');
                   load();
                 }}
               >
@@ -214,7 +214,7 @@ export default function ModelsPage() {
                         aria-label="Start download"
                         onClick={async () => {
                           await ModelsService.modelsStartDownload({ id: r.id! });
-                          message.success('Download started');
+                          notify('success', 'Download started');
                           load();
                         }}
                       />,
@@ -229,7 +229,7 @@ export default function ModelsPage() {
                         title="Delete model?"
                         onConfirm={async () => {
                           await ModelsService.modelsDelete({ id: r.id! });
-                          message.success('Model deleted');
+                          notify('success', 'Model deleted');
                           load();
                         }}
                       >
@@ -251,7 +251,7 @@ export default function ModelsPage() {
                         title="Delete model?"
                         onConfirm={async () => {
                           await ModelsService.modelsDelete({ id: r.id! });
-                          message.success('Model deleted');
+                          notify('success', 'Model deleted');
                           load();
                         }}
                       >
@@ -321,4 +321,3 @@ export default function ModelsPage() {
     </div>
   );
 }
-

@@ -4,6 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import TemplatesList from './TemplatesList';
 import { TemplatesService } from '../generated';
 import ApiErrorProvider from '../components/ApiErrorProvider';
+import { notify } from '../components/notification';
+
+const { mockNotify } = vi.hoisted(() => ({ mockNotify: vi.fn() }));
+vi.mock('../components/notification', () => ({ notify: mockNotify, default: mockNotify }));
 
 vi.mock('../components/TemplateModal', () => ({
   default: ({ onClose }: any) => <button onClick={() => onClose(true)}>modal</button>,
@@ -53,8 +57,6 @@ vi.mock('antd', () => {
       { Option: ({ value, children }: any) => <option value={value}>{children}</option> },
     ),
     message: { success: vi.fn() },
-    Badge: ({ text }: any) => <span>{text}</span>,
-  };
 });
 
 test('create edit delete flows', async () => {
@@ -89,6 +91,7 @@ test('create edit delete flows', async () => {
   await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(3));
   fireEvent.click(screen.getAllByLabelText('Delete')[0]);
   await waitFor(() => expect(delSpy).toHaveBeenCalledWith({ id: '1' }));
+  expect(notify).toHaveBeenCalledWith('success', 'Template deleted');
   await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(4));
   fireEvent.click(screen.getByText('Create Template'));
   fireEvent.click(screen.getByText('modal'));

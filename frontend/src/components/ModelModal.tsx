@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Button, Space, message } from 'antd';
+import { Modal, Form, Input, Select, Button, Space } from 'antd';
 import { ModelsService, type CreateModelRequest, type ModelDto, ApiError } from '../generated';
 import { useApiError } from './ApiErrorProvider';
+import notify from './notification';
 
 interface ModelModalProps {
   open: boolean;
@@ -59,7 +60,7 @@ export default function ModelModal({
             apiKey: updateKey ? values.apiKey : undefined,
           },
         });
-        message.success('Model updated');
+        notify('success', 'Model updated');
         onSaved(false);
       } else {
         const req: CreateModelRequest = {
@@ -73,7 +74,7 @@ export default function ModelModal({
           hfToken: values.hfToken,
         };
         await ModelsService.modelsCreate({ requestBody: req });
-        message.success('Model created successfully.');
+        notify('success', 'Model created successfully.');
         onSaved(true);
       }
       onCancel();
@@ -133,10 +134,10 @@ export default function ModelModal({
         </Form.Item>
         {type === 'hosted-llm' && (
           <>
-            <Form.Item name="provider" label="Provider" rules={[{ required: true }]}>
+            <Form.Item name="provider" label="Provider" rules={[{ required: true }]}> 
               <Select options={[{ value: 'openai', label: 'openai' }, { value: 'azure-openai', label: 'azure-openai' }]} />
             </Form.Item>
-            <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, type: 'url' }]}>
+            <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, type: 'url' }]}> 
               <Input />
             </Form.Item>
             {editing && initial?.hasApiKey && (

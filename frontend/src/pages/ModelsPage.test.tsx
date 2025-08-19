@@ -2,6 +2,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ModelsPage from './ModelsPage';
 import { ModelsService } from '../generated';
+import { notify } from '../components/notification';
+
+const { mockNotify } = vi.hoisted(() => ({ mockNotify: vi.fn() }));
+vi.mock('../components/notification', () => ({ notify: mockNotify, default: mockNotify }));
+
+vi.mock('../components/ModelModal', () => ({
+  default: ({ onSaved, open }: any) =>
+    open ? <button onClick={() => onSaved(true)}>modal</button> : null,
+}));
 
 vi.mock('../components/ModelModal', () => ({
   default: ({ onSaved, open }: any) =>
@@ -88,7 +97,7 @@ describe('ModelsPage', () => {
     expect(screen.getAllByText('Created: 2024-01-01 00:00').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Updated: 2024-01-04 00:00').length).toBeGreaterThan(0);
   });
-
+  
   it('shows success badge after model creation', async () => {
     render(<ModelsPage />);
     await screen.findAllByText('host');
@@ -99,4 +108,3 @@ describe('ModelsPage', () => {
     );
   });
 });
-

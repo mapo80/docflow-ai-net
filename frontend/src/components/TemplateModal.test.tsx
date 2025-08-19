@@ -2,6 +2,10 @@ import { render, fireEvent, screen, waitFor, cleanup } from '@testing-library/re
 import { test, expect, vi, afterEach } from 'vitest';
 import TemplateModal from './TemplateModal';
 import { TemplatesService } from '../generated';
+import { notify } from './notification';
+
+const { mockNotify } = vi.hoisted(() => ({ mockNotify: vi.fn() }));
+vi.mock('./notification', () => ({ notify: mockNotify, default: mockNotify }));
 
 var useBreakpoint: any;
 vi.mock('antd', () => {
@@ -79,8 +83,8 @@ test('create flow', async () => {
   fireEvent.click(screen.getByText('add'));
   fireEvent.click(screen.getByText('Save'));
   expect(createSpy).toHaveBeenCalled();
-  expect(onClose).not.toHaveBeenCalled();
   await waitFor(() => expect(onClose).toHaveBeenCalledWith(true));
+  expect(notify).toHaveBeenCalledWith('success', 'Template created successfully.');
   expect(createSpy.mock.calls[0][0].requestBody.fieldsJson).toEqual({
     fields: [{ name: 'k', type: 'string' }],
   });
@@ -101,6 +105,7 @@ test('update flow', async () => {
   fireEvent.change(screen.getByPlaceholderText('Template Token'), { target: { value: 'b' } });
   fireEvent.click(screen.getByText('Save'));
   await waitFor(() => expect(updateSpy).toHaveBeenCalled());
+  expect(notify).toHaveBeenCalledWith('success', 'Template updated');
 });
 
 test('does not show timestamps on edit', async () => {

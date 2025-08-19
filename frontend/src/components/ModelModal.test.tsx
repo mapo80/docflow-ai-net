@@ -1,6 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
+const { mockNotify } = vi.hoisted(() => ({ mockNotify: vi.fn() }));
+vi.mock('./notification', () => ({ default: mockNotify, notify: mockNotify }));
+
 vi.mock('../generated', () => ({
   ModelsService: {
     modelsCreate: vi.fn().mockResolvedValue({}),
@@ -34,6 +37,4 @@ describe('ModelModal', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Save' })[0]);
     expect(await screen.findByText('Name is required')).toBeInTheDocument();
   });
-
 });
-
