@@ -53,6 +53,7 @@ vi.mock('antd', () => {
       { Option: ({ value, children }: any) => <option value={value}>{children}</option> },
     ),
     message: { success: vi.fn() },
+    Badge: ({ text }: any) => <span>{text}</span>,
   };
 });
 
@@ -92,6 +93,7 @@ test('create edit delete flows', async () => {
   fireEvent.click(screen.getByText('Create Template'));
   fireEvent.click(screen.getByText('modal'));
   await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(5));
+  await screen.findByText('Template created successfully.');
 });
 
 test('renders list on mobile', async () => {

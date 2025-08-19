@@ -18,7 +18,7 @@ describe('ModelModal', () => {
   it('uses select for type', () => {
     render(
       <ApiErrorProvider>
-        <ModelModal open onCancel={() => {}} onSaved={() => {}} existingNames={[]} />
+        <ModelModal open onCancel={() => {}} onSaved={(created) => {}} existingNames={[]} />
       </ApiErrorProvider>,
     );
     const select = screen.getByLabelText('Type');
@@ -28,7 +28,7 @@ describe('ModelModal', () => {
   it('validates required fields', async () => {
     render(
       <ApiErrorProvider>
-        <ModelModal open onCancel={() => {}} onSaved={() => {}} existingNames={[]} />
+        <ModelModal open onCancel={() => {}} onSaved={(created) => {}} existingNames={[]} />
       </ApiErrorProvider>,
     );
     fireEvent.click(screen.getAllByRole('button', { name: 'Save' })[0]);
