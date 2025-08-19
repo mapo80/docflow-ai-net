@@ -85,9 +85,9 @@ test('create flow', async () => {
   expect(createSpy).toHaveBeenCalled();
   await waitFor(() => expect(onClose).toHaveBeenCalledWith(true));
   expect(notify).toHaveBeenCalledWith('success', 'Template created successfully.');
-  expect(createSpy.mock.calls[0][0].requestBody.fieldsJson).toEqual({
-    fields: [{ name: 'k', type: 'string' }],
-  });
+  expect(createSpy.mock.calls[0][0].requestBody.fieldsJson).toEqual([
+    { name: 'k', type: 'string' },
+  ]);
 });
 
 test('update flow', async () => {
@@ -95,7 +95,7 @@ test('update flow', async () => {
     id: '1',
     name: 'a',
     token: 'a',
-    fieldsJson: {},
+    fieldsJson: [],
   } as any);
   const updateSpy = vi.spyOn(TemplatesService, 'templatesUpdate').mockResolvedValue({} as any);
   const onClose = vi.fn();
@@ -113,7 +113,7 @@ test('does not show timestamps on edit', async () => {
     id: '1',
     name: 'a',
     token: 'a',
-    fieldsJson: {},
+    fieldsJson: [],
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-02T00:00:00Z',
   } as any);

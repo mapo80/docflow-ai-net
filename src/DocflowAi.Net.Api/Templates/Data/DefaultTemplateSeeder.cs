@@ -41,12 +41,12 @@ public static class DefaultTemplateSeeder
                     prompt = File.ReadAllText(promptPath);
             }
 
-            var fields = new
+            var fields = new[]
             {
-                company_name = "",
-                document_type = "",
-                invoice_number = "",
-                invoice_date = ""
+                new { Key = "company_name", Description = "", Type = "string", Required = false },
+                new { Key = "document_type", Description = "", Type = "string", Required = false },
+                new { Key = "invoice_number", Description = "", Type = "string", Required = false },
+                new { Key = "invoice_date", Description = "", Type = "string", Required = false }
             };
 
             var tpl = new TemplateDocument

@@ -32,7 +32,7 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
         setToken(t.token || '');
         setPrompt(t.promptMarkdown || '');
         try {
-          setFields(jsonToFields(JSON.stringify(t.fieldsJson ?? { fields: [] })));
+          setFields(jsonToFields(JSON.stringify(t.fieldsJson ?? [])));
         } catch {
           setFields([]);
         }
