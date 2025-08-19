@@ -12,6 +12,16 @@ vi.mock('antd', () => ({
   notification: {
     useNotification: () => [api, <div key="n" />],
   },
+  theme: {
+    useToken: () => ({
+      token: {
+        colorSuccess: 'green',
+        colorError: 'red',
+        colorWarning: 'orange',
+        colorTextLightSolid: 'white',
+      },
+    }),
+  },
 }));
 
 test('notify forwards to antd notification', () => {
@@ -21,7 +31,19 @@ test('notify forwards to antd notification', () => {
     </NotificationProvider>,
   );
   notify('success', 'ok');
-  expect(api.success).toHaveBeenCalledWith({ message: 'ok', description: undefined });
+  expect(api.success).toHaveBeenCalledWith({
+    message: 'ok',
+    description: undefined,
+    duration: 2,
+    showProgress: true,
+    style: { backgroundColor: 'green', color: 'white' },
+  });
   notify('error', 'fail', 'bad');
-  expect(api.error).toHaveBeenCalledWith({ message: 'fail', description: 'bad' });
+  expect(api.error).toHaveBeenCalledWith({
+    message: 'fail',
+    description: 'bad',
+    duration: 2,
+    showProgress: true,
+    style: { backgroundColor: 'red', color: 'white' },
+  });
 });
