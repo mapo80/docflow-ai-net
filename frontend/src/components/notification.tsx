@@ -1,13 +1,24 @@
 import { notification, theme } from 'antd';
 import type { ReactNode } from 'react';
 import 'antd/es/notification/style';
+import {
+  CheckCircleFilled,
+  CloseCircleFilled,
+  ExclamationCircleFilled,
+  CloseOutlined,
+} from '@ant-design/icons';
 
 export type AppNotificationType = 'success' | 'error' | 'warning';
 
 let apiRef: ReturnType<typeof notification.useNotification>[0] | undefined;
 let tokenRef:
-  | Pick<ReturnType<typeof theme.useToken>['token'],
-      'colorSuccess' | 'colorError' | 'colorWarning' | 'colorTextLightSolid'>
+  | Pick<
+      ReturnType<typeof theme.useToken>['token'],
+      | 'colorSuccess'
+      | 'colorError'
+      | 'colorWarning'
+      | 'colorTextLightSolid'
+    >
   | undefined;
 
 export function NotificationProvider({
@@ -38,15 +49,25 @@ export function notify(
       : type === 'error'
         ? tokenRef?.colorError
         : tokenRef?.colorWarning;
-  apiRef?.[type]({
+  const color = tokenRef?.colorTextLightSolid;
+  const icon =
+    type === 'success'
+      ? <CheckCircleFilled style={{ color }} />
+      : type === 'error'
+        ? <CloseCircleFilled style={{ color }} />
+        : <ExclamationCircleFilled style={{ color }} />;
+  apiRef?.open({
+    type,
     message,
     description,
     duration: 2,
     showProgress: true,
     style: {
       backgroundColor,
-      color: tokenRef?.colorTextLightSolid,
+      color,
     },
+    icon,
+    closeIcon: <CloseOutlined style={{ color }} />,
   });
 }
 
