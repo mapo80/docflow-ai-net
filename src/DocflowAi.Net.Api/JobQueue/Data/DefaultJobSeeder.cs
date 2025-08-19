@@ -37,6 +37,8 @@ public static class DefaultJobSeeder
             if (datasetRoot != null)
             {
                 var now = DateTimeOffset.UtcNow;
+                var modelName = db.Models.Select(m => m.Name).FirstOrDefault() ?? "model";
+                var templateToken = db.Templates.Select(t => t.Token).FirstOrDefault() ?? "template";
 
                 var okId = Guid.Parse("11111111-1111-1111-1111-111111111111");
                 var okDir = Path.Combine(cfg.DataRoot, okId.ToString());
@@ -52,8 +54,8 @@ public static class DefaultJobSeeder
                     CreatedAt = now,
                     UpdatedAt = now,
                     Metrics = new JobDocument.MetricsInfo { StartedAt = now, EndedAt = now, DurationMs = 0 },
-                    Model = "model",
-                    TemplateToken = "template",
+                    Model = modelName,
+                    TemplateToken = templateToken,
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = okDir,
@@ -78,8 +80,8 @@ public static class DefaultJobSeeder
                     UpdatedAt = now,
                     ErrorMessage = "Processing failed",
                     Metrics = new JobDocument.MetricsInfo(),
-                    Model = "model",
-                    TemplateToken = "template",
+                    Model = modelName,
+                    TemplateToken = templateToken,
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = errDir,

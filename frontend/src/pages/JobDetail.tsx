@@ -246,6 +246,8 @@ export default function JobDetail() {
     }
   }, [location.state]);
 
+  if (!job) return <Loader />;
+
   return (
     <div>
       <Descriptions title={`Job ${job.id}`} bordered column={1} size="small">

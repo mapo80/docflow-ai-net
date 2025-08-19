@@ -32,6 +32,10 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         resp!.total.Should().Be(2);
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("11111111-1111-1111-1111-111111111111"));
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("22222222-2222-2222-2222-222222222222"));
+
+        var ok = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/11111111-1111-1111-1111-111111111111");
+        ok.GetProperty("model").GetString().Should().NotBeNullOrWhiteSpace();
+        ok.GetProperty("templateToken").GetString().Should().NotBeNullOrWhiteSpace();
     }
 
     [Fact]

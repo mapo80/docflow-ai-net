@@ -206,9 +206,9 @@ builder.Services.AddHealthChecks()
     .AddCheck<JobQueueReadyHealthCheck>("jobqueue", tags: new[] { "ready" });
 
 var app = builder.Build();
-DefaultJobSeeder.Build(app);
 DefaultModelSeeder.Build(app);
 DefaultTemplateSeeder.Build(app);
+DefaultJobSeeder.Build(app);
 
 app.UseSerilogRequestLogging(opts =>
 {
