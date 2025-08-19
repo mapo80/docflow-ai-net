@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Descriptions, Progress, Button, Space, Modal, Tabs, Table } from 'antd';
+import { Descriptions, Button, Space, Modal, Tabs, Table } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
@@ -251,9 +251,6 @@ export default function JobDetail() {
       <Descriptions title={`Job ${job.id}`} bordered column={1} size="small">
         <Descriptions.Item label="Status">
           <JobStatusTag status={job.status!} derived={job.derivedStatus} />
-        </Descriptions.Item>
-        <Descriptions.Item label="Progress">
-          <Progress percent={job.progress || 0} />
         </Descriptions.Item>
         <Descriptions.Item label="Attempts">{job.attempts}</Descriptions.Item>
         <Descriptions.Item label="Model">

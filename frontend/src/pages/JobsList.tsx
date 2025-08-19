@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Table, Space, Button, Progress, Badge, Alert, List, Grid } from 'antd';
+import { Table, Space, Button, Badge, Alert, List, Grid } from 'antd';
 import FileAddOutlined from '@ant-design/icons/FileAddOutlined';
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
@@ -88,7 +88,11 @@ export default function JobsList() {
     {
       title: 'ID',
       dataIndex: 'id',
-      render: (id: string) => <Link to={`/jobs/${id}`}>{id}</Link>,
+      render: (id: string) => (
+        <Link to={`/jobs/${id}`} title={id}>
+          {id.slice(0, 8)}
+        </Link>
+      ),
     },
     {
       title: 'Status',
@@ -106,10 +110,14 @@ export default function JobsList() {
       onFilter: (value, record) => record.status === value,
     },
     {
-      title: 'Progress',
-      dataIndex: 'progress',
-      render: (p?: number) => <Progress percent={p || 0} size="small" />,
-      responsive: ['md'],
+      title: 'Template',
+      dataIndex: 'templateToken',
+      responsive: ['lg'],
+    },
+    {
+      title: 'Model',
+      dataIndex: 'model',
+      responsive: ['xl'],
     },
     {
       title: 'Attempts',
@@ -189,7 +197,7 @@ export default function JobsList() {
         }}
       >
         <Link to="/jobs/new">
-          <Button aria-label="New Job" icon={<FileAddOutlined />} />
+          <Button type="primary" aria-label="New Job" icon={<FileAddOutlined />}>New job</Button>
         </Link>
       </div>
       {retry !== null && <Alert banner message={`Queue full. Retry in ${retry}s`} />}
@@ -203,10 +211,13 @@ export default function JobsList() {
             <List.Item key={record.id}>
               <Space direction="vertical" style={{ width: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Link to={`/jobs/${record.id}`}>{record.id}</Link>
+                  <Link to={`/jobs/${record.id}`} title={record.id!}>
+                    {record.id!.slice(0, 8)}
+                  </Link>
                   <JobStatusTag status={record.status!} derived={record.derivedStatus} />
                 </div>
-                <Progress percent={record.progress || 0} size="small" />
+                <div>Template: {record.templateToken}</div>
+                <div>Model: {record.model}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>{dayjs(record.updatedAt!).format('YYYY-MM-DD HH:mm')}</span>
                   <Space>
