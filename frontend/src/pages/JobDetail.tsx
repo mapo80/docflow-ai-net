@@ -259,7 +259,6 @@ export default function JobDetail() {
         <Descriptions.Item label="Template">
           {templateInfo?.name || job.templateToken}
         </Descriptions.Item>
-        <Descriptions.Item label="Immediate">{job.immediate ? 'Yes' : 'No'}</Descriptions.Item>
         <Descriptions.Item label="Created">{job.createdAt}</Descriptions.Item>
         <Descriptions.Item label="Updated">{job.updatedAt}</Descriptions.Item>
         {job.metrics?.durationMs != null && (

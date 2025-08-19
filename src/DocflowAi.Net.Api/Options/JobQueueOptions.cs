@@ -10,7 +10,6 @@ namespace DocflowAi.Net.Api.Options;
         public ConcurrencyOptions Concurrency { get; set; } = new();
         public TimeoutOptions Timeouts { get; set; } = new();
         public UploadOptions UploadLimits { get; set; } = new();
-        public ImmediateOptions Immediate { get; set; } = new();
         public CleanupOptions Cleanup { get; set; } = new();
         public int JobTTLDays { get; set; } = 14;
         public bool EnableHangfireDashboard { get; set; } = true;
@@ -56,14 +55,6 @@ namespace DocflowAi.Net.Api.Options;
     public class UploadOptions
     {
         public int MaxRequestBodyMB { get; set; } = 20;
-    }
-
-    public class ImmediateOptions
-    {
-        public bool Enabled { get; set; }
-        public int MaxParallel { get; set; } = 1;
-        public int TimeoutSeconds { get; set; } = 30;
-        public bool FallbackToQueue { get; set; } = true;
     }
 
     public class CleanupOptions

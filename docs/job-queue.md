@@ -27,13 +27,6 @@ Derived status is computed from the database status only:
 ## Configuration
 See `appsettings.json` section `JobQueue` for paths, rate limits and cleanup schedule. Setting `JobQueue.EnableHangfireDashboard` exposes the dashboard and requires the same API keys as the REST API.
 
-### Immediate mode
-Jobs can be executed inline by calling `POST /api/v1/jobs?mode=immediate` when `JobQueue.Immediate.Enabled=true`.
-The mode consumes the same concurrency gate as queued jobs and respects global backpressure, idempotency and dedupe rules.
-If capacity is unavailable the API returns `429 { error:"immediate_capacity" }` unless `FallbackToQueue` is true, in which case the job is enqueued and `202` is returned.
-Timeout for immediate execution is controlled by `JobQueue.Immediate.TimeoutSeconds` and should be lower than the ingress timeout.
-The old `/api/v1/process` endpoint has been removed; all processing now flows through the job queue.
-
 ## Examples
 ```
 # submit

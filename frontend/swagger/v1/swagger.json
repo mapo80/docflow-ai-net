@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "docflow-ai-net API",
-    "description": "Job queue and immediate processing API",
+    "description": "Job queue API",
     "contact": {
       "name": "docflow-ai",
       "url": "https://github.com/mapo80/docflow-ai-net"
@@ -90,18 +90,6 @@
         "operationId": "Jobs_Create",
         "parameters": [
           {
-            "name": "mode",
-            "in": "query",
-            "description": "Execution mode: queued (default) or immediate",
-            "schema": {
-              "enum": [
-                "queued",
-                "immediate"
-              ],
-              "type": "string"
-            }
-          },
-          {
             "name": "Idempotency-Key",
             "in": "header",
             "description": "Optional idempotency key",
@@ -114,27 +102,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImmediateJobResponse"
-                },
-                "examples": {
-                  "succeeded": {
-                    "value": {
-                      "job_id": "00000000-0000-0000-0000-000000000000",
-                      "status": "Succeeded",
-                      "duration_ms": 1234
-                    }
-                  },
-                  "failed": {
-                    "value": {
-                      "job_id": "00000000-0000-0000-0000-000000000000",
-                      "status": "Failed",
-                      "error": "boom"
-                    }
-                  }
-                }
-              }
+              "application/json": { }
             }
           },
           "202": {
@@ -198,13 +166,6 @@
                       "error": "queue_full",
                       "message": "queue is full",
                       "retry_after_seconds": 60
-                    }
-                  },
-                  "immediate_capacity": {
-                    "value": {
-                      "error": "immediate_capacity",
-                      "message": "immediate capacity reached",
-                      "retry_after_seconds": 1
                     }
                   }
                 }
@@ -1148,30 +1109,6 @@
         "additionalProperties": false,
         "description": "Uniform error payload returned by the API."
       },
-      "ImmediateJobResponse": {
-        "type": "object",
-        "properties": {
-          "job_id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "status": {
-            "type": "string",
-            "nullable": true
-          },
-          "duration_ms": {
-            "type": "integer",
-            "format": "int64",
-            "nullable": true
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Response returned when a job completes immediately."
-      },
       "JobDetailResponse": {
         "type": "object",
         "properties": {
@@ -1213,9 +1150,6 @@
             "type": "string",
             "nullable": true
           },
-          "immediate": {
-            "type": "boolean"
-          },
           "model": {
             "type": "string",
             "nullable": true
@@ -1254,9 +1188,6 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
-          },
-          "immediate": {
-            "type": "boolean"
           }
         },
         "additionalProperties": false,
