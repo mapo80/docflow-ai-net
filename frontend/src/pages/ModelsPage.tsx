@@ -9,6 +9,7 @@ import {
   message,
   Grid,
   Popconfirm,
+  Badge,
 } from 'antd';
 import type { Breakpoint } from 'antd/es/_util/responsiveObserver';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
@@ -32,6 +33,7 @@ export default function ModelsPage() {
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
   const [logModel, setLogModel] = useState<string | null>(null);
+  const [created, setCreated] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -156,6 +158,11 @@ export default function ModelsPage() {
 
   return (
     <div>
+      {created && (
+        <div style={{ marginBottom: 16 }}>
+          <Badge status="success" text="Model created successfully." />
+        </div>
+      )}
       <Space
         direction={isMobile ? 'vertical' : 'horizontal'}
         style={{ width: '100%', marginBottom: 16 }}
@@ -297,7 +304,10 @@ export default function ModelsPage() {
           open={modalOpen}
           modelId={modalId}
           onCancel={() => setModalOpen(false)}
-          onSaved={load}
+          onSaved={(isCreated) => {
+            if (isCreated) setCreated(true);
+            load();
+          }}
           existingNames={models.map((m) => m.name!).filter(Boolean) as string[]}
         />
       )}

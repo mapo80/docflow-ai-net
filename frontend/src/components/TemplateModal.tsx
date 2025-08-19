@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Input, Button, Space, Grid } from 'antd';
+import { Modal, Input, Button, Space, Grid, message } from 'antd';
 import MDEditor from '@uiw/react-md-editor';
 import TemplateFieldsEditor from './TemplateFieldsEditor';
 import type { FieldItem } from './FieldsEditor';
@@ -62,8 +62,10 @@ export default function TemplateModal({ open, templateId, onClose }: Props) {
     try {
       if (templateId) {
         await TemplatesService.templatesUpdate({ id: templateId, requestBody: payload });
+        message.success('Template updated');
       } else {
         await TemplatesService.templatesCreate({ requestBody: payload });
+        message.success('Template created successfully.');
       }
       onClose(true);
     } finally {

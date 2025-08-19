@@ -11,6 +11,7 @@ import {
   Form,
   Select,
   Popconfirm,
+  Badge,
 } from 'antd';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
 import EditOutlined from '@ant-design/icons/EditOutlined';
@@ -31,6 +32,7 @@ export default function TemplatesList() {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState('createdAt desc');
   const [modalId, setModalId] = useState<string | undefined>();
+  const [created, setCreated] = useState(false);
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
   const { showError } = useApiError();
@@ -117,6 +119,11 @@ export default function TemplatesList() {
 
   return (
     <div>
+      {created && (
+        <div style={{ marginBottom: 16 }}>
+          <Badge status="success" text="Template created successfully." />
+        </div>
+      )}
       <Space
         direction={isMobile ? 'vertical' : 'horizontal'}
         style={{ width: '100%', marginBottom: 16 }}
@@ -214,8 +221,12 @@ export default function TemplatesList() {
           open={true}
           templateId={modalId === 'new' ? undefined : modalId}
           onClose={(changed) => {
+            const wasNew = modalId === 'new';
             setModalId(undefined);
-            if (changed) load();
+            if (changed) {
+              if (wasNew) setCreated(true);
+              load();
+            }
           }}
         />
       )}

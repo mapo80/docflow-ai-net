@@ -51,6 +51,32 @@ test('detail viewers render and have download', async () => {
   expect(previews).toHaveLength(1);
   await previews[0].click();
   await screen.findByText((content) => content.includes('template'));
-  screen.getAllByLabelText('Close')[0].click();
+  const closeBtns = await screen.findAllByLabelText('Close');
+  closeBtns[0].click();
   expect(screen.queryByText('error')).toBeNull();
+});
+
+test('shows success badge for new job', async () => {
+  vi.spyOn(JobsService, 'jobsGetById').mockResolvedValue({
+    id: '1',
+    status: 'Queued',
+    createdAt: '',
+    updatedAt: '',
+    attempts: 0,
+    model: 'm',
+    templateToken: 't',
+  } as any);
+  vi.spyOn(ModelsService, 'modelsList').mockResolvedValue([]);
+  vi.spyOn(TemplatesService, 'templatesList').mockResolvedValue({ items: [] } as any);
+  vi.spyOn(global, 'fetch' as any).mockResolvedValue(new Response(''));
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={[{ pathname: '/jobs/1', state: { newJob: true } }]}> 
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await screen.findByText('Job created successfully.');
 });

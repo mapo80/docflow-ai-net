@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, Checkbox, Form, Input, Upload, notification, Select } from 'antd';
+import { Alert, Badge, Button, Card, Checkbox, Form, Input, Upload, notification, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import { ApiError, OpenAPI, ModelsService, TemplatesService } from '../generated';
 import { request as __request } from '../generated/core/request';
@@ -68,6 +68,7 @@ export default function JobNew() {
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any | null>(null);
+  const [created, setCreated] = useState(false);
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const navigate = useNavigate();
   const { showError } = useApiError();
@@ -109,12 +110,13 @@ export default function JobNew() {
       const data = await submitPayload(payload, immediate, idempotencyKey || undefined);
       if (data.status === 'Succeeded') {
         setResult(data);
+        setCreated(true);
       } else {
         notification.success({
-          message: 'Job created',
+          message: 'Job created successfully.',
           description: data.job_id,
         });
-        navigate(`/jobs/${data.job_id}`);
+        navigate(`/jobs/${data.job_id}`, { state: { newJob: true } });
       }
     } catch (e) {
       if (e instanceof ApiError) {
@@ -133,6 +135,11 @@ export default function JobNew() {
 
   return (
     <Card>
+      {created && (
+        <div style={{ marginBottom: 16 }}>
+          <Badge status="success" text="Job created successfully." />
+        </div>
+      )}
       {retryAfter !== null && (
         <Alert
           banner
