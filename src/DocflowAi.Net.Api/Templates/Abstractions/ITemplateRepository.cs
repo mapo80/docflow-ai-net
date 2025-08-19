@@ -6,6 +6,7 @@ public interface ITemplateRepository
 {
     (IReadOnlyList<TemplateDocument> items, int total) GetPaged(string? q, int page, int pageSize, string? sort);
     TemplateDocument? GetById(Guid id);
+    TemplateDocument? GetByToken(string token);
     bool ExistsByName(string name, Guid? excludeId = null);
     bool ExistsByToken(string token, Guid? excludeId = null);
     void Add(TemplateDocument template);

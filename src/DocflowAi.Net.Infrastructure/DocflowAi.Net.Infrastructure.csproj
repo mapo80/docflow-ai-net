@@ -10,6 +10,20 @@
     <ProjectReference Include="..\DocflowAi.Net.BBoxResolver\DocflowAi.Net.BBoxResolver.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\markitdownnet\src\MarkItDownNet\TesseractOCR\x64\libtesseract.so.5">
+      <Link>libtesseract.so.5</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\markitdownnet\src\MarkItDownNet\TesseractOCR\x64\liblept.so.5">
+      <Link>liblept.so.5</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\markitdownnet\src\MarkItDownNet\TesseractOCR\x64\libdl.so">
+      <Link>libdl.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
     <PackageReference Include="LLamaSharp" Version="0.24.0" />

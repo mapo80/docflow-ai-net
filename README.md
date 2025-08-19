@@ -16,6 +16,8 @@ End-to-end pipeline for extracting information from documents with **LLMs** and 
 - **Use case:** field extraction from forms/invoices/free layout documents with spatial evidence (BBox).
 - **Recommended strategy:** **Pointer / WordIds** → fallback **TokenFirst** → optional **Legacy** for compatibility.
 - **Evaluation:** see `docs/eval/` and [XFUND IT Evaluation](docs/XFUND_IT_Eval.md).
+- **Busta paga dataset analysis:** [results](docs/busta-paga-results.md)
+- **Dataset CLI:** `dotnet run --project tools/DatasetCli -- --dataset <path> --output <file>`
 - **Docker:** single production-ready container (`9.0-noble`) with model downloaded using `HF_TOKEN`.
 
 ## Job Queue

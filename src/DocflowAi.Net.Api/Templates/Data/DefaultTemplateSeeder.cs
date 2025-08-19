@@ -24,44 +24,75 @@ public static class DefaultTemplateSeeder
         var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
         db.Database.EnsureCreated();
 
-        if (db.Templates.Any(t => t.Token == "template"))
-            return;
-
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Seeder");
         var datasetRoot = FindDatasetRoot(app.Environment.ContentRootPath)
             ?? FindDatasetRoot(AppContext.BaseDirectory);
 
-        string? prompt = null;
-        if (datasetRoot != null)
+        var existing = db.Templates.Select(t => t.Token).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var now = DateTimeOffset.UtcNow;
+
+        if (!existing.Contains("template"))
         {
-            var promptPath = Path.Combine(datasetRoot, "prompt.txt");
-            if (File.Exists(promptPath))
-                prompt = File.ReadAllText(promptPath);
+            string? prompt = null;
+            if (datasetRoot != null)
+            {
+                var promptPath = Path.Combine(datasetRoot, "prompt.txt");
+                if (File.Exists(promptPath))
+                    prompt = File.ReadAllText(promptPath);
+            }
+
+            var fields = new
+            {
+                company_name = "",
+                document_type = "",
+                invoice_number = "",
+                invoice_date = ""
+            };
+
+            var tpl = new TemplateDocument
+            {
+                Id = Guid.NewGuid(),
+                Name = "Sample invoice",
+                Token = "template",
+                PromptMarkdown = prompt,
+                FieldsJson = JsonSerializer.Serialize(fields),
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+            db.Templates.Add(tpl);
+            logger.LogInformation("SeededDefaultTemplate {Name}", tpl.Name);
         }
 
-        var fields = new
+        if (!existing.Contains("busta-paga"))
         {
-            company_name = "",
-            document_type = "",
-            invoice_number = "",
-            invoice_date = ""
-        };
+            string? bpPrompt = null;
+            string bpFields = "[]";
+            if (datasetRoot != null)
+            {
+                var bpDir = Path.Combine(datasetRoot, "busta-paga");
+                var pp = Path.Combine(bpDir, "prompt.txt");
+                if (File.Exists(pp))
+                    bpPrompt = File.ReadAllText(pp);
+                var fp = Path.Combine(bpDir, "fields.txt");
+                if (File.Exists(fp))
+                    bpFields = File.ReadAllText(fp);
+            }
 
-        var now = DateTimeOffset.UtcNow;
-        var tpl = new TemplateDocument
-        {
-            Id = Guid.NewGuid(),
-            Name = "Sample invoice",
-            Token = "template",
-            PromptMarkdown = prompt,
-            FieldsJson = JsonSerializer.Serialize(fields),
-            CreatedAt = now,
-            UpdatedAt = now
-        };
+            var tpl = new TemplateDocument
+            {
+                Id = Guid.NewGuid(),
+                Name = "Busta paga",
+                Token = "busta-paga",
+                PromptMarkdown = bpPrompt,
+                FieldsJson = bpFields,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+            db.Templates.Add(tpl);
+            logger.LogInformation("SeededDefaultTemplate {Name}", tpl.Name);
+        }
 
-        db.Templates.Add(tpl);
         db.SaveChanges();
-        logger.LogInformation("SeededDefaultTemplate {Name}", tpl.Name);
     }
 
     private static string? FindDatasetRoot(string start)
@@ -77,4 +108,3 @@ public static class DefaultTemplateSeeder
         return null;
     }
 }
-

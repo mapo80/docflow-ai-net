@@ -40,7 +40,14 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
             _logger.LogDebug("Copying input stream to temp file {TempFile}", tmp);
             await CopyWithRetryAsync(input, tmp, ct);
             _logger.LogDebug("Starting MarkItDownNet conversion for {Mime} into {TempFile}", mime, tmp);
-            var options = new MkdnOptions { NormalizeMarkdown = opts.NormalizeMarkdown };
+            var options = new MkdnOptions
+            {
+                NormalizeMarkdown = opts.NormalizeMarkdown,
+                OcrDataPath = opts.OcrDataPath ?? Environment.GetEnvironmentVariable("OCR_DATA_PATH"),
+                OcrLanguages = opts.OcrLanguages,
+                PdfRasterDpi = opts.PdfRasterDpi,
+                MinimumNativeWordThreshold = opts.MinimumNativeWordThreshold
+            };
             var converter = new MkdnConverter(options, _mdLogger);
             var res = await converter.ConvertAsync(tmp, mime, ct);
 

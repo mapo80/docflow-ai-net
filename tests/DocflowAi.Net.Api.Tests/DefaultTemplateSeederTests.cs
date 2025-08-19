@@ -23,11 +23,16 @@ public class DefaultTemplateSeederTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-API-Key", "dev-secret-key-change-me");
         var list = await client.GetFromJsonAsync<PagedResult<TemplateSummary>>("/api/templates");
-        list!.Items.Should().ContainSingle(t => t.Token == "template");
+        list!.Items.Should().Contain(t => t.Token == "template");
+        list.Items.Should().Contain(t => t.Token == "busta-paga");
         var tplId = list.Items.Single(t => t.Token == "template").Id;
         var tpl = await client.GetFromJsonAsync<TemplateDto>($"/api/templates/{tplId}");
         tpl!.PromptMarkdown.Should().NotBeNullOrWhiteSpace();
         tpl.FieldsJson.TryGetProperty("invoice_number", out _).Should().BeTrue();
+        var bpId = list.Items.Single(t => t.Token == "busta-paga").Id;
+        var bp = await client.GetFromJsonAsync<TemplateDto>($"/api/templates/{bpId}");
+        bp!.PromptMarkdown.Should().NotBeNullOrWhiteSpace();
+        bp.FieldsJson.EnumerateArray().Any(e => e.GetProperty("Key").GetString() == "nominativo").Should().BeTrue();
     }
 
     [Fact]
@@ -44,4 +49,3 @@ public class DefaultTemplateSeederTests : IClassFixture<TempDirFixture>
         list!.Items.Should().BeEmpty();
     }
 }
-

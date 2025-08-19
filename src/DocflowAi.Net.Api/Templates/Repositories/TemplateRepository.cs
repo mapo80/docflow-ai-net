@@ -47,6 +47,9 @@ public class TemplateRepository : ITemplateRepository
 
     public TemplateDocument? GetById(Guid id) => _db.Templates.Find(id);
 
+    public TemplateDocument? GetByToken(string token) =>
+        _db.Templates.AsNoTracking().FirstOrDefault(t => t.Token == token);
+
     public bool ExistsByName(string name, Guid? excludeId = null) =>
         _db.Templates.Any(t => t.Name == name && (!excludeId.HasValue || t.Id != excludeId));
 
