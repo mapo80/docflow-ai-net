@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Badge, Space } from 'antd';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import notify from './notification';
 
 interface ErrorContextValue {
   showError: (message: string) => void;
@@ -10,14 +10,7 @@ const ErrorContext = createContext<ErrorContextValue>({
 });
 
 export function ApiErrorProvider({ children }: { children: ReactNode }) {
-  const [errors, setErrors] = useState<string[]>([]);
-
-  const showError = (msg: string) => {
-    setErrors((prev) => [...prev, msg]);
-    setTimeout(() => {
-      setErrors((prev) => prev.slice(1));
-    }, 5000);
-  };
+  const showError = (msg: string) => notify('error', msg);
 
   useEffect(() => {
     const originalFetch = window.fetch;
@@ -31,7 +24,7 @@ export function ApiErrorProvider({ children }: { children: ReactNode }) {
         } catch {
           // ignore
         }
-        showError(msg);
+        notify('error', msg);
       }
       return res;
     };
@@ -40,18 +33,7 @@ export function ApiErrorProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  return (
-    <ErrorContext.Provider value={{ showError }}>
-      {children}
-      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
-        <Space direction="vertical">
-          {errors.map((e, i) => (
-            <Badge key={i} status="error" text={e} />
-          ))}
-        </Space>
-      </div>
-    </ErrorContext.Provider>
-  );
+  return <ErrorContext.Provider value={{ showError }}>{children}</ErrorContext.Provider>;
 }
 
 export function useApiError() {

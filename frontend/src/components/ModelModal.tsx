@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Button, Space, message } from 'antd';
+import { Modal, Form, Input, Select, Button, Space } from 'antd';
 import { ModelsService, type CreateModelRequest, type ModelDto, ApiError } from '../generated';
 import { useApiError } from './ApiErrorProvider';
+import notify from './notification';
 
 interface ModelModalProps {
   open: boolean;
   modelId?: string;
   onCancel: () => void;
-  onSaved: () => void;
+  onSaved: (created: boolean) => void;
   existingNames: string[];
 }
 
@@ -59,7 +60,8 @@ export default function ModelModal({
             apiKey: updateKey ? values.apiKey : undefined,
           },
         });
-        message.success('Model updated');
+        notify('success', 'Model updated');
+        onSaved(false);
       } else {
         const req: CreateModelRequest = {
           name: values.name,
@@ -72,9 +74,9 @@ export default function ModelModal({
           hfToken: values.hfToken,
         };
         await ModelsService.modelsCreate({ requestBody: req });
-        message.success('Model created');
+        notify('success', 'Model created successfully.');
+        onSaved(true);
       }
-      onSaved();
       onCancel();
     } catch (e) {
       if (!(e instanceof ApiError) && e instanceof Error) showError(e.message);
@@ -132,10 +134,10 @@ export default function ModelModal({
         </Form.Item>
         {type === 'hosted-llm' && (
           <>
-            <Form.Item name="provider" label="Provider" rules={[{ required: true }]}>
+            <Form.Item name="provider" label="Provider" rules={[{ required: true }]}> 
               <Select options={[{ value: 'openai', label: 'openai' }, { value: 'azure-openai', label: 'azure-openai' }]} />
             </Form.Item>
-            <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, type: 'url' }]}>
+            <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, type: 'url' }]}> 
               <Input />
             </Form.Item>
             {editing && initial?.hasApiKey && (

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Descriptions, Progress, Button, message, Space, Modal, Tabs, Table } from 'antd';
+import { Badge, Descriptions, Progress, Button, Space, Modal, Tabs, Table } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 import JobStatusTag from '../components/JobStatusTag';
+import notify from '../components/notification';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
@@ -15,6 +16,7 @@ import { useApiError } from '../components/ApiErrorProvider';
 
 export default function JobDetail() {
   const { id } = useParams();
+  const location = useLocation();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
   const [modelInfo, setModelInfo] = useState<any | null>(null);
   const [templateInfo, setTemplateInfo] = useState<any | null>(null);
@@ -132,7 +134,7 @@ export default function JobDetail() {
     if (!id) return;
     try {
       await JobsService.jobsDelete({ id });
-      message.success('Job canceled');
+      notify('success', 'Job canceled');
       load();
     } catch (e) {
       if (e instanceof ApiError) {
@@ -240,6 +242,11 @@ export default function JobDetail() {
 
   return (
     <div>
+      {(location.state as any)?.newJob && (
+        <div style={{ marginBottom: 16 }}>
+          <Badge status="success" text="Job created successfully." />
+        </div>
+      )}
       <Descriptions title={`Job ${job.id}`} bordered column={1} size="small">
         <Descriptions.Item label="Status">
           <JobStatusTag status={job.status!} derived={job.derivedStatus} />

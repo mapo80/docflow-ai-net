@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, Checkbox, Form, Input, Upload, notification, Select } from 'antd';
+import { Alert, Badge, Button, Card, Checkbox, Form, Input, Upload, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import { ApiError, OpenAPI, ModelsService, TemplatesService } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 import { useApiError } from '../components/ApiErrorProvider';
+import notify from '../components/notification';
 
 export function validateFile(
   file: File,
@@ -68,6 +69,7 @@ export default function JobNew() {
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any | null>(null);
+  const [created, setCreated] = useState(false);
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const navigate = useNavigate();
   const { showError } = useApiError();
@@ -109,19 +111,17 @@ export default function JobNew() {
       const data = await submitPayload(payload, immediate, idempotencyKey || undefined);
       if (data.status === 'Succeeded') {
         setResult(data);
+        setCreated(true);
       } else {
-        notification.success({
-          message: 'Job created',
-          description: data.job_id,
-        });
-        navigate(`/jobs/${data.job_id}`);
+        notify('success', 'Job created successfully.', data.job_id);
+        navigate(`/jobs/${data.job_id}`, { state: { newJob: true } });
       }
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 429 && e.body?.errorCode === 'immediate_capacity') {
           setRetryAfter(e.body.retry_after_seconds ?? 0);
         } else if (e.status === 429) {
-          notification.warning({ message: 'queue_full' });
+          notify('warning', 'queue_full');
         }
       } else {
         showError('Error');
@@ -133,6 +133,11 @@ export default function JobNew() {
 
   return (
     <Card>
+      {created && (
+        <div style={{ marginBottom: 16 }}>
+          <Badge status="success" text="Job created successfully." />
+        </div>
+      )}
       {retryAfter !== null && (
         <Alert
           banner
