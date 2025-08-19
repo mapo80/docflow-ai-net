@@ -11,6 +11,7 @@ import LinkOutlined from '@ant-design/icons/LinkOutlined';
 import ExperimentOutlined from '@ant-design/icons/ExperimentOutlined';
 import MenuOutlined from '@ant-design/icons/MenuOutlined';
 import RobotOutlined from '@ant-design/icons/RobotOutlined';
+import FileMarkdownOutlined from '@ant-design/icons/FileMarkdownOutlined';
 import { useState } from 'react';
 import { openHangfire } from './hangfire';
 
@@ -38,6 +39,7 @@ export default function Shell() {
     { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
     { key: '/models', icon: <ExperimentOutlined />, label: 'Models' },
     { key: '/templates', icon: <AppstoreOutlined />, label: 'Templates' },
+    { key: '/markdown', icon: <FileMarkdownOutlined />, label: 'Markdown' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
     {
       key: 'hangfire',
