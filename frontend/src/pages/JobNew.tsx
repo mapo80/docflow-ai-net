@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, Checkbox, Form, Input, Upload, Select } from 'antd';
+import { Button, Card, Form, Input, Upload, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import { ApiError, OpenAPI, ModelsService, TemplatesService } from '../generated';
 import { request as __request } from '../generated/core/request';
@@ -45,13 +45,11 @@ export async function buildPayload(
 
 export async function submitPayload(
   payload: Awaited<ReturnType<typeof buildPayload>>,
-  immediate: boolean,
   idempotencyKey?: string
 ): Promise<any> {
   const res = await __request(OpenAPI, {
     method: 'POST',
     url: '/api/v1/jobs',
-    query: { mode: immediate ? 'immediate' : undefined },
     body: payload,
     mediaType: 'application/json',
     headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
@@ -65,11 +63,8 @@ export default function JobNew() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [model, setModel] = useState('');
   const [templateToken, setTemplateToken] = useState('');
-  const [immediate, setImmediate] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any | null>(null);
-  const [retryAfter, setRetryAfter] = useState<number | null>(null);
   const navigate = useNavigate();
   const { showError } = useApiError();
 
@@ -107,21 +102,12 @@ export default function JobNew() {
     const payload = await buildPayload(file, model, templateToken);
     setLoading(true);
     try {
-      const data = await submitPayload(payload, immediate, idempotencyKey || undefined);
-      if (data.status === 'Succeeded') {
-        setResult(data);
-        notify('success', 'Job created successfully.');
-      } else {
-        notify('success', 'Job created successfully.', data.job_id);
-        navigate(`/jobs/${data.job_id}`, { state: { newJob: true } });
-      }
+      const data = await submitPayload(payload, idempotencyKey || undefined);
+      notify('success', 'Job created successfully.', data.job_id);
+      navigate(`/jobs/${data.job_id}`, { state: { newJob: true } });
     } catch (e) {
-      if (e instanceof ApiError) {
-        if (e.status === 429 && e.body?.errorCode === 'immediate_capacity') {
-          setRetryAfter(e.body.retry_after_seconds ?? 0);
-        } else if (e.status === 429) {
-          notify('warning', 'queue_full');
-        }
+      if (e instanceof ApiError && e.status === 429) {
+        notify('warning', 'queue_full');
       } else {
         showError('Error');
       }
@@ -132,13 +118,6 @@ export default function JobNew() {
 
   return (
     <Card>
-      {retryAfter !== null && (
-        <Alert
-          banner
-          type="warning"
-          message={`Immediate capacity exhausted. Retry in ${retryAfter}s`}
-        />
-      )}
       <Form layout="vertical">
         <Form.Item label="File" required>
           <Upload.Dragger
@@ -182,14 +161,6 @@ export default function JobNew() {
             onChange={(v) => setTemplateToken(v)}
           />
         </Form.Item>
-        <Form.Item>
-          <Checkbox
-            checked={immediate}
-            onChange={(e) => setImmediate(e.target.checked)}
-          >
-            Immediate
-          </Checkbox>
-        </Form.Item>
         <Form.Item label="Idempotency Key">
           <Input
             value={idempotencyKey}
@@ -201,13 +172,6 @@ export default function JobNew() {
             Submit
           </Button>
         </Form.Item>
-        {result && (
-          <Alert
-            type="success"
-            message="Job completed"
-            description={`Status: ${result.status}`}
-          />
-        )}
       </Form>
     </Card>
   );

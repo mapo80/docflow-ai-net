@@ -26,16 +26,14 @@ public class SwaggerSpecTests : IClassFixture<TempDirFixture>
             .Should().NotContain("/process");
 
         var post = doc.RootElement.GetProperty("paths").GetProperty("/api/v1/jobs").GetProperty("post");
-        var modeParam = post.GetProperty("parameters").EnumerateArray().First(p => p.GetProperty("name").GetString()=="mode");
-        modeParam.GetProperty("schema").GetProperty("enum").EnumerateArray().Select(e=>e.GetString())
-            .Should().BeEquivalentTo(new[]{"queued","immediate"});
+        var paramNames = post.GetProperty("parameters").EnumerateArray().Select(p => p.GetProperty("name").GetString());
+        paramNames.Should().NotContain("mode");
+        paramNames.Should().Contain("Idempotency-Key");
         var responses = post.GetProperty("responses");
-        responses.GetProperty("202").GetProperty("content").GetProperty("application/json").TryGetProperty("example", out var example202).Should().BeTrue();
-        responses.GetProperty("200").GetProperty("content").GetProperty("application/json").GetProperty("examples").EnumerateObject().Select(o=>o.Name)
-            .Should().Contain(new[]{"succeeded","failed"});
+        responses.GetProperty("202").GetProperty("content").GetProperty("application/json").GetProperty("example").Should().NotBeNull();
         responses.GetProperty("429").GetProperty("headers").GetProperty("Retry-After").Should().NotBeNull();
         responses.GetProperty("429").GetProperty("content").GetProperty("application/json").GetProperty("examples").EnumerateObject().Select(o=>o.Name)
-            .Should().Contain(new[]{"queue_full","immediate_capacity"});
+            .Should().Contain(new[]{"queue_full"});
         responses.GetProperty("413").GetProperty("content").GetProperty("application/json").GetProperty("example").Should().NotBeNull();
     }
 }

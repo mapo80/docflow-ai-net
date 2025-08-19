@@ -17,25 +17,17 @@ test('validateFile', () => {
   expect(validateFile(big)).toBe('File too large');
 });
 
-test('submitPayload branches', async () => {
+test('submitPayload', async () => {
   const payload = await buildPayload(new File(['a'], 'a.pdf'), 'm', 't');
-  (__request as any).mockResolvedValueOnce({ job_id: '1', status: 'Succeeded' });
-  let res = await submitPayload(payload, true);
-  expect(res).toMatchObject({ job_id: '1', status: 'Succeeded' });
-  (__request as any).mockResolvedValueOnce({ job_id: '2', status: 'Pending' });
-  res = await submitPayload(payload, false);
-  expect(res).toMatchObject({ job_id: '2', status: 'Pending' });
+  (__request as any).mockResolvedValueOnce({ job_id: '1', status: 'Queued' });
+  const res = await submitPayload(payload);
+  expect(res).toMatchObject({ job_id: '1', status: 'Queued' });
   (__request as any).mockRejectedValueOnce(
     new ApiError(
       { method: 'POST', url: '/jobs' } as any,
-      {
-        url: '',
-        status: 429,
-        statusText: 'Too Many Requests',
-        body: { errorCode: 'immediate_capacity', retry_after_seconds: 5 },
-      },
+      { url: '', status: 429, statusText: 'Too Many Requests', body: {} },
       'Too Many Requests'
     )
   );
-  await expect(submitPayload(payload, true)).rejects.toBeInstanceOf(ApiError);
+  await expect(submitPayload(payload)).rejects.toBeInstanceOf(ApiError);
 });

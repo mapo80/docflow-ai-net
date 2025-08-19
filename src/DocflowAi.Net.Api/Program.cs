@@ -89,7 +89,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "docflow-ai-net API",
         Version = "v1",
-        Description = "Job queue and immediate processing API",
+        Description = "Job queue API",
         Contact = new OpenApiContact { Name = "docflow-ai", Url = new Uri("https://github.com/mapo80/docflow-ai-net") },
         License = new OpenApiLicense { Name = "MIT" }
     });

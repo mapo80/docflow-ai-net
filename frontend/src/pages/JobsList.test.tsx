@@ -15,7 +15,7 @@ vi.mock('antd', () => ({
       {dataSource.map((row: any) => (
         <div key={row.id}>
           <span>{row.id}</span>
-          {columns[6].render(null, row)}
+          {columns[7].render(null, row)}
         </div>
       ))}
       <button onClick={() => pagination.onChange(2, pagination.pageSize)}>2</button>
@@ -31,7 +31,6 @@ vi.mock('antd', () => ({
   ),
   Grid: { useBreakpoint: () => ({ md: true }) },
   Button: (props: any) => <button {...props} />,
-  Progress: () => <div />,
   Badge: () => <div />,
   Alert: () => null,
   Space: ({ children }: any) => <div>{children}</div>,
@@ -40,7 +39,14 @@ vi.mock('antd', () => ({
 test('pagination and cancel', async () => {
   const getSpy = vi
     .spyOn(JobsService, 'jobsList')
-    .mockResolvedValue({ items: [{ id: '1', status: 'Running', createdAt: '', updatedAt: '' } as any], page: 1, pageSize: 10, total: 20 });
+    .mockResolvedValue({
+      items: [
+        { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm' } as any,
+      ],
+      page: 1,
+      pageSize: 10,
+      total: 20,
+    });
   const cancelSpy = vi.spyOn(JobsService, 'jobsDelete').mockResolvedValue(undefined as any);
   render(
     <ApiErrorProvider>

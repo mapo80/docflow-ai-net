@@ -2,7 +2,7 @@
 
 Objective: run real end-to-end tests against the exposed APIs (no mocks) using real files and services. Tests do not modify the backend and verify observable behavior via REST.
 Endpoint scope:
-- POST /api/v1/jobs (queued | ?mode=immediate)
+- POST /api/v1/jobs
 - GET /api/v1/jobs (paged list)
 - GET /api/v1/jobs/{id}
 - DELETE /api/v1/jobs/{id}
@@ -46,15 +46,6 @@ B2. **Submit_Queued_202_IdempotencyKey** – Repeat the same POST with header `I
 
 B3. **Submit_Queued_202_DedupeHash** – Two sequential POSTs **without** Idempotency-Key but with the **same** file/prompt/fields → 202 with the **same** `job_id` (dedupe window).
 
-### C) SUBMIT — IMMEDIATE (200)
-C1. **Immediate_200_Success** – POST /api/v1/jobs?mode=immediate with `sample.pdf` + `prompt_text` + `fields_json` → 200 `{ job_id, status="Succeeded", duration_ms, result_path? }`. GET {id} → `Succeeded`. If `result_path` is public: GET file → 200 (optional).
-
-C2. **Immediate_200_Failed** (if reproducible) – Use input that triggers failure (e.g. deliberately inconsistent payload) → 200 `{ status="Failed", error }`. GET {id} → `Failed`.
-
-C3. **Immediate_429_Capacity** (if limited capacity) – Start an immediate that occupies the service (run two POSTs concurrently in Task.WhenAll). The second POST → 429 with `Retry-After`. No new job unless fallback. If backend has `FallbackToQueue=true`: the second → 202 queued (assert difference).
-
-C4. **Immediate_200_Cancelled** (optional) – Start immediate and cancel the client request (CancellationToken) during processing. GET {id} → `Cancelled` (if supported).
-
 ### D) PAGED LIST — GET /api/v1/jobs
 D1. **List_Default_Paged_Desc** – GET /api/v1/jobs?page=1&pageSize=20 → 200 { page, pageSize, total, items }. Verify `items` sorted by `createdAt` DESC (compare `createdAt` of first 3).
 
@@ -76,8 +67,6 @@ F3. **Cancel_Terminal_409** – On `Succeeded` or `Failed` job: DELETE → 409 `
 
 ### G) BACKPRESSURE & RATE LIMIT (429)
 G1. **QueueFull_429_SubmitQueued** – Precondition: queue full (perform N submits until GET /health/ready reports reason `backpressure` or until a 429 is returned). New queued POST → 429 `{ error:"queue_full" }` + `Retry-After` header/body.
-
-G2. **ImmediateCapacity_429_SubmitImmediate** – (Like C3) Two parallel immediate submits → one receives 429 `{ error:"immediate_capacity" }` + `Retry-After` (if backend without fallback).
 
 G3. **RateLimited_429** (if policy active) – Send >N submits in a short window → 429 `{ error:"rate_limited" }` + `Retry-After`.
 
@@ -119,6 +108,5 @@ L2. **ErrorTxt_Available_OnFailure** (if exposed) – For `Failed` job: HTTP GET
 ✅ **ACCEPTANCE CRITERIA**
 - All cases A–H pass. Optional cases (C4, F2, G3, H4, I1) pass if the environment allows reproduction.
 - For 429 responses, `Retry-After` is present in header or body.
-- Immediate vs queued: **200** (immediate) and **202** (queued) respected; GET {id} matches terminal state.
 - Health: `/health/live` 200; `/health/ready` → 200 or 503 with non-empty reasons.
 - No dependency on server-local files: tests access `paths.*` only if publicly exposed.

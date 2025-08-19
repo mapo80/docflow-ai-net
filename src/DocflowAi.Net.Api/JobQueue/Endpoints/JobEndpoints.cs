@@ -43,7 +43,7 @@ public static class JobEndpoints
                 p,
                 ps,
                 total,
-                items.Select(i => new JobSummary(i.Id, i.Status, MapDerivedStatus(i.Status), i.Progress, i.CreatedAt, i.UpdatedAt, i.Immediate)).ToList()
+                items.Select(i => new JobSummary(i.Id, i.Status, MapDerivedStatus(i.Status), i.Progress, i.CreatedAt, i.UpdatedAt)).ToList()
             );
             return Results.Ok(response);
         })
@@ -170,16 +170,12 @@ public static class JobEndpoints
             var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken });
             await fs.SaveTextAtomic(jobId, "manifest.json", manifest);
 
-            var mode = req.Query.TryGetValue("mode", out var mv) ? mv.ToString() : null;
-            var immediate = string.Equals(mode, "immediate", StringComparison.OrdinalIgnoreCase) && optsVal.Immediate.Enabled;
-
             var doc = new JobDocument
             {
                 Id = jobId,
                 Status = "Queued",
                 Progress = 0,
                 Attempts = 0,
-                Immediate = immediate,
                 AvailableAt = DateTimeOffset.UtcNow,
                 Hash = hash,
                 IdempotencyKey = idemKey,
@@ -189,64 +185,18 @@ public static class JobEndpoints
             };
             store.Create(doc);
             uow.SaveChanges();
-
-            if (!immediate)
-            {
-                jobs.Enqueue<IJobRunner>(r => r.Run(jobId, CancellationToken.None, true, null));
-                logger.LogInformation("SubmitJobCompleted {JobId} {ElapsedMs}", jobId, sw.ElapsedMilliseconds);
-                return Results.Accepted($"/api/v1/jobs/{jobId}", new SubmitAcceptedResponse(jobId, $"/api/v1/jobs/{jobId}", optsVal.EnableHangfireDashboard ? "/hangfire" : null));
-            }
-
-            var gate = req.HttpContext.RequestServices.GetRequiredService<IConcurrencyGate>();
-            if (!gate.TryEnter())
-            {
-                logger.LogWarning("ImmediateBackpressure {Current} {Capacity}", gate.InUse, gate.Capacity);
-                if (optsVal.Immediate.FallbackToQueue)
-                {
-                    jobs.Enqueue<IJobRunner>(r => r.Run(jobId, CancellationToken.None, true, null));
-                    logger.LogWarning("ImmediateFallbackQueued {JobId}", jobId);
-                    logger.LogInformation("SubmitJobCompleted {JobId} {ElapsedMs}", jobId, sw.ElapsedMilliseconds);
-                    return Results.Accepted($"/api/v1/jobs/{jobId}", new SubmitAcceptedResponse(jobId, $"/api/v1/jobs/{jobId}", optsVal.EnableHangfireDashboard ? "/hangfire" : null));
-                }
-                req.HttpContext.Response.Headers["Retry-After"] = "1";
-                return Results.Json(new ErrorResponse("immediate_capacity", null, 1), statusCode: 429);
-            }
-
-            logger.LogInformation("ImmediateStarted {JobId}", jobId);
-            try
-            {
-                await req.HttpContext.RequestServices.GetRequiredService<IJobRunner>().Run(jobId, req.HttpContext.RequestAborted, acquireGate: false, overrideTimeoutSeconds: optsVal.Immediate.TimeoutSeconds);
-            }
-            finally
-            {
-                gate.Release();
-            }
-            var finalJob = store.Get(jobId)!;
-            logger.LogInformation("ImmediateCompleted {JobId} {Status}", jobId, finalJob.Status);
+            jobs.Enqueue<IJobRunner>(r => r.Run(jobId, CancellationToken.None, true, null));
             logger.LogInformation("SubmitJobCompleted {JobId} {ElapsedMs}", jobId, sw.ElapsedMilliseconds);
-            return Results.Ok(new ImmediateJobResponse(jobId, finalJob.Status));
+            return Results.Accepted($"/api/v1/jobs/{jobId}", new SubmitAcceptedResponse(jobId, $"/api/v1/jobs/{jobId}", optsVal.EnableHangfireDashboard ? "/hangfire" : null));
         }).RequireRateLimiting("Submit")
           .WithName("Jobs_Create")
           .Produces<SubmitAcceptedResponse>(StatusCodes.Status202Accepted)
-          .Produces<ImmediateJobResponse>(StatusCodes.Status200OK)
           .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
           .Produces<ErrorResponse>(StatusCodes.Status413PayloadTooLarge)
           .Produces<ErrorResponse>(StatusCodes.Status429TooManyRequests)
           .Produces<ErrorResponse>(StatusCodes.Status507InsufficientStorage)
           .WithOpenApi(op =>
           {
-              op.Parameters.Add(new OpenApiParameter
-              {
-                  Name = "mode",
-                  In = ParameterLocation.Query,
-                  Required = false,
-                  Description = "Execution mode: queued (default) or immediate",
-                  Schema = new OpenApiSchema
-                  {
-                      Type = "string",
-                      Enum = new List<IOpenApiAny> { new OpenApiString("queued"), new OpenApiString("immediate") }
-                  }
-              });
               op.Parameters.Add(new OpenApiParameter
               {
                   Name = "Idempotency-Key",
@@ -260,27 +210,6 @@ public static class JobEndpoints
                   ["job_id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
                   ["status_url"] = new OpenApiString("/api/v1/jobs/{id}"),
                   ["dashboard_url"] = new OpenApiString("/hangfire")
-              };
-              op.Responses["200"].Content["application/json"].Examples = new Dictionary<string, OpenApiExample>
-              {
-                  ["succeeded"] = new()
-                  {
-                      Value = new OpenApiObject
-                      {
-                          ["job_id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
-                          ["status"] = new OpenApiString("Succeeded"),
-                          ["duration_ms"] = new OpenApiInteger(1234)
-                      }
-                  },
-                  ["failed"] = new()
-                  {
-                      Value = new OpenApiObject
-                      {
-                          ["job_id"] = new OpenApiString("00000000-0000-0000-0000-000000000000"),
-                          ["status"] = new OpenApiString("Failed"),
-                          ["error"] = new OpenApiString("boom")
-                      }
-                  }
               };
               op.Responses["429"].Headers["Retry-After"] = new OpenApiHeader
               {
@@ -296,15 +225,6 @@ public static class JobEndpoints
                           ["error"] = new OpenApiString("queue_full"),
                           ["message"] = new OpenApiString("queue is full"),
                           ["retry_after_seconds"] = new OpenApiInteger(60)
-                      }
-                  },
-                  ["immediate_capacity"] = new()
-                  {
-                      Value = new OpenApiObject
-                      {
-                          ["error"] = new OpenApiString("immediate_capacity"),
-                          ["message"] = new OpenApiString("immediate capacity reached"),
-                          ["retry_after_seconds"] = new OpenApiInteger(1)
                       }
                   }
               };
@@ -334,7 +254,7 @@ public static class JobEndpoints
                 Output = ToPublicPath(job.Id, job.Paths.Output),
                 Error = ToPublicPath(job.Id, job.Paths.Error)
             };
-            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Immediate, job.Model, job.TemplateToken);
+            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
             return Results.Ok(resp);
         })

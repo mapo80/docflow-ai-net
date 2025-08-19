@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ImmediateJobResponse } from '../models/ImmediateJobResponse';
 import type { JobDetailResponse } from '../models/JobDetailResponse';
 import type { PagedJobsResponse } from '../models/PagedJobsResponse';
 import type { SubmitAcceptedResponse } from '../models/SubmitAcceptedResponse';
@@ -35,31 +34,23 @@ export class JobsService {
         });
     }
     /**
-     * @returns ImmediateJobResponse OK
+     * @returns any OK
      * @returns SubmitAcceptedResponse Accepted
      * @throws ApiError
      */
     public static jobsCreate({
-        mode,
         idempotencyKey,
     }: {
-        /**
-         * Execution mode: queued (default) or immediate
-         */
-        mode?: 'queued' | 'immediate',
         /**
          * Optional idempotency key
          */
         idempotencyKey?: string,
-    }): CancelablePromise<ImmediateJobResponse | SubmitAcceptedResponse> {
+    }): CancelablePromise<any | SubmitAcceptedResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/jobs',
             headers: {
                 'Idempotency-Key': idempotencyKey,
-            },
-            query: {
-                'mode': mode,
             },
             errors: {
                 400: `Bad Request`,

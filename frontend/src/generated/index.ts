@@ -11,7 +11,6 @@ export type { CreateModelRequest } from './models/CreateModelRequest';
 export type { CreateTemplateRequest } from './models/CreateTemplateRequest';
 export type { DownloadModelRequest } from './models/DownloadModelRequest';
 export type { ErrorResponse } from './models/ErrorResponse';
-export type { ImmediateJobResponse } from './models/ImmediateJobResponse';
 export type { JobDetailResponse } from './models/JobDetailResponse';
 export type { JobSummary } from './models/JobSummary';
 export type { MetricsInfo } from './models/MetricsInfo';

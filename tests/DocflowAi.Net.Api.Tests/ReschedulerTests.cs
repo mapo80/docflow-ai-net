@@ -105,7 +105,7 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
         uow3.SaveChanges();
 
         await rescheduler.ProcessOnceAsync(CancellationToken.None);
-        // make available immediately
+        // make available for processing
         store.Requeue(id, 1, DateTimeOffset.UtcNow.AddMilliseconds(-1));
         uow3.SaveChanges();
 
