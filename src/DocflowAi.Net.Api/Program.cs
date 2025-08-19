@@ -205,6 +205,12 @@ builder.Services.AddHttpClient<ILlmModelService, LlmModelService>();
 builder.Services.AddHealthChecks()
     .AddCheck<JobQueueReadyHealthCheck>("jobqueue", tags: new[] { "ready" });
 
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 var app = builder.Build();
 DefaultModelSeeder.Build(app);
 DefaultTemplateSeeder.Build(app);
