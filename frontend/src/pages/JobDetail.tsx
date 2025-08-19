@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
 import { Descriptions, Button, Space, Modal, Tabs, Table, Alert } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
@@ -16,7 +16,6 @@ import { useApiError } from '../components/ApiErrorProvider';
 
 export default function JobDetail() {
   const { id } = useParams();
-  const location = useLocation();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
   const [modelInfo, setModelInfo] = useState<any | null>(null);
   const [templateInfo, setTemplateInfo] = useState<any | null>(null);
@@ -140,11 +139,6 @@ export default function JobDetail() {
     fetchFields();
   }, [job]);
 
-  useEffect(() => {
-    if ((location.state as any)?.newJob) {
-      notify('success', 'Job created successfully.');
-    }
-  }, [location.state]);
 
   const handleCancel = async () => {
     if (!id) return;

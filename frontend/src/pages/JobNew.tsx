@@ -104,12 +104,16 @@ export default function JobNew() {
     try {
       const data = await submitPayload(payload, idempotencyKey || undefined);
       notify('success', 'Job created successfully.', data.job_id);
-      navigate(`/jobs/${data.job_id}`, { state: { newJob: true } });
+      navigate(`/jobs/${data.job_id}`);
     } catch (e) {
       if (e instanceof ApiError && e.status === 429) {
         notify('warning', 'queue_full');
+      } else if (e instanceof ApiError) {
+        showError(e.body?.detail || e.message);
+      } else if (e instanceof Error) {
+        showError(e.message);
       } else {
-        showError('Error');
+        showError(String(e));
       }
     } finally {
       setLoading(false);
