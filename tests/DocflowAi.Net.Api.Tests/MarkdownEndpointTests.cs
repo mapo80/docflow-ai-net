@@ -1,3 +1,4 @@
+using System;
 using DocflowAi.Net.Api.Markdown.Endpoints;
 using DocflowAi.Net.Api.Contracts;
 using DocflowAi.Net.Api.Tests.Fakes;
@@ -34,5 +35,27 @@ public class MarkdownEndpointTests
         var result = await MarkdownEndpoints.ConvertFileAsync(null, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(400, json.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("unsupported_format", 400)]
+    [InlineData("conversion_failed", 422)]
+    public async Task Conversion_errors_are_translated(string code, int status)
+    {
+        var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, new ThrowingMarkdownConverter(code), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
+        Assert.Equal(status, json.StatusCode);
+        Assert.Equal(code, json.Value.Error);
+    }
+
+    [Fact]
+    public async Task Native_library_failure_returns_internal_error()
+    {
+        var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, new ThrowingMarkdownConverter(new DllNotFoundException("liblept.so.5")), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
+        Assert.Equal(500, json.StatusCode);
+        Assert.Equal("native_library_missing", json.Value.Error);
     }
 }
