@@ -12,6 +12,11 @@ vi.mock('../components/ModelModal', () => ({
     open ? <button onClick={() => onSaved(true)}>modal</button> : null,
 }));
 
+vi.mock('../components/ModelModal', () => ({
+  default: ({ onSaved, open }: any) =>
+    open ? <button onClick={() => onSaved(true)}>modal</button> : null,
+}));
+
 vi.mock('../generated', () => {
   const list = [
     {

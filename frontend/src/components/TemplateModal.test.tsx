@@ -35,6 +35,7 @@ vi.mock('antd', () => {
   ),
   Space: ({ children }: any) => <div>{children}</div>,
   Grid: { useBreakpoint },
+  message: { success: vi.fn() },
 };
 });
 
