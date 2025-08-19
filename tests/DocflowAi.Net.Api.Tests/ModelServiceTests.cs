@@ -208,4 +208,21 @@ public class ModelServiceTests
         service.Delete(model.Id);
         db.Models.Should().BeEmpty();
     }
+
+    [Fact]
+    public void DeleteModel_WhenMultipleExist_RemovesOnlyTarget()
+    {
+        var options = new DbContextOptionsBuilder<JobDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        using var db = new JobDbContext(options);
+        var client = new FakeBackgroundJobClient();
+        var service = CreateService(db, Path.GetTempPath(), client);
+        var m1 = service.Create(new CreateModelRequest { Name = "m1", Type = "local", HfRepo = "r1", ModelFile = "f1" });
+        var m2 = service.Create(new CreateModelRequest { Name = "m2", Type = "local", HfRepo = "r2", ModelFile = "f2" });
+
+        service.Delete(m1.Id);
+
+        db.Models.Should().ContainSingle(m => m.Id == m2.Id);
+    }
 }
