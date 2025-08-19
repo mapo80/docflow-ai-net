@@ -28,7 +28,7 @@ public class DefaultTemplateSeederTests : IClassFixture<TempDirFixture>
         var tplId = list.Items.Single(t => t.Token == "template").Id;
         var tpl = await client.GetFromJsonAsync<TemplateDto>($"/api/templates/{tplId}");
         tpl!.PromptMarkdown.Should().NotBeNullOrWhiteSpace();
-        tpl.FieldsJson.TryGetProperty("invoice_number", out _).Should().BeTrue();
+        tpl.FieldsJson.EnumerateArray().Any(e => e.GetProperty("Key").GetString() == "invoice_number").Should().BeTrue();
         var bpId = list.Items.Single(t => t.Token == "busta-paga").Id;
         var bp = await client.GetFromJsonAsync<TemplateDto>($"/api/templates/{bpId}");
         bp!.PromptMarkdown.Should().NotBeNullOrWhiteSpace();

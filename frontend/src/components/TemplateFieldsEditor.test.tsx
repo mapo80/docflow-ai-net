@@ -63,7 +63,7 @@ test('mode switch preserves data', () => {
   const textarea = screen.getByRole('textbox');
   expect(textarea.value).toContain('"name": "id"');
   fireEvent.change(textarea, {
-    target: { value: '{"fields":[{"name":"foo","type":"number"}]}' },
+    target: { value: '[{"name":"foo","type":"number"}]' },
   });
   fireEvent.click(screen.getByText('Visual'));
   expect(screen.getByDisplayValue('foo')).toBeTruthy();

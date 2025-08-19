@@ -30,7 +30,7 @@ public class TemplateServiceTests
             "t1",
             "tok1",
             null,
-            JsonDocument.Parse("{\"a\":1}").RootElement));
+            JsonDocument.Parse("[]").RootElement));
         dto.CreatedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
         dto.UpdatedAt.Should().BeCloseTo(dto.CreatedAt, TimeSpan.FromSeconds(5));
     }
@@ -43,8 +43,8 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
-        Action act = () => service.Create(new CreateTemplateRequest("t1", "tok2", null, JsonDocument.Parse("{}" ).RootElement));
+        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
+        Action act = () => service.Create(new CreateTemplateRequest("t1", "tok2", null, JsonDocument.Parse("[]" ).RootElement));
         act.Should().Throw<InvalidOperationException>();
     }
 
@@ -56,20 +56,20 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        Action act = () => service.Create(new CreateTemplateRequest("t1", "bad token", null, JsonDocument.Parse("{}" ).RootElement));
+        Action act = () => service.Create(new CreateTemplateRequest("t1", "bad token", null, JsonDocument.Parse("[]" ).RootElement));
         act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
-    public void FieldsJsonMustBeObject()
+    public void FieldsJsonMustBeArray()
     {
         var options = new DbContextOptionsBuilder<JobDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        var arr = JsonDocument.Parse("[]").RootElement;
-        Action act = () => service.Create(new CreateTemplateRequest("t1", "tok1", null, arr));
+        var obj = JsonDocument.Parse("{}").RootElement;
+        Action act = () => service.Create(new CreateTemplateRequest("t1", "tok1", null, obj));
         act.Should().Throw<ArgumentException>();
     }
 
@@ -81,11 +81,11 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        var tpl = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
-        var updated = service.Update(tpl.Id, new UpdateTemplateRequest("t2", "tok2", "p", JsonDocument.Parse("{\"b\":2}").RootElement));
+        var tpl = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
+        var updated = service.Update(tpl.Id, new UpdateTemplateRequest("t2", "tok2", "p", JsonDocument.Parse("[{\"b\":2}]").RootElement));
         updated.Name.Should().Be("t2");
         updated.Token.Should().Be("tok2");
-        updated.FieldsJson.GetProperty("b").GetInt32().Should().Be(2);
+        updated.FieldsJson[0].GetProperty("b").GetInt32().Should().Be(2);
         updated.UpdatedAt.Should().BeAfter(updated.CreatedAt);
     }
 
@@ -97,11 +97,11 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
+        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
         System.Threading.Thread.Sleep(10);
-        service.Create(new CreateTemplateRequest("t2", "tok2", null, JsonDocument.Parse("{}" ).RootElement));
+        service.Create(new CreateTemplateRequest("t2", "tok2", null, JsonDocument.Parse("[]" ).RootElement));
         System.Threading.Thread.Sleep(10);
-        service.Create(new CreateTemplateRequest("t3", "tok3", null, JsonDocument.Parse("{}" ).RootElement));
+        service.Create(new CreateTemplateRequest("t3", "tok3", null, JsonDocument.Parse("[]" ).RootElement));
         var page1 = service.GetPaged(null, 1, 2, null);
         page1.Total.Should().Be(3);
         page1.Items.Should().HaveCount(2);
@@ -119,7 +119,7 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        var tpl = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
+        var tpl = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
         service.Delete(tpl.Id);
         service.GetById(tpl.Id).Should().BeNull();
     }
@@ -132,8 +132,8 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
-        Action act = () => service.Create(new CreateTemplateRequest("t2", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
+        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
+        Action act = () => service.Create(new CreateTemplateRequest("t2", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
         act.Should().Throw<InvalidOperationException>();
     }
 
@@ -145,7 +145,7 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        Action act = () => service.Create(new CreateTemplateRequest("", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
+        Action act = () => service.Create(new CreateTemplateRequest("", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
         act.Should().Throw<ArgumentException>();
     }
 
@@ -168,8 +168,8 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        var t1 = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
-        var t2 = service.Create(new CreateTemplateRequest("t2", "tok2", null, JsonDocument.Parse("{}" ).RootElement));
+        var t1 = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
+        var t2 = service.Create(new CreateTemplateRequest("t2", "tok2", null, JsonDocument.Parse("[]" ).RootElement));
         Action act = () => service.Update(t2.Id, new UpdateTemplateRequest("t1", null, null, null));
         act.Should().Throw<InvalidOperationException>();
     }
@@ -182,8 +182,8 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        var t1 = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
-        var t2 = service.Create(new CreateTemplateRequest("t2", "tok2", null, JsonDocument.Parse("{}" ).RootElement));
+        var t1 = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
+        var t2 = service.Create(new CreateTemplateRequest("t2", "tok2", null, JsonDocument.Parse("[]" ).RootElement));
         Action act = () => service.Update(t2.Id, new UpdateTemplateRequest(null, "tok1", null, null));
         act.Should().Throw<InvalidOperationException>();
     }
@@ -196,7 +196,7 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        var t = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
+        var t = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
         Action act = () => service.Update(t.Id, new UpdateTemplateRequest(null, "bad token", null, null));
         act.Should().Throw<ArgumentException>();
     }
@@ -209,9 +209,9 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        var t = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
-        var arr = JsonDocument.Parse("[]").RootElement;
-        Action act = () => service.Update(t.Id, new UpdateTemplateRequest(null, null, null, arr));
+        var t = service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
+        var obj = JsonDocument.Parse("{}").RootElement;
+        Action act = () => service.Update(t.Id, new UpdateTemplateRequest(null, null, null, obj));
         act.Should().Throw<ArgumentException>();
     }
 
@@ -247,7 +247,7 @@ public class TemplateServiceTests
             .Options;
         using var db = new JobDbContext(options);
         var service = CreateService(db);
-        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("{}" ).RootElement));
+        service.Create(new CreateTemplateRequest("t1", "tok1", null, JsonDocument.Parse("[]" ).RootElement));
         var r1 = service.GetPaged(null, 0, 0, null);
         r1.Page.Should().Be(1);
         r1.PageSize.Should().Be(20);
