@@ -14,10 +14,7 @@ let apiRef: ReturnType<typeof notification.useNotification>[0] | undefined;
 let tokenRef:
   | Pick<
       ReturnType<typeof theme.useToken>['token'],
-      | 'colorSuccess'
-      | 'colorError'
-      | 'colorWarning'
-      | 'fontWeightStrong'
+      'colorWarning' | 'fontWeightStrong'
     >
   | undefined;
 
@@ -45,17 +42,34 @@ export function notify(
 ): void {
   const backgroundColor =
     type === 'success'
-      ? tokenRef?.colorSuccess
+      ? 'var(--success-bg)'
       : type === 'error'
-        ? tokenRef?.colorError
+        ? 'var(--error-bg)'
         : tokenRef?.colorWarning;
-  const color = '#fff';
+  const color =
+    type === 'success'
+      ? 'var(--success-text)'
+      : type === 'error'
+        ? 'var(--error-text)'
+        : '#fff';
+  const borderColor =
+    type === 'success'
+      ? 'var(--success-border)'
+      : type === 'error'
+        ? 'var(--error-border)'
+        : undefined;
+  const iconColor =
+    type === 'success'
+      ? 'var(--success-icon)'
+      : type === 'error'
+        ? 'var(--error-icon)'
+        : '#fff';
   const icon =
     type === 'success'
-      ? <CheckCircleFilled style={{ color }} />
+      ? <CheckCircleFilled style={{ color: iconColor }} />
       : type === 'error'
-        ? <CloseCircleFilled style={{ color }} />
-        : <ExclamationCircleFilled style={{ color }} />;
+        ? <CloseCircleFilled style={{ color: iconColor }} />
+        : <ExclamationCircleFilled style={{ color: iconColor }} />;
   apiRef?.open({
     type,
     message,
@@ -66,9 +80,10 @@ export function notify(
       backgroundColor,
       color,
       fontWeight: tokenRef?.fontWeightStrong ?? 'bold',
+      border: borderColor ? `1px solid ${borderColor}` : undefined,
     },
     icon,
-    closeIcon: <CloseOutlined style={{ color }} />,
+    closeIcon: <CloseOutlined />,
   });
 }
 
