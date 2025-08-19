@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Badge, Descriptions, Progress, Button, message, Space, Modal, Tabs, Table } from 'antd';
+import { Badge, Descriptions, Progress, Button, Space, Modal, Tabs, Table } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 import JobStatusTag from '../components/JobStatusTag';
+import notify from '../components/notification';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
@@ -133,7 +134,7 @@ export default function JobDetail() {
     if (!id) return;
     try {
       await JobsService.jobsDelete({ id });
-      message.success('Job canceled');
+      notify('success', 'Job canceled');
       load();
     } catch (e) {
       if (e instanceof ApiError) {

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Alert, Badge, Button, Card, Checkbox, Form, Input, Upload, notification, Select } from 'antd';
+import { Alert, Badge, Button, Card, Checkbox, Form, Input, Upload, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import { ApiError, OpenAPI, ModelsService, TemplatesService } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 import { useApiError } from '../components/ApiErrorProvider';
+import notify from '../components/notification';
 
 export function validateFile(
   file: File,
@@ -112,10 +113,7 @@ export default function JobNew() {
         setResult(data);
         setCreated(true);
       } else {
-        notification.success({
-          message: 'Job created successfully.',
-          description: data.job_id,
-        });
+        notify('success', 'Job created successfully.', data.job_id);
         navigate(`/jobs/${data.job_id}`, { state: { newJob: true } });
       }
     } catch (e) {
@@ -123,7 +121,7 @@ export default function JobNew() {
         if (e.status === 429 && e.body?.errorCode === 'immediate_capacity') {
           setRetryAfter(e.body.retry_after_seconds ?? 0);
         } else if (e.status === 429) {
-          notification.warning({ message: 'queue_full' });
+          notify('warning', 'queue_full');
         }
       } else {
         showError('Error');
