@@ -6,7 +6,7 @@ import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
 import FileExclamationOutlined from '@ant-design/icons/FileExclamationOutlined';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { JobsService, type JobDetailResponse, ApiError } from '../generated';
+import { JobsService, type JobSummary, type JobDetailResponse, ApiError } from '../generated';
 import JobStatusTag from '../components/JobStatusTag';
 import notify from '../components/notification';
 import { Link } from 'react-router-dom';
@@ -17,7 +17,8 @@ import { useApiError } from '../components/ApiErrorProvider';
 const terminal = ['Succeeded', 'Failed', 'Cancelled'];
 
 export default function JobsList() {
-  const [jobs, setJobs] = useState<JobDetailResponse[]>([]);
+  type JobListItem = JobSummary & { paths?: JobDetailResponse['paths'] };
+  const [jobs, setJobs] = useState<JobListItem[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(() => Number(localStorage.getItem('pageSize') || 10));
   const [total, setTotal] = useState(0);
@@ -31,7 +32,7 @@ export default function JobsList() {
     setLoading(true);
     try {
       const res = await JobsService.jobsList({ page, pageSize });
-      const items = (res.items || []) as JobDetailResponse[];
+      const items = (res.items || []) as JobListItem[];
       setJobs(items);
       setTotal(res.total || 0);
       if (items.some((j) => !terminal.includes(j.status!))) {
@@ -84,7 +85,7 @@ export default function JobsList() {
     }
   };
 
-  const columns: ColumnsType<JobDetailResponse> = [
+  const columns: ColumnsType<JobListItem> = [
     {
       title: 'ID',
       dataIndex: 'id',
@@ -97,7 +98,7 @@ export default function JobsList() {
     {
       title: 'Status',
       dataIndex: 'status',
-      render: (_: string, record: JobDetailResponse) => (
+      render: (_: string, record: JobListItem) => (
         <JobStatusTag status={record.status!} derived={record.derivedStatus} />
       ),
       filters: [
@@ -139,7 +140,7 @@ export default function JobsList() {
     },
     {
       title: 'Actions',
-      render: (_: any, record: JobDetailResponse) => (
+      render: (_: any, record: JobListItem) => (
         <Space>
           <Link to={`/jobs/${record.id}`} title="View job">
             <Button icon={<EyeOutlined />} aria-label="View job" title="View job" />
