@@ -6,6 +6,7 @@ import './index.css';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { OpenAPI } from './generated';
+import { NotificationProvider } from './components/notification';
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 OpenAPI.BASE = apiBase;
@@ -13,9 +14,11 @@ OpenAPI.BASE = apiBase;
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider theme={{ algorithm: theme.defaultAlgorithm }}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <NotificationProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </NotificationProvider>
     </ConfigProvider>
   </StrictMode>,
 );
