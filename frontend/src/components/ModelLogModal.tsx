@@ -29,8 +29,8 @@ export default function ModelLogModal({ open, modelId, onClose }: Props) {
       title="Download Log"
       width="100%"
       style={{ top: 0 }}
-      bodyStyle={{ height: 'calc(100vh - 108px)', overflowY: 'auto' }}
-      destroyOnClose
+      styles={{ body: { height: 'calc(100vh - 108px)', overflowY: 'auto' } }}
+      destroyOnHidden
     >
       {loading ? <Spin /> : <pre style={{ whiteSpace: 'pre-wrap' }}>{content}</pre>}
     </Modal>

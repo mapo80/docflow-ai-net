@@ -98,7 +98,7 @@ export default function Shell() {
           closable={false}
           onClose={() => handleCollapse(true, 'clickTrigger')}
           open={!collapsed}
-          bodyStyle={{ padding: 0 }}
+          styles={{ body: { padding: 0 } }}
           width={200}
         >
           <Menu
