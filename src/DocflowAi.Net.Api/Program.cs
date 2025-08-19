@@ -43,6 +43,7 @@ using System.Collections.Generic;
 using Hangfire.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using DocflowAi.Net.Infrastructure.Security;
+using Hangfire.Console.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,6 +138,7 @@ builder.Services.AddHangfire(config =>
           .UseRecommendedSerializerSettings()
           .UseMemoryStorage();
 });
+builder.Services.AddHangfireConsoleExtensions();
 var workerCount = builder.Configuration.GetSection("JobQueue:Concurrency:HangfireWorkerCount").Get<int>();
 if (workerCount > 0)
 {
