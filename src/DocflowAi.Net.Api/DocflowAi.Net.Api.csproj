@@ -48,6 +48,12 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="tessdata/**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
   <PropertyGroup>
     <!-- Scegli UNA variante: noavx | avx | avx2 | avx512 -->
     <LlamaCpuVariant>avx2</LlamaCpuVariant>
