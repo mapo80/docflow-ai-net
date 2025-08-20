@@ -79,7 +79,7 @@ public class JobRunner : IJobRunner
                 ProcessResult result;
                 try
                 {
-                      var input = new ProcessInput(jobId, job.Paths.Input!, job.TemplateToken, job.Model);
+                      var input = new ProcessInput(jobId, job.Paths.Input!, job.Paths.Markdown!, job.TemplateToken, job.Model);
                     result = await timeoutPolicy.ExecuteAsync(token => _process.ExecuteAsync(input, token), leaseCts.Token);
                 }
                 catch (OperationCanceledException)
@@ -110,11 +110,6 @@ public class JobRunner : IJobRunner
                 {
                     leaseCts.Cancel();
                     try { await heartbeat; } catch { }
-                }
-
-                if (!string.IsNullOrEmpty(result.Markdown) && job.Paths.Markdown != null)
-                {
-                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Markdown!), result.Markdown);
                 }
 
                 if (result.Success)

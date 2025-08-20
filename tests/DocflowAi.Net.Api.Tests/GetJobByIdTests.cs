@@ -79,6 +79,41 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
     }
 
     [Fact]
+    public async Task Get_running_job_with_markdown_returns_path()
+    {
+        using var factory = new TestWebAppFactory(_fx.RootPath);
+        var client = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var id = Guid.NewGuid();
+        var dir = Path.Combine(_fx.RootPath, "jobm");
+        Directory.CreateDirectory(dir);
+        var mdPath = Path.Combine(dir, "markdown.md");
+        await File.WriteAllTextAsync(mdPath, "# md");
+        var job = new JobDocument
+        {
+            Id = id,
+            Status = "Running",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Paths = new JobDocument.PathInfo
+            {
+                Dir = dir,
+                Input = Path.Combine(dir, "i.pdf"),
+                Output = Path.Combine(dir, "o.json"),
+                Error = Path.Combine(dir, "e.txt"),
+                Markdown = mdPath
+            }
+        };
+        store.Create(job);
+        uow.SaveChanges();
+        var resp = await client.GetAsync($"/api/v1/jobs/{id}");
+        var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        json.GetProperty("paths").GetProperty("markdown").GetString().Should().Be($"/api/v1/jobs/{id}/files/markdown.md");
+    }
+
+    [Fact]
     public async Task File_endpoint_serves_artifact()
     {
         using var factory = new TestWebAppFactory(_fx.RootPath);

@@ -163,6 +163,38 @@ test('shows reload and cancel only when running', async () => {
   expect(fetchSpy2).not.toHaveBeenCalled();
 });
 
+test('lists markdown file while running', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Running',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    createdAt: '',
+    updatedAt: '',
+    paths: { input: '/i.pdf', markdown: '/m.md' },
+  } as any);
+  const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+    ok: true,
+    headers: new Headers(),
+  } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Reload'));
+  const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
+  fireEvent.click(filesTab);
+  await waitFor(() => screen.getByText('markdown'));
+  expect(fetchSpy).not.toHaveBeenCalled();
+});
+
 test('lists all paths without extra requests', async () => {
   getByIdSpy.mockReset();
   getByIdSpy.mockResolvedValueOnce({

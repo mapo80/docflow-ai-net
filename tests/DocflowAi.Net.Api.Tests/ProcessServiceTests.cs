@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Processing;
 using DocflowAi.Net.Api.Templates.Abstractions;
 using DocflowAi.Net.Api.Templates.Models;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -20,8 +22,8 @@ public class ProcessServiceTests
     [Fact]
     public async Task Returns_error_when_template_missing()
     {
-        var svc = new ProcessService(new StubRepo(null), new StubConverter(), new StubLlama(), new StubResolver(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
-        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), "nofile", "missing", "m"), CancellationToken.None);
+        var svc = new ProcessService(new StubRepo(null), new StubConverter(), new StubLlama(), new StubResolver(), new StubFs(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), "nofile", Path.GetTempFileName(), "missing", "m"), CancellationToken.None);
         res.Success.Should().BeFalse();
         res.ErrorMessage.Should().Be("template not found");
     }
@@ -31,10 +33,10 @@ public class ProcessServiceTests
     {
         var tpl = new TemplateDocument { Token = "tok", Name = "tpl", FieldsJson = "[{\"Key\":\"f\",\"Type\":\"string\"}]", PromptMarkdown = "p" };
         var repo = new StubRepo(tpl);
-        var svc = new ProcessService(repo, new StubConverter(), new StubLlama(), new StubResolver(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var svc = new ProcessService(repo, new StubConverter(), new StubLlama(), new StubResolver(), new StubFs(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var tmp = Path.GetTempFileName();
         await File.WriteAllTextAsync(tmp, "data");
-        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), tmp, "tok", "m"), CancellationToken.None);
+        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), tmp, Path.Combine(Path.GetTempPath(), "md.md"), "tok", "m"), CancellationToken.None);
         res.Success.Should().BeTrue();
         var json = JsonDocument.Parse(res.OutputJson);
         json.RootElement.GetProperty("fields")[0].GetProperty("key").GetString().Should().Be("f");
@@ -78,5 +80,13 @@ public class ProcessServiceTests
     {
         public Task<IReadOnlyList<BBoxResolveResult>> ResolveAsync(DocumentIndex index, IReadOnlyList<ExtractedField> fields, CancellationToken ct = default)
             => Task.FromResult<IReadOnlyList<BBoxResolveResult>>(fields.Select(f => new BBoxResolveResult(f.Key, f.Value, f.Confidence, f.Evidence ?? new List<SpanEvidence>(), f.Pointer)).ToList());
+    }
+
+    private sealed class StubFs : IFileSystemService
+    {
+        public void EnsureDirectory(string path) { }
+        public string CreateJobDirectory(Guid jobId) => string.Empty;
+        public Task<string> SaveInputAtomic(Guid jobId, IFormFile file, CancellationToken ct = default) => Task.FromResult(string.Empty);
+        public Task<string> SaveTextAtomic(Guid jobId, string filename, string content, CancellationToken ct = default) => Task.FromResult(string.Empty);
     }
 }
