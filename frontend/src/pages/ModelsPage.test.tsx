@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ModelsPage from './ModelsPage';
 import { ModelsService } from '../generated';
@@ -20,10 +20,10 @@ vi.mock('../components/ModelModal', () => ({
 }));
 
 vi.mock('../generated', () => {
-  const list = [
-    {
-      id: '1',
-      name: 'host',
+    const list = [
+      {
+        id: '1',
+        name: 'host',
       type: 'hosted-llm',
       provider: 'openai',
       baseUrl: 'https://x',
@@ -50,10 +50,26 @@ vi.mock('../generated', () => {
       lastUsedAt: null,
       hasApiKey: false,
       hasHfToken: true,
-      createdAt: '2024-01-03T00:00:00Z',
-      updatedAt: '2024-01-04T00:00:00Z',
-    },
-  ];
+        createdAt: '2024-01-03T00:00:00Z',
+        updatedAt: '2024-01-04T00:00:00Z',
+      },
+      {
+        id: '3',
+        name: 'downloaded',
+        type: 'local',
+        provider: null,
+        baseUrl: null,
+        hfRepo: 'repo',
+        modelFile: 'file',
+        downloaded: true,
+        downloadStatus: 'Downloaded',
+        lastUsedAt: null,
+        hasApiKey: false,
+        hasHfToken: true,
+        createdAt: '2024-01-05T00:00:00Z',
+        updatedAt: '2024-01-06T00:00:00Z',
+      },
+    ];
   return {
     ModelsService: {
       modelsList: vi.fn().mockResolvedValue(list),
@@ -74,6 +90,7 @@ describe('ModelsPage', () => {
     await waitFor(() => {
       expect(screen.queryByText('host')).toBeNull();
       expect(screen.getByText('local')).toBeInTheDocument();
+      expect(screen.getByText('downloaded')).toBeInTheDocument();
     });
   });
 
@@ -86,10 +103,18 @@ describe('ModelsPage', () => {
     });
   });
 
+  it('does not show download button for already downloaded model', async () => {
+    render(<ModelsPage />);
+    const nameCells = await screen.findAllByText('downloaded');
+    const row = nameCells[0].closest('tr') || nameCells[0].closest('li');
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).queryByLabelText('Start download')).toBeNull();
+  });
+
   it('shows actions for hosted model', async () => {
     render(<ModelsPage />);
     await screen.findAllByText('host');
-    expect(screen.getByLabelText('Edit model')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Edit model').length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText('Delete model').length).toBeGreaterThan(0);
   });
 
