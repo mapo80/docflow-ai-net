@@ -59,10 +59,11 @@ public static class DefaultJobSeeder
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = okDir,
-                        Input = Path.Combine(okDir, "input.pdf"),
-                        Output = Path.Combine(okDir, "output.json"),
-                        Error = string.Empty,
-                        Markdown = Path.Combine(okDir, "markdown.md")
+                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "input.pdf"), CreatedAt = now },
+                        Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "prompt.md"), CreatedAt = now },
+                        Output = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "output.json"), CreatedAt = now },
+                        Error = new JobDocument.DocumentInfo { Path = string.Empty },
+                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "markdown.md"), CreatedAt = now }
                     }
                 };
 
@@ -86,10 +87,11 @@ public static class DefaultJobSeeder
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = errDir,
-                        Input = Path.Combine(errDir, "input.png"),
-                        Output = string.Empty,
-                        Error = Path.Combine(errDir, "error.txt"),
-                        Markdown = Path.Combine(errDir, "markdown.md")
+                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "input.png"), CreatedAt = now },
+                        Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "prompt.md"), CreatedAt = now },
+                        Output = new JobDocument.DocumentInfo { Path = string.Empty },
+                        Error = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "error.txt"), CreatedAt = now },
+                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "markdown.md"), CreatedAt = now }
                     }
                 };
 

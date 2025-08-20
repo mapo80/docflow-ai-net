@@ -29,7 +29,7 @@ export default function JobDetail() {
     { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
   >([]);
   const [files, setFiles] = useState<
-    { key: string; label: string; path: string }[]
+    { key: string; label: string; path: string; createdAt?: string | null }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
   const { showError } = useApiError();
@@ -93,13 +93,13 @@ export default function JobDetail() {
         setFields(direct);
         return;
       }
-      if (!job?.paths?.output || job.status === 'Running') {
+      if (!job?.paths?.output?.path || job.status === 'Running') {
         setFields([]);
         return;
       }
       try {
-        const outUrl = job.paths.output.startsWith('http')
-          ? job.paths.output
+        const outUrl = job.paths.output.path.startsWith('http')
+          ? job.paths.output.path
           : `${OpenAPI.BASE}${job.paths.output}`;
         const res = await fetch(outUrl, {
           headers: OpenAPI.HEADERS as Record<string, string> | undefined,
@@ -147,14 +147,19 @@ export default function JobDetail() {
 
   useEffect(() => {
     if (!job) return;
-    const entries = Object.entries(job.paths || {}).filter(([k, v]) => {
-      if (!v) return false;
+    const entries = Object.entries(job.paths || {}).filter(([k, v]: any) => {
+      if (!v || !v.path) return false;
       if (k === 'error' && job.status === 'Succeeded') return false;
       if (k === 'output' && job.status === 'Running') return false;
       return true;
     });
     setFiles(
-      entries.map(([k, v]) => ({ key: k, label: k, path: v as string })),
+      entries.map(([k, v]: any) => ({
+        key: k,
+        label: k,
+        path: v.path as string,
+        createdAt: v.createdAt as string | null,
+      })),
     );
   }, [job]);
 
@@ -244,6 +249,7 @@ export default function JobDetail() {
 
   const fileColumns = [
     { title: 'Name', dataIndex: 'label' },
+    { title: 'Created', dataIndex: 'createdAt' },
     {
       title: 'Actions',
       render: (_: any, record: { label: string; path: string }) => (

@@ -152,17 +152,17 @@ export default function JobsList() {
             aria-label="Cancel job"
             title="Cancel job"
           />
-          {record.paths?.output && (
+          {record.paths?.output?.path && (
             <Button
-              onClick={() => window.open(record.paths!.output!, '_blank')}
+              onClick={() => window.open(record.paths!.output!.path!, '_blank')}
               icon={<FileTextOutlined />}
               aria-label="View output"
               title="View output"
             />
           )}
-          {record.paths?.error && (
+          {record.paths?.error?.path && (
             <Button
-              onClick={() => window.open(record.paths!.error!, '_blank')}
+              onClick={() => window.open(record.paths!.error!.path!, '_blank')}
               icon={<FileExclamationOutlined />}
               aria-label="View error"
               title="View error"
@@ -232,16 +232,16 @@ export default function JobsList() {
                         aria-label="Cancel job"
                       />
                     )}
-                    {record.paths?.output && (
+                    {record.paths?.output?.path && (
                       <Button
-                        onClick={() => window.open(record.paths!.output!, '_blank')}
+                        onClick={() => window.open(record.paths!.output!.path!, '_blank')}
                         icon={<FileTextOutlined />}
                         aria-label="View output"
                       />
                     )}
-                    {record.paths?.error && (
+                    {record.paths?.error?.path && (
                       <Button
-                        onClick={() => window.open(record.paths!.error!, '_blank')}
+                        onClick={() => window.open(record.paths!.error!.path!, '_blank')}
                         icon={<FileExclamationOutlined />}
                         aria-label="View error"
                       />

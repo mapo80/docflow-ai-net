@@ -255,10 +255,26 @@
                   "updatedAt": "2024-01-01T00:00:00Z",
                   "metrics": { },
                   "paths": {
-                    "input": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf",
-                    "output": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json",
-                    "error": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt",
-                    "markdown": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md"
+                    "input": {
+                      "path": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf",
+                      "createdAt": "2024-01-01T00:00:00Z"
+                    },
+                    "prompt": {
+                      "path": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/prompt.md",
+                      "createdAt": "2024-01-01T00:00:00Z"
+                    },
+                    "output": {
+                      "path": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json",
+                      "createdAt": "2024-01-01T00:00:00Z"
+                    },
+                    "error": {
+                      "path": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt",
+                      "createdAt": "2024-01-01T00:00:00Z"
+                    },
+                    "markdown": {
+                      "path": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md",
+                      "createdAt": "2024-01-01T00:00:00Z"
+                    }
                   },
                   "model": "model",
                   "templateToken": "template"
@@ -1180,6 +1196,21 @@
         },
         "additionalProperties": false
       },
+      "DocumentInfo": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DownloadModelRequest": {
         "required": [
           "hfKey",
@@ -1521,20 +1552,19 @@
             "nullable": true
           },
           "input": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/DocumentInfo"
+          },
+          "prompt": {
+            "$ref": "#/components/schemas/DocumentInfo"
           },
           "output": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/DocumentInfo"
           },
           "error": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/DocumentInfo"
           },
           "markdown": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/DocumentInfo"
           }
         },
         "additionalProperties": false

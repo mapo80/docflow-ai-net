@@ -1,4 +1,4 @@
-import { render, waitFor, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, waitFor, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { test, vi, expect, afterEach } from 'vitest';
 import JobDetail from './JobDetail';
@@ -108,7 +108,7 @@ test('shows reload and cancel only when running', async () => {
     templateToken: 't',
     createdAt: '',
     updatedAt: '',
-    paths: { input: '/input.pdf' },
+    paths: { input: { path: '/input.pdf', createdAt: 'x' } },
   } as any);
   const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
     ok: true,
@@ -173,7 +173,7 @@ test('lists markdown file while running', async () => {
     templateToken: 't',
     createdAt: '',
     updatedAt: '',
-    paths: { input: '/i.pdf', markdown: '/m.md' },
+    paths: { input: { path: '/i.pdf' }, markdown: { path: '/m.md' } },
   } as any);
   const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
     ok: true,
@@ -205,7 +205,7 @@ test('lists all paths without extra requests', async () => {
     templateToken: 't',
     createdAt: '',
     updatedAt: '',
-    paths: { input: '/input.pdf', error: '/error.txt' },
+    paths: { input: { path: '/input.pdf' }, error: { path: '/error.txt' }, prompt: { path: '/prompt.md', createdAt: '2024-01-01' } },
   } as any);
   const fetchSpy = vi.spyOn(global, 'fetch');
   render(
@@ -222,6 +222,8 @@ test('lists all paths without extra requests', async () => {
   fireEvent.click(filesTab);
   await waitFor(() => screen.getByText('input'));
   expect(screen.getByText('error')).toBeInTheDocument();
+  expect(screen.getByText('prompt')).toBeInTheDocument();
+  expect(screen.getByText('2024-01-01')).toBeInTheDocument();
   expect(fetchSpy).not.toHaveBeenCalled();
 });
 
@@ -235,7 +237,7 @@ test('previews markdown file', async () => {
     templateToken: 't',
     createdAt: '',
     updatedAt: '',
-    paths: { input: '/input.pdf', markdown: '/markdown.md' },
+    paths: { input: { path: '/input.pdf' }, markdown: { path: '/markdown.md' }, prompt: { path: '/prompt.md', createdAt: '2024-01-01' } },
   } as any);
   const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
     ok: true,
@@ -255,7 +257,8 @@ test('previews markdown file', async () => {
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
   await waitFor(() => screen.getByText('markdown'));
-  const previewBtn = screen.getByLabelText('Preview');
+  const row = screen.getByText('markdown').closest('tr')!;
+  const previewBtn = within(row).getByLabelText('Preview');
   fireEvent.click(previewBtn);
   await waitFor(() => screen.getByText('hi'));
   expect(fetchSpy).toHaveBeenCalledTimes(1);

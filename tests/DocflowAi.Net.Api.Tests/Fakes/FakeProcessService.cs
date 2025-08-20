@@ -1,4 +1,5 @@
 using DocflowAi.Net.Api.JobQueue.Processing;
+using System;
 using System.IO;
 
 namespace DocflowAi.Net.Api.Tests.Fakes;
@@ -31,23 +32,25 @@ public class FakeProcessService : IProcessService
         }
 
         await File.WriteAllTextAsync(input.MarkdownPath, "# md", ct);
+        await File.WriteAllTextAsync(input.PromptPath, "prompt", ct);
+        var ts = DateTimeOffset.UtcNow;
 
         try
         {
             switch (CurrentMode)
             {
                 case Mode.Success:
-                    return new ProcessResult(true, "{\"ok\":true}", "# md", null);
+                    return new ProcessResult(true, "{\"ok\":true}", "# md", null, ts, ts);
                 case Mode.Fail:
-                    return new ProcessResult(false, string.Empty, "# md", "boom");
+                    return new ProcessResult(false, string.Empty, "# md", "boom", ts, ts);
                 case Mode.Slow:
                     await Task.Delay(SlowDelay, ct);
-                    return new ProcessResult(true, "{}", "# md", null);
+                    return new ProcessResult(true, "{}", "# md", null, ts, ts);
                 case Mode.Cancellable:
                     await Task.Delay(Timeout.InfiniteTimeSpan, ct);
-                    return new ProcessResult(true, "{}", "# md", null);
+                    return new ProcessResult(true, "{}", "# md", null, ts, ts);
                 default:
-                    return new ProcessResult(true, "{}", "# md", null);
+                    return new ProcessResult(true, "{}", "# md", null, ts, ts);
             }
         }
         finally

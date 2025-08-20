@@ -52,9 +52,12 @@ public class ProcessService : IProcessService
         {
             var tpl = _templates.GetByToken(input.TemplateToken);
             if (tpl == null)
-                return new ProcessResult(false, string.Empty, null, "template not found");
+                return new ProcessResult(false, string.Empty, null, "template not found", null, null);
 
             var fields = JsonSerializer.Deserialize<List<FieldSpec>>(tpl.FieldsJson) ?? new();
+
+            await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.PromptPath), tpl.PromptMarkdown ?? string.Empty);
+            var promptCreated = DateTimeOffset.UtcNow;
 
             await using var fs = File.OpenRead(input.InputPath);
             var contentType = GetContentType(input.InputPath);
@@ -73,6 +76,7 @@ public class ProcessService : IProcessService
             mdSw.Stop();
 
             await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
+            var mdCreated = DateTimeOffset.UtcNow;
 
             var llmSw = Stopwatch.StartNew();
             var analysis = await _llama.ExtractAsync(md.Markdown, tpl.Name, tpl.PromptMarkdown ?? string.Empty, fields, ct);
@@ -101,12 +105,12 @@ public class ProcessService : IProcessService
                 }
             };
             var json = JsonSerializer.Serialize(output);
-            return new ProcessResult(true, json, md.Markdown, null);
+            return new ProcessResult(true, json, md.Markdown, null, mdCreated, promptCreated);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "ProcessFailed {JobId}", input.JobId);
-            return new ProcessResult(false, string.Empty, null, ex.Message);
+            return new ProcessResult(false, string.Empty, null, ex.Message, null, null);
         }
     }
 

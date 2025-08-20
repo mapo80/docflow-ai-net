@@ -39,7 +39,14 @@ public class JobDbContext : DbContext
             m.Property(x => x.StartedAt).HasConversion(nullableConverter);
             m.Property(x => x.EndedAt).HasConversion(nullableConverter);
         });
-        job.OwnsOne(j => j.Paths);
+        job.OwnsOne(j => j.Paths, pi =>
+        {
+            pi.OwnsOne(p => p.Input, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Prompt, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Output, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Error, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Markdown, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+        });
 
         var model = modelBuilder.Entity<ModelDocument>();
         model.HasKey(m => m.Id);

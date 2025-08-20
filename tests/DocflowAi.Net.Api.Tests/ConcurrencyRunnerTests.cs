@@ -23,10 +23,11 @@ public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
-                Input = input,
-                Output = Path.Combine(dir, "output.json"),
-                Error = Path.Combine(dir, "error.txt"),
-                Markdown = Path.Combine(dir, "markdown.md")
+                Input = new JobDocument.DocumentInfo { Path = input, CreatedAt = DateTimeOffset.UtcNow },
+                Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "prompt.md") },
+                Output = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "output.json") },
+                Error = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "error.txt") },
+                Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "markdown.md") }
             },
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,

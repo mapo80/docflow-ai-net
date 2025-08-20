@@ -6,6 +6,7 @@ using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Hangfire;
+using System;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -24,10 +25,11 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
-                Input = input,
-                Output = PathHelpers.OutputPath(dataRoot, id),
-                Error = PathHelpers.ErrorPath(dataRoot, id),
-                Markdown = PathHelpers.MarkdownPath(dataRoot, id)
+                Input = new JobDocument.DocumentInfo { Path = input, CreatedAt = DateTimeOffset.UtcNow },
+                Prompt = new JobDocument.DocumentInfo { Path = PathHelpers.PromptPath(dataRoot, id) },
+                Output = new JobDocument.DocumentInfo { Path = PathHelpers.OutputPath(dataRoot, id) },
+                Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(dataRoot, id) },
+                Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(dataRoot, id) }
             }
         };
 

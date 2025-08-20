@@ -97,7 +97,14 @@ public static class JobEndpoints
             var job = store.Get(id);
             if (job == null) return Results.NotFound();
             var name = Path.GetFileName(file);
-            var candidates = new[] { job.Paths.Input, job.Paths.Output, job.Paths.Error, job.Paths.Markdown }
+            var candidates = new[]
+            {
+                job.Paths.Input?.Path,
+                job.Paths.Output?.Path,
+                job.Paths.Error?.Path,
+                job.Paths.Markdown?.Path,
+                job.Paths.Prompt?.Path
+            }
                 .Where(p => !string.IsNullOrEmpty(p));
             var match = candidates.FirstOrDefault(p => Path.GetFileName(p!)
                 .Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -193,10 +200,11 @@ public static class JobEndpoints
                 Paths = new JobDocument.PathInfo
                 {
                     Dir = Path.GetDirectoryName(inputPath)!,
-                    Input = inputPath,
-                    Output = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json"),
-                    Error = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt"),
-                    Markdown = Path.Combine(Path.GetDirectoryName(inputPath)!, "markdown.md")
+                    Input = new JobDocument.DocumentInfo { Path = inputPath, CreatedAt = DateTimeOffset.UtcNow },
+                    Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "prompt.md") },
+                    Output = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json") },
+                    Error = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt") },
+                    Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "markdown.md") }
                 }
             };
             store.Create(doc);
@@ -266,10 +274,11 @@ public static class JobEndpoints
             var apiPaths = new JobDocument.PathInfo
             {
                 Dir = string.Empty,
-                Input = ToPublicPath(job.Id, job.Paths.Input),
-                Output = ToPublicPath(job.Id, job.Paths.Output),
-                Error = ToPublicPath(job.Id, job.Paths.Error),
-                Markdown = ToPublicPath(job.Id, job.Paths.Markdown)
+                Input = ToPublicDoc(job.Id, job.Paths.Input),
+                Prompt = ToPublicDoc(job.Id, job.Paths.Prompt),
+                Output = ToPublicDoc(job.Id, job.Paths.Output),
+                Error = ToPublicDoc(job.Id, job.Paths.Error),
+                Markdown = ToPublicDoc(job.Id, job.Paths.Markdown)
             };
             var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
@@ -292,10 +301,31 @@ public static class JobEndpoints
                 ["metrics"] = new OpenApiObject(),
                 ["paths"] = new OpenApiObject
                 {
-                    ["input"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf"),
-                    ["output"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json"),
-                    ["error"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt"),
-                    ["markdown"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md")
+                    ["input"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    },
+                    ["prompt"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/prompt.md"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    },
+                    ["output"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    },
+                    ["error"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    },
+                    ["markdown"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    }
                 },
                 ["model"] = new OpenApiString("model"),
                 ["templateToken"] = new OpenApiString("template")
@@ -362,11 +392,12 @@ public static class JobEndpoints
         return builder;
     }
 
-    private static string? ToPublicPath(Guid id, string? path)
+    private static JobDocument.DocumentInfo? ToPublicDoc(Guid id, JobDocument.DocumentInfo? doc)
     {
-        if (string.IsNullOrEmpty(path)) return null;
-        var full = Path.GetFullPath(path);
-        return File.Exists(full) ? $"/api/v1/jobs/{id}/files/{Path.GetFileName(full)}" : null;
+        if (doc == null || string.IsNullOrEmpty(doc.Path)) return null;
+        var full = Path.GetFullPath(doc.Path);
+        if (!File.Exists(full)) return null;
+        return new JobDocument.DocumentInfo { Path = $"/api/v1/jobs/{id}/files/{Path.GetFileName(full)}", CreatedAt = doc.CreatedAt };
     }
 
     private static string GetContentType(string fileName) =>
