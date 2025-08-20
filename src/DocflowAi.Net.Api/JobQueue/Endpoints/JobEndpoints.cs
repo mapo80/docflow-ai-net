@@ -363,8 +363,12 @@ public static class JobEndpoints
         return builder;
     }
 
-    private static string? ToPublicPath(Guid id, string? path) =>
-        string.IsNullOrEmpty(path) ? null : $"/api/v1/jobs/{id}/files/{Path.GetFileName(path)}";
+    private static string? ToPublicPath(Guid id, string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return null;
+        var full = Path.GetFullPath(path);
+        return File.Exists(full) ? $"/api/v1/jobs/{id}/files/{Path.GetFileName(full)}" : null;
+    }
 
     private static string GetContentType(string fileName) =>
         fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? "application/json" :

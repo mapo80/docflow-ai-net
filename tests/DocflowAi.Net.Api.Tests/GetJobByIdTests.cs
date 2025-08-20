@@ -58,7 +58,15 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         json.GetProperty("status").GetString().Should().Be("Running");
         json.GetProperty("derivedStatus").GetString().Should().Be("Processing");
         json.GetProperty("progress").GetInt32().Should().Be(42);
-        json.GetProperty("paths").GetProperty("output").GetString().Should().Be($"/api/v1/jobs/{id}/files/o.json");
+        var paths = json.GetProperty("paths");
+        paths.GetProperty("input").ValueKind.Should().Be(JsonValueKind.Null);
+        paths.GetProperty("error").ValueKind.Should().Be(JsonValueKind.Null);
+        paths.GetProperty("markdown").ValueKind.Should().Be(JsonValueKind.Null);
+        paths
+            .GetProperty("output")
+            .GetString()
+            .Should()
+            .Be($"/api/v1/jobs/{id}/files/o.json");
     }
 
     [Fact]

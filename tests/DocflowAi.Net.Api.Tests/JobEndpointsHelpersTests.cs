@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.IO;
 using DocflowAi.Net.Api.JobQueue.Endpoints;
 using FluentAssertions;
 using Xunit;
@@ -17,11 +18,27 @@ public class JobEndpointsHelpersTests
     [Theory]
     [InlineData(null, null)]
     [InlineData("", null)]
-    [InlineData("/tmp/a.txt", "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/a.txt")]
     public void ToPublicPath_Transforms_Correctly(string? input, string? expected)
     {
         var id = Guid.Empty;
         Invoke<string?>("ToPublicPath", id, input).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ToPublicPath_Transforms_Existing_File()
+    {
+        var id = Guid.Empty;
+        var tmp = Path.GetTempFileName();
+        try
+        {
+            Invoke<string?>("ToPublicPath", id, tmp)
+                .Should()
+                .Be($"/api/v1/jobs/{id}/files/{Path.GetFileName(tmp)}");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
     }
 
     [Theory]
