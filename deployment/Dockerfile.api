@@ -14,6 +14,8 @@ RUN dotnet publish ./src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj -c Release -
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr \
+    && lepto=$(find /usr/lib -name 'libleptonica.so*' | head -n 1) \
+    && [ -z "$lepto" ] || [ -f /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so ] || ln -s "$lepto" /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
     && rm -rf /var/lib/apt/lists/*
 
 ENV OCR_DATA_PATH=/usr/share/tesseract-ocr/5/tessdata

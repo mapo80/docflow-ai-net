@@ -89,17 +89,29 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
 
     private static void EnsureOcrLibraries()
     {
-        var dir = Path.Combine(AppContext.BaseDirectory, "x64");
-        TesseractEnviornment.CustomSearchPath = dir;
         if (_ocrLibsLoaded) return;
-        foreach (var lib in new[] { "libleptonica-1.82.0.so", "libtesseract50.so" })
+
+        var dir = Path.Combine(AppContext.BaseDirectory, "x64");
+        if (Directory.Exists(dir))
         {
-            var path = Path.Combine(dir, lib);
-            if (File.Exists(path))
+            TesseractEnviornment.CustomSearchPath = dir;
+            foreach (var lib in new[] { "libleptonica-1.82.0.so", "libtesseract50.so" })
             {
-                try { NativeLibrary.Load(path); } catch { }
+                var path = Path.Combine(dir, lib);
+                if (File.Exists(path))
+                {
+                    try { NativeLibrary.Load(path); } catch { }
+                }
             }
         }
+        else
+        {
+            foreach (var lib in new[] { "libleptonica-1.82.0.so", "libtesseract.so.5", "libtesseract50.so" })
+            {
+                try { NativeLibrary.Load(lib); } catch { }
+            }
+        }
+
         _ocrLibsLoaded = true;
     }
 
