@@ -28,6 +28,9 @@ export default function JobDetail() {
   const [fields, setFields] = useState<
     { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
   >([]);
+  const [files, setFiles] = useState<
+    { key: string; label: string; path: string }[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const { showError } = useApiError();
 
@@ -90,7 +93,7 @@ export default function JobDetail() {
         setFields(direct);
         return;
       }
-      if (!job?.paths?.output) {
+      if (!job?.paths?.output || job.status === 'Running') {
         setFields([]);
         return;
       }
@@ -140,6 +143,42 @@ export default function JobDetail() {
       }
     };
     fetchFields();
+  }, [job]);
+
+  useEffect(() => {
+    const loadFiles = async () => {
+      if (!job) return;
+      const entries = Object.entries(job.paths || {}).filter(([k, v]) => {
+        if (!v) return false;
+        if (k === 'error' && job.status === 'Succeeded') return false;
+        if (k === 'output' && job.status === 'Running') return false;
+        return true;
+      });
+      const checks = await Promise.all(
+        entries.map(async ([k, v]) => {
+          let url = v as string;
+          if (!url.startsWith('http')) url = `${OpenAPI.BASE}${v}`;
+          try {
+            const resp = await fetch(url, {
+              method: 'HEAD',
+              headers: OpenAPI.HEADERS as Record<string, string> | undefined,
+            });
+            if (resp.ok) {
+              return { key: k, label: k, path: v as string };
+            }
+          } catch {
+            /* ignore */
+          }
+          return null;
+        }),
+      );
+      setFiles(
+        checks.filter(
+          (f): f is { key: string; label: string; path: string } => f != null,
+        ),
+      );
+    };
+    loadFiles();
   }, [job]);
 
 
@@ -218,10 +257,6 @@ export default function JobDetail() {
     return error ? <Alert type="error" message={error} /> : <Loader />;
   }
 
-  const artifacts = Object.entries(job.paths || {})
-    .filter(([k, v]) => v && (k !== 'error' || job.status !== 'Succeeded'))
-    .map(([k, v]) => ({ key: k, label: k, path: v as string }));
-
   const fieldColumns = [
     { title: 'Key', dataIndex: 'key' },
     { title: 'Value', dataIndex: 'value' },
@@ -271,24 +306,31 @@ export default function JobDetail() {
         <Descriptions.Item label="Created">{job.createdAt}</Descriptions.Item>
         <Descriptions.Item label="Updated">{job.updatedAt}</Descriptions.Item>
         {job.metrics?.durationMs != null && (
-          <Descriptions.Item label="DurationMs">{job.metrics.durationMs}</Descriptions.Item>
+          <Descriptions.Item label="Duration">
+            {(job.metrics.durationMs / 1000).toFixed(2)} sec
+          </Descriptions.Item>
         )}
       </Descriptions>
-      <Space style={{ marginTop: 16 }}>
-        <Button
-          onClick={load}
-          icon={<ReloadOutlined />}
-          aria-label="Refresh"
-          title="Refresh"
-        />
-        <Button
-          disabled={!['Queued', 'Running'].includes(job.status!)}
-          onClick={handleCancel}
-          icon={<StopOutlined />}
-          aria-label="Cancel job"
-          title="Cancel job"
-        />
-      </Space>
+      {job.status === 'Running' && (
+        <Space style={{ marginTop: 16 }}>
+          <Button
+            onClick={load}
+            icon={<ReloadOutlined />}
+            aria-label="Reload"
+            title="Reload"
+          >
+            Reload
+          </Button>
+          <Button
+            onClick={handleCancel}
+            icon={<StopOutlined />}
+            aria-label="Cancel job"
+            title="Cancel job"
+          >
+            Cancel
+          </Button>
+        </Space>
+      )}
       <Tabs
         style={{ marginTop: 16 }}
         items={[
@@ -311,7 +353,7 @@ export default function JobDetail() {
             label: 'Files',
             children: (
               <Table
-                dataSource={artifacts}
+                dataSource={files}
                 columns={fileColumns}
                 size="small"
                 pagination={false}
