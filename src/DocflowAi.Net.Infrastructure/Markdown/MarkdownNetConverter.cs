@@ -5,6 +5,7 @@ using MkdnOptions = MarkItDownNet.MarkIt\u0044ownOptions;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using Tesseract;
 
 namespace DocflowAi.Net.Infrastructure.Markdown;
 
@@ -49,6 +50,7 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
                 MinimumNativeWordThreshold = opts.MinimumNativeWordThreshold
             };
             var converter = new MkdnConverter(options, _mdLogger);
+            TesseractEnviornment.CustomSearchPath = Path.Combine(AppContext.BaseDirectory, "x64");
             var res = await converter.ConvertAsync(tmp, mime, ct);
 
             var pages = res.Pages.Select(p => new PageInfo(p.Number, p.Width, p.Height)).ToList();
