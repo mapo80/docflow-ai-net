@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);$(MSBuildThisFileDirectory)markitdownnet</RestoreAdditionalProjectSources>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Update="Newtonsoft.Json" Version="13.0.3" />

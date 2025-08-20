@@ -38,7 +38,13 @@ public class TemplateRepository : ITemplateRepository
         {
             "name" => desc ? query.OrderByDescending(t => t.Name) : query.OrderBy(t => t.Name),
             "token" => desc ? query.OrderByDescending(t => t.Token) : query.OrderBy(t => t.Token),
-            _ => desc ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt),
+            _ => _db.Database.IsSqlite()
+                ? (desc
+                    ? query.OrderByDescending(t => EF.Property<long>(t, nameof(TemplateDocument.CreatedAt)))
+                    : query.OrderBy(t => EF.Property<long>(t, nameof(TemplateDocument.CreatedAt))))
+                : (desc
+                    ? query.OrderByDescending(t => t.CreatedAt)
+                    : query.OrderBy(t => t.CreatedAt)),
         };
         var total = query.Count();
         var items = query.Skip((page - 1) * pageSize).Take(pageSize).AsNoTracking().ToList();

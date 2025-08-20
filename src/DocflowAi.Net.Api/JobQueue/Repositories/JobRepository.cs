@@ -25,7 +25,9 @@ public class JobRepository : IJobRepository
         if (page < 1) page = 1;
         if (pageSize > 100) pageSize = 100;
         if (pageSize <= 0) pageSize = 20;
-        var query = _db.Jobs.OrderByDescending(x => x.CreatedAt);
+        var query = _db.Database.IsSqlite()
+            ? _db.Jobs.OrderByDescending(x => EF.Property<long>(x, nameof(JobDocument.CreatedAt)))
+            : _db.Jobs.OrderByDescending(x => x.CreatedAt);
         var total = query.Count();
         var items = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         return (items, total);
