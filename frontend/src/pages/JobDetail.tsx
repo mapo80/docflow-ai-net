@@ -156,6 +156,9 @@ export default function JobDetail() {
       });
       const checks = await Promise.all(
         entries.map(async ([k, v]) => {
+          if (k === 'input') {
+            return { key: k, label: k, path: v as string };
+          }
           let url = v as string;
           if (!url.startsWith('http')) url = `${OpenAPI.BASE}${v}`;
           try {
