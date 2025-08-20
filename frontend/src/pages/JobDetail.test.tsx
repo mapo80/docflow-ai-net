@@ -163,4 +163,34 @@ test('shows reload and cancel only when running', async () => {
   expect(fetchSpy2).not.toHaveBeenCalled();
 });
 
+test('lists all paths without extra requests', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Failed',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    createdAt: '',
+    updatedAt: '',
+    paths: { input: '/input.pdf', error: '/error.txt' },
+  } as any);
+  const fetchSpy = vi.spyOn(global, 'fetch');
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
+  fireEvent.click(filesTab);
+  await waitFor(() => screen.getByText('input'));
+  expect(screen.getByText('error')).toBeInTheDocument();
+  expect(fetchSpy).not.toHaveBeenCalled();
+});
+
 
