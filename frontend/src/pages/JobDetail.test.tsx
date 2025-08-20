@@ -1,6 +1,6 @@
 import { render, waitFor, screen, cleanup, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { test, vi, expect } from 'vitest';
+import { test, vi, expect, afterEach } from 'vitest';
 import JobDetail from './JobDetail';
 import {
   JobsService,
@@ -21,6 +21,11 @@ vi.mock('antd', async () => {
 const getByIdSpy = vi.spyOn(JobsService, 'jobsGetById');
 vi.spyOn(ModelsService, 'modelsList').mockResolvedValue([] as any);
 vi.spyOn(TemplatesService, 'templatesList').mockResolvedValue({ items: [] } as any);
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
 test('shows error when job is missing', async () => {
   getByIdSpy.mockReset();
@@ -95,7 +100,7 @@ test('shows duration in seconds with suffix', async () => {
 
 test('shows reload and cancel only when running', async () => {
   getByIdSpy.mockReset();
-  getByIdSpy.mockResolvedValueOnce({
+  getByIdSpy.mockResolvedValue({
     id: '1',
     status: 'Running',
     attempts: 1,
@@ -105,9 +110,10 @@ test('shows reload and cancel only when running', async () => {
     updatedAt: '',
     paths: { input: '/input.pdf' },
   } as any);
-  const fetchSpy = vi
-    .spyOn(global, 'fetch')
-    .mockResolvedValue({ ok: true, headers: new Headers() } as any);
+  const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+    ok: true,
+    headers: new Headers(),
+  } as any);
   render(
     <ApiErrorProvider>
       <MemoryRouter initialEntries={['/jobs/1']}>
@@ -119,17 +125,16 @@ test('shows reload and cancel only when running', async () => {
   );
   await waitFor(() => screen.getByText('Reload'));
   expect(screen.getByText('Cancel')).toBeInTheDocument();
-  expect(fetchSpy).toHaveBeenCalledTimes(1);
-  expect(fetchSpy).toHaveBeenCalledWith(
-    expect.stringContaining('/input.pdf'),
-    expect.objectContaining({ method: 'HEAD' }),
-  );
+  const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
+  fireEvent.click(filesTab);
+  await waitFor(() => screen.getByText('input'));
+  expect(fetchSpy).not.toHaveBeenCalled();
   fetchSpy.mockRestore();
 
   cleanup();
 
   getByIdSpy.mockReset();
-  getByIdSpy.mockResolvedValueOnce({
+  getByIdSpy.mockResolvedValue({
     id: '1',
     status: 'Succeeded',
     attempts: 1,
@@ -138,7 +143,9 @@ test('shows reload and cancel only when running', async () => {
     createdAt: '',
     updatedAt: '',
   } as any);
-  vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true, headers: new Headers() } as any);
+  const fetchSpy2 = vi
+    .spyOn(global, 'fetch')
+    .mockResolvedValue({ ok: true, headers: new Headers() } as any);
   render(
     <ApiErrorProvider>
       <MemoryRouter initialEntries={['/jobs/1']}>
@@ -148,9 +155,12 @@ test('shows reload and cancel only when running', async () => {
       </MemoryRouter>
     </ApiErrorProvider>,
   );
-  await waitFor(() => expect(screen.getAllByText('Attempts').length).toBeGreaterThan(0));
+  await waitFor(() =>
+    expect(screen.getAllByText('Attempts').length).toBeGreaterThan(0),
+  );
   expect(screen.queryByText('Reload')).toBeNull();
   expect(screen.queryByText('Cancel')).toBeNull();
+  expect(fetchSpy2).not.toHaveBeenCalled();
 });
 
 
