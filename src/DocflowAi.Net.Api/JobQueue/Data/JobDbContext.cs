@@ -26,21 +26,27 @@ public class JobDbContext : DbContext
 
         job.HasKey(j => j.Id);
         job.HasIndex(j => j.CreatedAt);
-        job.HasIndex(j => new { j.Status, j.AvailableAt });
+        job.HasIndex(j => j.Status);
         job.HasIndex(j => j.IdempotencyKey);
         job.HasIndex(j => j.Hash);
 
         job.Property(j => j.CreatedAt).HasConversion(converter);
         job.Property(j => j.UpdatedAt).HasConversion(converter);
-        job.Property(j => j.AvailableAt).HasConversion(nullableConverter);
-        job.Property(j => j.LeaseUntil).HasConversion(nullableConverter);
+        
 
         job.OwnsOne(j => j.Metrics, m =>
         {
             m.Property(x => x.StartedAt).HasConversion(nullableConverter);
             m.Property(x => x.EndedAt).HasConversion(nullableConverter);
         });
-        job.OwnsOne(j => j.Paths);
+        job.OwnsOne(j => j.Paths, pi =>
+        {
+            pi.OwnsOne(p => p.Input, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Prompt, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Output, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Error, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.Markdown, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+        });
 
         var model = modelBuilder.Entity<ModelDocument>();
         model.HasKey(m => m.Id);

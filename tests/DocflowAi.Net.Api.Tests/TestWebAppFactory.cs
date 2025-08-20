@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Sinks.TestCorrelator;
+using Hangfire;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -76,6 +78,11 @@ public class TestWebAppFactory : WebApplicationFactory<Program>
                 .Enrich.FromLogContext()
                 .WriteTo.TestCorrelator()
                 .CreateLogger();
+        });
+
+        builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<BackgroundJobServerHostedService>();
         });
     }
 }

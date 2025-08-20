@@ -7,8 +7,6 @@ public class JobDocument
     public int Progress { get; set; }
     public int Attempts { get; set; }
     public int Priority { get; set; }
-    public DateTimeOffset? LeaseUntil { get; set; }
-    public DateTimeOffset? AvailableAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public MetricsInfo Metrics { get; set; } = new();
@@ -29,9 +27,16 @@ public class JobDocument
     public class PathInfo
     {
         public string Dir { get; set; } = string.Empty;
-        public string? Input { get; set; }
-        public string? Output { get; set; }
-        public string? Error { get; set; }
-        public string? Markdown { get; set; }
+        public DocumentInfo? Input { get; set; }
+        public DocumentInfo? Prompt { get; set; }
+        public DocumentInfo? Output { get; set; }
+        public DocumentInfo? Error { get; set; }
+        public DocumentInfo? Markdown { get; set; }
+    }
+
+    public class DocumentInfo
+    {
+        public string Path { get; set; } = string.Empty;
+        public DateTimeOffset? CreatedAt { get; set; }
     }
 }

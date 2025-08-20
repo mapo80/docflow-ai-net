@@ -10,6 +10,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 export type { Box } from './models/Box';
 export type { CreateModelRequest } from './models/CreateModelRequest';
 export type { CreateTemplateRequest } from './models/CreateTemplateRequest';
+export type { DocumentInfo } from './models/DocumentInfo';
 export type { DownloadModelRequest } from './models/DownloadModelRequest';
 export type { ErrorResponse } from './models/ErrorResponse';
 export type { JobDetailResponse } from './models/JobDetailResponse';

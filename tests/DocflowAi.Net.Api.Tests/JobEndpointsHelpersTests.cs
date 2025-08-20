@@ -18,10 +18,27 @@ public class JobEndpointsHelpersTests
     [Theory]
     [InlineData(null, null)]
     [InlineData("", null)]
-    public void ToPublicPath_Transforms_Correctly(string? input, string? expected)
+    public void ToPublicDoc_Transforms_Correctly(string? input, string? expected)
     {
         var id = Guid.Empty;
-        Invoke<string?>("ToPublicPath", id, input).Should().Be(expected);
+        var doc = input == null ? null : new DocflowAi.Net.Api.JobQueue.Models.JobDocument.DocumentInfo { Path = input };
+        Invoke<DocflowAi.Net.Api.JobQueue.Models.JobDocument.DocumentInfo?>("ToPublicDoc", id, doc)?.Path.Should().Be(expected);
+    }
+
+    [Fact]
+    public void ToPublicDoc_Transforms_Existing_File()
+    {
+        var id = Guid.Empty;
+        var tmp = Path.GetTempFileName();
+        try
+        {
+            Invoke<DocflowAi.Net.Api.JobQueue.Models.JobDocument.DocumentInfo?>("ToPublicDoc", id, new DocflowAi.Net.Api.JobQueue.Models.JobDocument.DocumentInfo { Path = tmp })
+                !.Path.Should().Be($"/api/v1/jobs/{id}/files/{Path.GetFileName(tmp)}");
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
     }
 
     [Fact]

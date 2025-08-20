@@ -5,6 +5,8 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
+using Hangfire;
+using System;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -20,14 +22,14 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
             Status = "Queued",
             Progress = 0,
             Attempts = 0,
-            AvailableAt = DateTimeOffset.UtcNow,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
-                Input = input,
-                Output = PathHelpers.OutputPath(dataRoot, id),
-                Error = PathHelpers.ErrorPath(dataRoot, id),
-                Markdown = PathHelpers.MarkdownPath(dataRoot, id)
+                Input = new JobDocument.DocumentInfo { Path = input, CreatedAt = DateTimeOffset.UtcNow },
+                Prompt = new JobDocument.DocumentInfo { Path = PathHelpers.PromptPath(dataRoot, id) },
+                Output = new JobDocument.DocumentInfo { Path = PathHelpers.OutputPath(dataRoot, id) },
+                Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(dataRoot, id) },
+                Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(dataRoot, id) }
             }
         };
 
@@ -50,7 +52,8 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
         store.Create(CreateDoc(id, dir, input, factory.DataRootPath));
         uow.SaveChanges();
 
-        await runner.Run(id, CancellationToken.None);
+        await Assert.ThrowsAsync<Exception>(async () =>
+            await runner.Run(id, JobCancellationToken.Null, CancellationToken.None));
 
         using var scope2 = factory.Services.CreateScope();
         var db = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
@@ -80,7 +83,8 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
         store.Create(CreateDoc(id, dir, input, factory.DataRootPath));
         uow2.SaveChanges();
 
-        await runner.Run(id, CancellationToken.None);
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await runner.Run(id, JobCancellationToken.Null, CancellationToken.None));
 
         using var scope2 = factory.Services.CreateScope();
         var db2 = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
@@ -110,7 +114,7 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
         uow3.SaveChanges();
 
         using var cts = new CancellationTokenSource();
-        var runTask = runner.Run(id, cts.Token);
+        var runTask = runner.Run(id, JobCancellationToken.Null, cts.Token);
         cts.CancelAfter(100);
         await runTask;
 

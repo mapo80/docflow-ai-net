@@ -23,7 +23,7 @@ public class ProcessServiceTests
     public async Task Returns_error_when_template_missing()
     {
         var svc = new ProcessService(new StubRepo(null), new StubConverter(), new StubLlama(), new StubResolver(), new StubFs(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
-        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), "nofile", Path.GetTempFileName(), "missing", "m"), CancellationToken.None);
+        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), "nofile", Path.GetTempFileName(), Path.GetTempFileName(), "missing", "m"), CancellationToken.None);
         res.Success.Should().BeFalse();
         res.ErrorMessage.Should().Be("template not found");
     }
@@ -33,15 +33,18 @@ public class ProcessServiceTests
     {
         var tpl = new TemplateDocument { Token = "tok", Name = "tpl", FieldsJson = "[{\"Key\":\"f\",\"Type\":\"string\"}]", PromptMarkdown = "p" };
         var repo = new StubRepo(tpl);
-        var svc = new ProcessService(repo, new StubConverter(), new StubLlama(), new StubResolver(), new StubFs(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var fs = new StubFs();
+        var svc = new ProcessService(repo, new StubConverter(), new StubLlama(), new StubResolver(), fs, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var tmp = Path.GetTempFileName();
         await File.WriteAllTextAsync(tmp, "data");
-        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), tmp, Path.Combine(Path.GetTempPath(), "md.md"), "tok", "m"), CancellationToken.None);
+        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), tmp, Path.Combine(Path.GetTempPath(), "md.md"), Path.Combine(Path.GetTempPath(), "pr.md"), "tok", "m"), CancellationToken.None);
         res.Success.Should().BeTrue();
         var json = JsonDocument.Parse(res.OutputJson);
         json.RootElement.GetProperty("fields")[0].GetProperty("key").GetString().Should().Be("f");
         json.RootElement.GetProperty("metrics").GetProperty("total_ms").GetDouble().Should().BeGreaterThan(0);
         res.Markdown.Should().Be("md");
+        fs.Files["pr.md"].Should().Contain("[SYSTEM]");
+        fs.Files["pr.md"].Should().Contain("[USER]");
     }
 
     private sealed class StubRepo : ITemplateRepository
@@ -71,8 +74,21 @@ public class ProcessServiceTests
 
     private sealed class StubLlama : ILlamaExtractor
     {
-        public Task<DocumentAnalysisResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
-            => Task.FromResult(new DocumentAnalysisResult(templateName, new List<ExtractedField> { new("f","v",1,null,null) }, "it", null));
+        public async Task<LlamaExtractionResult> ExtractAsync(
+            string markdown,
+            string templateName,
+            string prompt,
+            IReadOnlyList<FieldSpec> fieldsSpec,
+            CancellationToken ct,
+            Func<string, string, Task>? onBeforeSend = null)
+        {
+            if (onBeforeSend != null)
+                await onBeforeSend("sys", "user");
+            return new LlamaExtractionResult(
+                new DocumentAnalysisResult(templateName, new List<ExtractedField> { new("f", "v", 1, null, null) }, "it", null),
+                "sys",
+                "user");
+        }
         public void Dispose() {}
     }
 
@@ -84,9 +100,14 @@ public class ProcessServiceTests
 
     private sealed class StubFs : IFileSystemService
     {
+        public Dictionary<string, string> Files { get; } = new();
         public void EnsureDirectory(string path) { }
         public string CreateJobDirectory(Guid jobId) => string.Empty;
         public Task<string> SaveInputAtomic(Guid jobId, IFormFile file, CancellationToken ct = default) => Task.FromResult(string.Empty);
-        public Task<string> SaveTextAtomic(Guid jobId, string filename, string content, CancellationToken ct = default) => Task.FromResult(string.Empty);
+        public Task<string> SaveTextAtomic(Guid jobId, string filename, string content, CancellationToken ct = default)
+        {
+            Files[filename] = content;
+            return Task.FromResult(string.Empty);
+        }
     }
 }

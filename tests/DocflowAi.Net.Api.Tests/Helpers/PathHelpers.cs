@@ -13,4 +13,7 @@ public static class PathHelpers
 
     public static string MarkdownPath(string dataRoot, Guid jobId)
         => Path.Combine(JobDir(dataRoot, jobId), "markdown.md");
+
+    public static string PromptPath(string dataRoot, Guid jobId)
+        => Path.Combine(JobDir(dataRoot, jobId), "prompt.md");
 }

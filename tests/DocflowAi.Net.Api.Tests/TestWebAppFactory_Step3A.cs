@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Sinks.TestCorrelator;
+using Hangfire;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -56,6 +58,7 @@ public class TestWebAppFactory_Step3A : WebApplicationFactory<Program>
         builder.ConfigureServices(s =>
         {
             s.AddSingleton<IProcessService>(Fake);
+            s.RemoveAll<BackgroundJobServerHostedService>();
         });
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Configuration;
@@ -12,13 +13,15 @@ using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Services;
 using DocflowAi.Net.Api.JobQueue.Processing;
 using DocflowAi.Net.Api.JobQueue.Endpoints;
-using DocflowAi.Net.Api.JobQueue.Hosted;
+using DocflowAi.Net.Api.JobQueue.Jobs;
+using DocflowAi.Net.Api.JobQueue.Filters;
 using DocflowAi.Net.Api.Contracts;
 using DocflowAi.Net.Api.Model.Abstractions;
 using DocflowAi.Net.Api.Model.Repositories;
 using DocflowAi.Net.Api.Model.Services;
 using Hangfire;
 using Hangfire.MemoryStorage;
+using Hangfire.Common;
 using Hellang.Middleware.ProblemDetails;
 using FluentValidation;
 using DocflowAi.Net.Api.Model.Endpoints;
@@ -133,17 +136,22 @@ builder.Services.AddScoped<IModelDispatchService, ModelDispatchService>();
 builder.Services.AddScoped<IProcessService, ProcessService>();
 builder.Services.AddScoped<IJobRunner, JobRunner>();
 builder.Services.AddSingleton<IConcurrencyGate, ConcurrencyGate>();
-builder.Services.AddHostedService<ReschedulerService>();
-builder.Services.AddSingleton<CleanupService>();
-builder.Services.AddHostedService(sp => sp.GetRequiredService<CleanupService>());
+builder.Services.AddTransient<CleanupJob>();
 
-builder.Services.AddHangfire(config =>
+builder.Services.AddHangfire((sp, config) =>
 {
     config.UseSerilogLogProvider();
     config.UseConsole(new ConsoleOptions());
     config.UseSimpleAssemblyNameTypeSerializer()
           .UseRecommendedSerializerSettings()
           .UseMemoryStorage();
+    var maxAttempts = builder.Configuration.GetValue<int>("JobQueue:Queue:MaxAttempts");
+    config.UseFilter(new AutomaticRetryAttribute
+    {
+        Attempts = Math.Max(0, maxAttempts - 1),
+        DelaysInSeconds = new[] { 15, 30, 60, 120, 240 }
+    });
+    config.UseFilter(new JobStateFilter());
 });
 builder.Services.AddHangfireConsoleExtensions();
 var workerCount = builder.Configuration.GetSection("JobQueue:Concurrency:HangfireWorkerCount").Get<int>();
@@ -155,6 +163,13 @@ if (workerCount > 0)
         opts.WorkerCount = cfg.Concurrency.HangfireWorkerCount;
     });
 }
+
+builder.Services.AddHangfireServer((_, opts) =>
+{
+    opts.ServerName = "maintenance";
+    opts.Queues = new[] { "maintenance" };
+    opts.WorkerCount = 1;
+});
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -229,6 +244,16 @@ using (var scope = app.Services.CreateScope())
         var dbDir = Path.GetDirectoryName(csb.DataSource);
         if (!string.IsNullOrEmpty(dbDir))
             Directory.CreateDirectory(dbDir);
+    }
+
+    if (cfg.Cleanup.Enabled)
+    {
+        var manager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+        manager.AddOrUpdate(
+            "cleanup",
+            Job.FromExpression<CleanupJob>(j => j.RunAsync()),
+            Cron.Daily(cfg.Cleanup.DailyHour, cfg.Cleanup.DailyMinute),
+            new RecurringJobOptions { QueueName = "maintenance" });
     }
 }
 DefaultModelSeeder.Build(app);

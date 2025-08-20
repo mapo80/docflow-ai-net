@@ -52,7 +52,7 @@ public class ProcessService : IProcessService
         {
             var tpl = _templates.GetByToken(input.TemplateToken);
             if (tpl == null)
-                return new ProcessResult(false, string.Empty, null, "template not found");
+                return new ProcessResult(false, string.Empty, null, "template not found", null, null);
 
             var fields = JsonSerializer.Deserialize<List<FieldSpec>>(tpl.FieldsJson) ?? new();
 
@@ -73,17 +73,32 @@ public class ProcessService : IProcessService
             mdSw.Stop();
 
             await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
+            var mdCreated = DateTimeOffset.UtcNow;
+
+            DateTimeOffset? promptCreated = null;
+            async Task SavePrompt(string system, string user)
+            {
+                var full = $"[SYSTEM]\n{system}\n\n[USER]\n{user}";
+                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.PromptPath), full);
+                promptCreated = DateTimeOffset.UtcNow;
+            }
 
             var llmSw = Stopwatch.StartNew();
-            var analysis = await _llama.ExtractAsync(md.Markdown, tpl.Name, tpl.PromptMarkdown ?? string.Empty, fields, ct);
+            var llm = await _llama.ExtractAsync(
+                md.Markdown,
+                tpl.Name,
+                tpl.PromptMarkdown ?? string.Empty,
+                fields,
+                ct,
+                SavePrompt);
             llmSw.Stop();
 
             var pages = md.Pages.Select(p => new DocumentIndexBuilder.SourcePage(p.Number, (float)p.Width, (float)p.Height)).ToList();
             var words = md.Boxes.Select(b => new DocumentIndexBuilder.SourceWord(b.Page, b.Text, (float)b.XNorm, (float)b.YNorm, (float)b.WidthNorm, (float)b.HeightNorm, false)).ToList();
             var index = DocumentIndexBuilder.Build(pages, words);
-            var resolved = await _resolver.ResolveAsync(index, analysis.Fields, ct);
+            var resolved = await _resolver.ResolveAsync(index, llm.Analysis.Fields, ct);
             var enrichedFields = resolved.Select(r => new ExtractedField(r.FieldName, r.Value, r.Confidence, r.Spans, r.Pointer)).ToList();
-            var enriched = new DocumentAnalysisResult(analysis.DocumentType, enrichedFields, analysis.Language, analysis.Notes);
+            var enriched = new DocumentAnalysisResult(llm.Analysis.DocumentType, enrichedFields, llm.Analysis.Language, llm.Analysis.Notes);
 
             totalSw.Stop();
 
@@ -101,12 +116,12 @@ public class ProcessService : IProcessService
                 }
             };
             var json = JsonSerializer.Serialize(output);
-            return new ProcessResult(true, json, md.Markdown, null);
+            return new ProcessResult(true, json, md.Markdown, null, mdCreated, promptCreated);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "ProcessFailed {JobId}", input.JobId);
-            return new ProcessResult(false, string.Empty, null, ex.Message);
+            return new ProcessResult(false, string.Empty, null, ex.Message, null, null);
         }
     }
 

@@ -11,15 +11,12 @@ public interface IJobRepository
     void Create(JobDocument doc);
     void UpdateStatus(Guid id, string status, string? errorMessage = null, DateTimeOffset? endedAt = null, long? durationMs = null);
     void UpdateProgress(Guid id, int progress);
-    void TouchLease(Guid id, DateTimeOffset leaseUntil);
+    void IncrementAttempts(Guid id);
     int CountPending();
     void MarkFailed(Guid id, string errorMessage);
     void MarkSucceeded(Guid id, DateTimeOffset endedAt, long durationMs);
     void MarkCancelled(Guid id, string? reason);
     JobDocument? FindByIdempotencyKey(string key, TimeSpan ttl);
     JobDocument? FindRecentByHash(string hash, TimeSpan ttl);
-    IEnumerable<JobDocument> FindQueuedDue(DateTimeOffset now);
-    IEnumerable<JobDocument> FindRunningExpired(DateTimeOffset now);
-    void Requeue(Guid id, int attempts, DateTimeOffset availableAt);
     IEnumerable<JobDocument> DeleteOlderThan(DateTimeOffset cutoff);
 }

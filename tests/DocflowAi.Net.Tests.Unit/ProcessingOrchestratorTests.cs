@@ -22,7 +22,7 @@ public class ProcessingOrchestratorTests {
         var mdClient = new Mock<IMarkdownConverter>();
         mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
         var llama = new Mock<ILlamaExtractor>();
-        llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+        llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>(), null)).ReturnsAsync(new LlamaExtractionResult(expected, "sys", "user"));
         var resolver = new Mock<IResolverOrchestrator>();
         resolver.Setup(r => r.ResolveAsync(It.IsAny<DocumentIndex>(), It.IsAny<IReadOnlyList<ExtractedField>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>(), null)).ToList());
@@ -46,7 +46,7 @@ public class ProcessingOrchestratorTests {
         var mdClient = new Mock<IMarkdownConverter>();
         mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
         var llama = new Mock<ILlamaExtractor>();
-        llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+        llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>(), null)).ReturnsAsync(new LlamaExtractionResult(expected, "sys", "user"));
         var resolver = new Mock<IResolverOrchestrator>();
         resolver.Setup(r => r.ResolveAsync(It.IsAny<DocumentIndex>(), It.IsAny<IReadOnlyList<ExtractedField>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentIndex idx, IReadOnlyList<ExtractedField> f, CancellationToken _) => f.Select(x => new BBoxResolveResult(x.Key, x.Value, x.Confidence, Array.Empty<SpanEvidence>(), null)).ToList());

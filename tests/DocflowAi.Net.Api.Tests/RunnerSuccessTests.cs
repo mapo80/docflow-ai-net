@@ -5,6 +5,7 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
+using Hangfire;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -29,26 +30,27 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
         fs.CreateJobDirectory(id);
         var inputPath = await fs.SaveTextAtomic(id, "input.txt", "hi");
         var dir = Path.GetDirectoryName(inputPath)!;
+        var now = DateTimeOffset.UtcNow;
         var doc = new JobDocument
         {
             Id = id,
             Status = "Queued",
             Progress = 0,
             Attempts = 0,
-            AvailableAt = DateTimeOffset.UtcNow,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
-                Input = inputPath,
-                Output = PathHelpers.OutputPath(factory.DataRootPath, id),
-                Error = PathHelpers.ErrorPath(factory.DataRootPath, id),
-                Markdown = PathHelpers.MarkdownPath(factory.DataRootPath, id)
+                Input = new JobDocument.DocumentInfo { Path = inputPath, CreatedAt = now },
+                Prompt = new JobDocument.DocumentInfo { Path = PathHelpers.PromptPath(factory.DataRootPath, id) },
+                Output = new JobDocument.DocumentInfo { Path = PathHelpers.OutputPath(factory.DataRootPath, id) },
+                Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(factory.DataRootPath, id) },
+                Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(factory.DataRootPath, id) }
             }
         };
         store.Create(doc);
         uow.SaveChanges();
 
-        await runner.Run(id, CancellationToken.None);
+        await runner.Run(id, JobCancellationToken.Null, CancellationToken.None);
 
         using var scope2 = factory.Services.CreateScope();
         var db = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
@@ -59,5 +61,8 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
         File.Exists(PathHelpers.OutputPath(factory.DataRootPath, id)).Should().BeTrue();
         File.ReadAllText(PathHelpers.MarkdownPath(factory.DataRootPath, id)).Should().Contain("md");
         File.Exists(PathHelpers.ErrorPath(factory.DataRootPath, id)).Should().BeFalse();
+        job.Paths.Output!.CreatedAt.Should().NotBeNull();
+        job.Paths.Markdown!.CreatedAt.Should().NotBeNull();
+        job.Paths.Prompt!.CreatedAt.Should().NotBeNull();
     }
 }

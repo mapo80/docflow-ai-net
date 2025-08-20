@@ -7,7 +7,9 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Hangfire;
 using System.Threading;
+using System;
 
 using DocflowAi.Net.Api.Tests.Fixtures;
 namespace DocflowAi.Net.Api.Tests;
@@ -24,14 +26,14 @@ public class RunnerTests : IClassFixture<TempDirFixture>
             Status = "Queued",
             Progress = 0,
             Attempts = 0,
-            AvailableAt = DateTimeOffset.UtcNow,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
-                Input = input,
-                Output = Path.Combine(dir, "output.json"),
-                Error = Path.Combine(dir, "error.txt"),
-                Markdown = Path.Combine(dir, "markdown.md")
+                Input = new JobDocument.DocumentInfo { Path = input, CreatedAt = DateTimeOffset.UtcNow },
+                Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "prompt.md") },
+                Output = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "output.json") },
+                Error = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "error.txt") },
+                Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "markdown.md") }
             }
         };
 
@@ -41,7 +43,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         await using var factory = new TestWebAppFactory(_fx.RootPath)
             .WithWebHostBuilder(b => b.ConfigureServices(s =>
                 s.AddSingleton<IProcessService>(new DelegateProcessService((_, _) =>
-                    Task.FromResult(new ProcessResult(true, "{\"ok\":1}", null, null))))));
+                    Task.FromResult(new ProcessResult(true, "{\"ok\":1}", null, null, null, null))))));
         using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
         var store = sp.GetRequiredService<IJobRepository>();
@@ -56,7 +58,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         store.Create(CreateDoc(id, dir, inputPath));
         uow.SaveChanges();
 
-        await runner.Run(id, CancellationToken.None);
+        await runner.Run(id, JobCancellationToken.Null, CancellationToken.None);
 
         var job = store.Get(id)!;
         job.Status.Should().Be("Succeeded");
@@ -82,12 +84,12 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         store.Create(CreateDoc(id, dir, inputPath));
         uow.SaveChanges();
 
-        var runTask = runner.Run(id, CancellationToken.None);
+        var runTask = runner.Run(id, JobCancellationToken.Null, CancellationToken.None);
         var mdPath = Path.Combine(dir, "markdown.md");
         SpinWait.SpinUntil(() => File.Exists(mdPath), 5000);
         File.Exists(mdPath).Should().BeTrue();
 
-        await runTask;
+        await Assert.ThrowsAsync<TaskCanceledException>(async () => await runTask);
     }
 
     [Fact]
@@ -96,7 +98,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         await using var factory = new TestWebAppFactory(_fx.RootPath)
             .WithWebHostBuilder(b => b.ConfigureServices(s =>
                 s.AddSingleton<IProcessService>(new DelegateProcessService((_, _) =>
-                    Task.FromResult(new ProcessResult(false, "", null, "boom"))))));
+                    Task.FromResult(new ProcessResult(false, "", null, "boom", null, null))))));
         using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
         var store = sp.GetRequiredService<IJobRepository>();
@@ -111,7 +113,8 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         store.Create(CreateDoc(id, dir, input));
         uow2.SaveChanges();
 
-        await runner.Run(id, CancellationToken.None);
+        await Assert.ThrowsAsync<Exception>(async () =>
+            await runner.Run(id, JobCancellationToken.Null, CancellationToken.None));
 
         var job = store.Get(id)!;
         job.Status.Should().Be("Failed");
@@ -131,7 +134,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 b.ConfigureServices(s => s.AddSingleton<IProcessService>(new DelegateProcessService(async (_, ct) =>
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5), ct);
-                    return new ProcessResult(true, "{}", null, null);
+                    return new ProcessResult(true, "{}", null, null, null, null);
                 })));
             });
         using var scope = factory.Services.CreateScope();
@@ -148,7 +151,8 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         store.Create(CreateDoc(id, dir, input));
         uow3.SaveChanges();
 
-        await runner.Run(id, CancellationToken.None);
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            await runner.Run(id, JobCancellationToken.Null, CancellationToken.None));
         var job = store.Get(id)!;
         job.Status.Should().Be("Failed");
         File.ReadAllText(Path.Combine(dir, "error.txt")).Should().Contain("timeout");
@@ -163,7 +167,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 s.AddSingleton<IProcessService>(new DelegateProcessService(async (_, ct) =>
                 {
                     await Task.Delay(Timeout.Infinite, ct);
-                    return new ProcessResult(true, "{}", null, null);
+                    return new ProcessResult(true, "{}", null, null, null, null);
                 }))));
         using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
@@ -179,7 +183,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         store.Create(CreateDoc(id, dir, input));
         uow4.SaveChanges();
 
-        var runTask = runner.Run(id, cts.Token);
+        var runTask = runner.Run(id, JobCancellationToken.Null, cts.Token);
         cts.CancelAfter(100); // cancel shortly
         await runTask;
 

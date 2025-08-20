@@ -61,13 +61,13 @@ public class JobRepository : IJobRepository
         _logger.LogDebug("UpdateProgress {JobId} {Progress}", id, progress);
     }
 
-    public void TouchLease(Guid id, DateTimeOffset leaseUntil)
+    public void IncrementAttempts(Guid id)
     {
         var doc = _db.Jobs.Find(id);
         if (doc == null) return;
-        doc.LeaseUntil = leaseUntil;
+        doc.Attempts++;
         doc.UpdatedAt = DateTimeOffset.UtcNow;
-        _logger.LogDebug("TouchLease {JobId} {LeaseUntil}", id, leaseUntil);
+        _logger.LogDebug("IncrementAttempts {JobId} {Attempts}", id, doc.Attempts);
     }
 
     public int CountPending()
@@ -111,36 +111,6 @@ public class JobRepository : IJobRepository
             .FirstOrDefault(x => x.Hash == hash && x.CreatedAt >= threshold && x.Status != "Cancelled");
         _logger.LogDebug("FindRecentByHash {Hash} {Hit}", hash, job != null);
         return job;
-    }
-
-    public IEnumerable<JobDocument> FindQueuedDue(DateTimeOffset now)
-    {
-        var jobs = _db.Jobs
-            .Where(x => x.Status == "Queued" && (!x.AvailableAt.HasValue || x.AvailableAt <= now))
-            .ToList();
-        _logger.LogDebug("FindQueuedDue {Count}", jobs.Count);
-        return jobs;
-    }
-
-    public IEnumerable<JobDocument> FindRunningExpired(DateTimeOffset now)
-    {
-        var jobs = _db.Jobs
-            .Where(x => x.Status == "Running" && x.LeaseUntil.HasValue && x.LeaseUntil <= now)
-            .ToList();
-        _logger.LogDebug("FindRunningExpired {Count}", jobs.Count);
-        return jobs;
-    }
-
-    public void Requeue(Guid id, int attempts, DateTimeOffset availableAt)
-    {
-        var doc = _db.Jobs.Find(id);
-        if (doc == null) return;
-        doc.Status = "Queued";
-        doc.Attempts = attempts;
-        doc.AvailableAt = availableAt;
-        doc.LeaseUntil = null;
-        doc.UpdatedAt = DateTimeOffset.UtcNow;
-        _logger.LogWarning("Requeue {JobId} {Attempt} {AvailableAt}", id, attempts, availableAt);
     }
 
     public IEnumerable<JobDocument> DeleteOlderThan(DateTimeOffset cutoff)
