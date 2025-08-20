@@ -75,13 +75,23 @@ public class ProcessService : IProcessService
             await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
             var mdCreated = DateTimeOffset.UtcNow;
 
-            var llmSw = Stopwatch.StartNew();
-            var llm = await _llama.ExtractAsync(md.Markdown, tpl.Name, tpl.PromptMarkdown ?? string.Empty, fields, ct);
-            llmSw.Stop();
+            DateTimeOffset? promptCreated = null;
+            async Task SavePrompt(string system, string user)
+            {
+                var full = $"[SYSTEM]\n{system}\n\n[USER]\n{user}";
+                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.PromptPath), full);
+                promptCreated = DateTimeOffset.UtcNow;
+            }
 
-            var fullPrompt = $"[SYSTEM]\n{llm.SystemPrompt}\n\n[USER]\n{llm.UserPrompt}";
-            await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.PromptPath), fullPrompt);
-            var promptCreated = DateTimeOffset.UtcNow;
+            var llmSw = Stopwatch.StartNew();
+            var llm = await _llama.ExtractAsync(
+                md.Markdown,
+                tpl.Name,
+                tpl.PromptMarkdown ?? string.Empty,
+                fields,
+                ct,
+                SavePrompt);
+            llmSw.Stop();
 
             var pages = md.Pages.Select(p => new DocumentIndexBuilder.SourcePage(p.Number, (float)p.Width, (float)p.Height)).ToList();
             var words = md.Boxes.Select(b => new DocumentIndexBuilder.SourceWord(b.Page, b.Text, (float)b.XNorm, (float)b.YNorm, (float)b.WidthNorm, (float)b.HeightNorm, false)).ToList();

@@ -74,8 +74,21 @@ public class ProcessServiceTests
 
     private sealed class StubLlama : ILlamaExtractor
     {
-        public Task<LlamaExtractionResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
-            => Task.FromResult(new LlamaExtractionResult(new DocumentAnalysisResult(templateName, new List<ExtractedField> { new("f","v",1,null,null) }, "it", null), "sys", "user"));
+        public async Task<LlamaExtractionResult> ExtractAsync(
+            string markdown,
+            string templateName,
+            string prompt,
+            IReadOnlyList<FieldSpec> fieldsSpec,
+            CancellationToken ct,
+            Func<string, string, Task>? onBeforeSend = null)
+        {
+            if (onBeforeSend != null)
+                await onBeforeSend("sys", "user");
+            return new LlamaExtractionResult(
+                new DocumentAnalysisResult(templateName, new List<ExtractedField> { new("f", "v", 1, null, null) }, "it", null),
+                "sys",
+                "user");
+        }
         public void Dispose() {}
     }
 

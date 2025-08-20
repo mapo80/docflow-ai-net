@@ -7,5 +7,11 @@ public record LlamaExtractionResult(DocumentAnalysisResult Analysis, string Syst
 
 public interface ILlamaExtractor
 {
-    Task<LlamaExtractionResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fields, CancellationToken ct);
+    Task<LlamaExtractionResult> ExtractAsync(
+        string markdown,
+        string templateName,
+        string prompt,
+        IReadOnlyList<FieldSpec> fields,
+        CancellationToken ct,
+        Func<string, string, Task>? onBeforeSend = null);
 }

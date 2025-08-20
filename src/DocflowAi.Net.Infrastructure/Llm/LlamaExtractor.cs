@@ -104,7 +104,13 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         return _modeAccessor.Mode != ReasoningMode.Auto ? _modeAccessor.Mode : def;
     }
 
-    public async Task<LlamaExtractionResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
+    public async Task<LlamaExtractionResult> ExtractAsync(
+        string markdown,
+        string templateName,
+        string prompt,
+        IReadOnlyList<FieldSpec> fieldsSpec,
+        CancellationToken ct,
+        Func<string, string, Task>? onBeforeSend = null)
     {
         _logger.LogInformation("Preparing extraction for template={Template}", templateName);
 
@@ -126,6 +132,19 @@ public sealed class LlamaExtractor : ILlamaExtractor, IDisposable
         var userPrompt = markdown;
 
         _logger.LogInformation("Running LLM extraction template={Template} mode={Mode}", templateName, rm);
+        _logger.LogInformation(
+            "Prompt lengths system={SystemLen} user={UserLen}",
+            systemPrompt.Length,
+            userPrompt.Length);
+        _logger.LogDebug("System prompt: {SystemPrompt}", systemPrompt);
+        _logger.LogDebug(
+            "User prompt preview: {Preview}",
+            userPrompt.Length > 200 ? userPrompt.Substring(0, 200) : userPrompt);
+
+        if (onBeforeSend != null)
+        {
+            await onBeforeSend(systemPrompt, userPrompt);
+        }
 
         var debugDir = Environment.GetEnvironmentVariable("DEBUG_DIR");
         if (!string.IsNullOrWhiteSpace(debugDir))
