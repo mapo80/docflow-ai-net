@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Tesseract;
+using System.Runtime.InteropServices;
 
 namespace DocflowAi.Net.Infrastructure.Markdown;
 
@@ -14,6 +15,7 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
 {
     private readonly ILogger<MarkdownNetConverter> _logger;
     private readonly Serilog.ILogger _mdLogger;
+    private static bool _ocrLibsLoaded;
 
     public MarkdownNetConverter(ILogger<MarkdownNetConverter> logger)
     {
@@ -50,7 +52,7 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
                 MinimumNativeWordThreshold = opts.MinimumNativeWordThreshold
             };
             var converter = new MkdnConverter(options, _mdLogger);
-            TesseractEnviornment.CustomSearchPath = Path.Combine(AppContext.BaseDirectory, "x64");
+            EnsureOcrLibraries();
             var res = await converter.ConvertAsync(tmp, mime, ct);
 
             var pages = res.Pages.Select(p => new PageInfo(p.Number, p.Width, p.Height)).ToList();
@@ -83,6 +85,22 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
         {
             try { File.Delete(tmp); } catch { }
         }
+    }
+
+    private static void EnsureOcrLibraries()
+    {
+        var dir = Path.Combine(AppContext.BaseDirectory, "x64");
+        TesseractEnviornment.CustomSearchPath = dir;
+        if (_ocrLibsLoaded) return;
+        foreach (var lib in new[] { "libleptonica-1.82.0.so", "libtesseract50.so" })
+        {
+            var path = Path.Combine(dir, lib);
+            if (File.Exists(path))
+            {
+                try { NativeLibrary.Load(path); } catch { }
+            }
+        }
+        _ocrLibsLoaded = true;
     }
 
     private static async Task CopyWithRetryAsync(Stream input, string path, CancellationToken ct)
