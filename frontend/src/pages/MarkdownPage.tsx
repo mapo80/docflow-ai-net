@@ -96,20 +96,18 @@ export default function MarkdownPage() {
                 key: 'md',
                 label: 'Markdown',
                 children: (
-                  <MDEditor
-                    value={result.markdown}
-                    preview="edit"
-                    hideToolbar
-                    height={400}
-                    textareaProps={{ readOnly: true }}
-                  />
+                  <div style={{ maxHeight: 400, overflow: 'auto' }} data-color-mode="light">
+                    <MDEditor.Markdown source={result.markdown} />
+                  </div>
                 ),
               },
               {
                 key: 'json',
                 label: 'JSON',
                 children: (
-                  <JsonView value={result} style={githubLightTheme} />
+                  <div style={{ maxHeight: 400, overflow: 'auto' }}>
+                    <JsonView value={result} style={githubLightTheme} />
+                  </div>
                 ),
               },
             ]}
