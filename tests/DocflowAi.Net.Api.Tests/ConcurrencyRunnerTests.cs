@@ -4,6 +4,7 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
 using System.Linq;
+using Hangfire;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -19,13 +20,13 @@ public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
             Status = "Queued",
             Progress = 0,
             Attempts = 0,
-            AvailableAt = DateTimeOffset.UtcNow,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
                 Input = input,
                 Output = Path.Combine(dir, "output.json"),
-                Error = Path.Combine(dir, "error.txt")
+                Error = Path.Combine(dir, "error.txt"),
+                Markdown = Path.Combine(dir, "markdown.md")
             },
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
@@ -53,8 +54,8 @@ public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
         store.Create(CreateQueued(id2, Path.GetDirectoryName(input2)!, input2));
         uow.SaveChanges();
 
-        var t1 = runner.Run(id1, CancellationToken.None);
-        var t2 = runner.Run(id2, CancellationToken.None);
+        var t1 = runner.Run(id1, JobCancellationToken.Null, CancellationToken.None);
+        var t2 = runner.Run(id2, JobCancellationToken.Null, CancellationToken.None);
         await Task.WhenAll(t1, t2);
         factory.Fake.MaxConcurrent.Should().Be(1);
         store.Get(id1)!.Status.Should().Be("Succeeded");

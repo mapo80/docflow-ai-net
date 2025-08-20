@@ -4,6 +4,7 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
+using Hangfire;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -19,13 +20,13 @@ public class AtomicWritesTests : IClassFixture<TempDirFixture>
             Status = "Queued",
             Progress = 0,
             Attempts = 0,
-            AvailableAt = DateTimeOffset.UtcNow,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
                 Input = input,
                 Output = PathHelpers.OutputPath(dataRoot, id),
-                Error = PathHelpers.ErrorPath(dataRoot, id)
+                Error = PathHelpers.ErrorPath(dataRoot, id),
+                Markdown = PathHelpers.MarkdownPath(dataRoot, id)
             }
         };
 
@@ -48,7 +49,7 @@ public class AtomicWritesTests : IClassFixture<TempDirFixture>
         var dir1 = Path.GetDirectoryName(input1)!;
         store.Create(CreateDoc(id1, dir1, input1, factory.DataRootPath));
         uow.SaveChanges();
-        await runner.Run(id1, CancellationToken.None);
+        await runner.Run(id1, JobCancellationToken.Null, CancellationToken.None);
         Directory.EnumerateFiles(PathHelpers.JobDir(factory.DataRootPath, id1), "*.tmp", SearchOption.AllDirectories)
             .Should().BeEmpty();
 
@@ -60,7 +61,8 @@ public class AtomicWritesTests : IClassFixture<TempDirFixture>
         var dir2 = Path.GetDirectoryName(input2)!;
         store.Create(CreateDoc(id2, dir2, input2, factory.DataRootPath));
         uow.SaveChanges();
-        await runner.Run(id2, CancellationToken.None);
+        await Assert.ThrowsAsync<Exception>(async () =>
+            await runner.Run(id2, JobCancellationToken.Null, CancellationToken.None));
         Directory.EnumerateFiles(PathHelpers.JobDir(factory.DataRootPath, id2), "*.tmp", SearchOption.AllDirectories)
             .Should().BeEmpty();
     }

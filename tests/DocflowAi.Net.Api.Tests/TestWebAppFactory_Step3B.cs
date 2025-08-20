@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Hangfire;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -40,7 +42,6 @@ public class TestWebAppFactory_Step3B : WebApplicationFactory<Program>
                 ["JobQueue:DataRoot"] = DataRootPath,
                 ["JobQueue:Database:Provider"] = "sqlite",
                 ["JobQueue:Database:ConnectionString"] = $"Data Source={DbPath}",
-                ["JobQueue:Queue:LeaseWindowSeconds"] = "2",
                 ["JobQueue:Queue:MaxAttempts"] = "2",
                 ["JobQueue:Concurrency:MaxParallelHeavyJobs"] = _maxParallel.ToString(),
                 ["JobQueue:Concurrency:HangfireWorkerCount"] = "1",
@@ -56,6 +57,7 @@ public class TestWebAppFactory_Step3B : WebApplicationFactory<Program>
         {
             s.AddSingleton<IProcessService>(Fake);
             Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().Enrich.FromLogContext().WriteTo.TestCorrelator().CreateLogger();
+            s.RemoveAll<BackgroundJobServerHostedService>();
         });
     }
 

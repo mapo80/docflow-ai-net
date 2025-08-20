@@ -24,7 +24,6 @@ namespace DocflowAi.Net.Api.Options;
     public class QueueOptions
     {
         public int MaxQueueLength { get; set; } = 100;
-        public int LeaseWindowSeconds { get; set; } = 120;
         public int MaxAttempts { get; set; } = 5;
     }
 

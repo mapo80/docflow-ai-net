@@ -26,14 +26,13 @@ public class JobDbContext : DbContext
 
         job.HasKey(j => j.Id);
         job.HasIndex(j => j.CreatedAt);
-        job.HasIndex(j => new { j.Status, j.AvailableAt });
+        job.HasIndex(j => j.Status);
         job.HasIndex(j => j.IdempotencyKey);
         job.HasIndex(j => j.Hash);
 
         job.Property(j => j.CreatedAt).HasConversion(converter);
         job.Property(j => j.UpdatedAt).HasConversion(converter);
-        job.Property(j => j.AvailableAt).HasConversion(nullableConverter);
-        job.Property(j => j.LeaseUntil).HasConversion(nullableConverter);
+        
 
         job.OwnsOne(j => j.Metrics, m =>
         {

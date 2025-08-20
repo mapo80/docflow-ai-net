@@ -4,8 +4,6 @@ using DocflowAi.Net.Api.JobQueue.Processing;
 using DocflowAi.Net.Api.Options;
 using System.Threading;
 using Microsoft.Extensions.Options;
-using Polly;
-using Polly.Timeout;
 using Serilog;
 using Serilog.Context;
 using System.Diagnostics;
@@ -33,13 +31,16 @@ public class JobRunner : IJobRunner
         _gate = gate;
     }
 
-    public async Task Run(Guid jobId, CancellationToken ct, bool acquireGate = true, int? overrideTimeoutSeconds = null)
+    public async Task Run(Guid jobId, Hangfire.IJobCancellationToken? jobToken, CancellationToken ct, bool acquireGate = true, int? overrideTimeoutSeconds = null)
     {
         using (LogContext.PushProperty("JobId", jobId))
         {
             var sw = Stopwatch.StartNew();
             if (acquireGate)
                 await _gate.WaitAsync(ct);
+            jobToken ??= new Hangfire.JobCancellationToken(false);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, jobToken.ShutdownToken);
+            linkedCts.CancelAfter(TimeSpan.FromSeconds(overrideTimeoutSeconds ?? _options.Timeouts.JobTimeoutSeconds));
             try
             {
                 var job = _store.Get(jobId);
@@ -51,72 +52,48 @@ public class JobRunner : IJobRunner
 
                 _store.UpdateStatus(jobId, "Running");
                 _store.UpdateProgress(jobId, 0);
-                _uow.SaveChanges();
-                var started = DateTimeOffset.UtcNow;
-                _store.TouchLease(jobId, started.AddSeconds(_options.Queue.LeaseWindowSeconds));
+                _store.IncrementAttempts(jobId);
+                job.Metrics.StartedAt = DateTimeOffset.UtcNow;
                 _uow.SaveChanges();
                 _logger.Information("JobStarted {JobId}", jobId);
-
-                var leaseCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                var heartbeat = Task.Run(async () =>
-                {
-                    while (!leaseCts.Token.IsCancellationRequested)
-                    {
-                        try
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(10), leaseCts.Token);
-                            _store.TouchLease(jobId, DateTimeOffset.UtcNow.AddSeconds(_options.Queue.LeaseWindowSeconds));
-                            _uow.SaveChanges();
-                        }
-                        catch (OperationCanceledException) { }
-                    }
-                }, leaseCts.Token);
-
-                var timeoutPolicy = Policy.TimeoutAsync<ProcessResult>(
-                    TimeSpan.FromSeconds(overrideTimeoutSeconds ?? _options.Timeouts.JobTimeoutSeconds),
-                    TimeoutStrategy.Optimistic);
 
                 ProcessResult result;
                 try
                 {
-                      var input = new ProcessInput(jobId, job.Paths.Input!, job.TemplateToken, job.Model);
-                    result = await timeoutPolicy.ExecuteAsync(token => _process.ExecuteAsync(input, token), leaseCts.Token);
+                    var input = new ProcessInput(jobId, job.Paths.Input!, job.Paths.Markdown!, job.TemplateToken, job.Model);
+                    result = await _process.ExecuteAsync(input, linkedCts.Token);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (ct.IsCancellationRequested || jobToken.ShutdownToken.IsCancellationRequested)
                 {
-                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), "cancelled by user");
+                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), "cancelled by user");
                     _store.MarkCancelled(jobId, "cancelled by user");
                     _uow.SaveChanges();
                     _logger.Warning("JobCancelled {JobId}", jobId);
+                    jobToken.ThrowIfCancellationRequested();
                     return;
                 }
-                catch (TimeoutRejectedException)
+                catch (OperationCanceledException)
                 {
-                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), "timeout");
+                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), "timeout");
                     _store.MarkFailed(jobId, "timeout");
                     _uow.SaveChanges();
                     _logger.Warning("JobTimeout {JobId}", jobId);
-                    return;
+                    throw;
                 }
                 catch (Exception ex)
                 {
-                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), ex.Message);
+                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), ex.Message);
                     _store.MarkFailed(jobId, ex.Message);
                     _uow.SaveChanges();
                     _logger.Error(ex, "JobFailed {JobId}", jobId);
-                    return;
-                }
-                finally
-                {
-                    leaseCts.Cancel();
-                    try { await heartbeat; } catch { }
+                    throw;
                 }
 
                 if (result.Success)
                 {
-                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Output!), result.OutputJson);
+                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Output!), result.OutputJson);
                     var ended = DateTimeOffset.UtcNow;
-                    _store.MarkSucceeded(jobId, ended, (long)(ended - started).TotalMilliseconds);
+                    _store.MarkSucceeded(jobId, ended, (long)(ended - job.Metrics.StartedAt!.Value).TotalMilliseconds);
                     _store.UpdateProgress(jobId, 100);
                     _uow.SaveChanges();
                     _logger.Information("JobCompleted {JobId}", jobId);
@@ -124,10 +101,11 @@ public class JobRunner : IJobRunner
                 else
                 {
                     var msg = result.ErrorMessage ?? "unknown error";
-                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), msg);
+                    await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Error!), msg);
                     _store.MarkFailed(jobId, msg);
                     _uow.SaveChanges();
                     _logger.Warning("JobFailed {JobId} {Error}", jobId, msg);
+                    throw new Exception(msg);
                 }
             }
             finally

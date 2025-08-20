@@ -18,7 +18,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
     [Fact]
     public async Task Get_returns_job_from_db_with_derived_status()
     {
-        using var factory = new TestWebAppFactory(_fx.RootPath);
+        await using var factory = new TestWebAppFactory(_fx.RootPath);
         var client = factory.CreateClient();
         using var scope = factory.Services.CreateScope();
         var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
@@ -45,7 +45,8 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 Dir = dir,
                 Input = Path.Combine(dir, "i.pdf"),
                 Output = outputPath,
-                Error = Path.Combine(dir, "e.txt")
+                Error = Path.Combine(dir, "e.txt"),
+                Markdown = Path.Combine(dir, "markdown.md")
             },
             Metrics = new JobDocument.MetricsInfo()
         };
@@ -57,22 +58,65 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         json.GetProperty("status").GetString().Should().Be("Running");
         json.GetProperty("derivedStatus").GetString().Should().Be("Processing");
         json.GetProperty("progress").GetInt32().Should().Be(42);
-        json.GetProperty("paths").GetProperty("output").GetString().Should().Be($"/api/v1/jobs/{id}/files/o.json");
+        var paths = json.GetProperty("paths");
+        paths.GetProperty("input").ValueKind.Should().Be(JsonValueKind.Null);
+        paths.GetProperty("error").ValueKind.Should().Be(JsonValueKind.Null);
+        paths.GetProperty("markdown").ValueKind.Should().Be(JsonValueKind.Null);
+        paths
+            .GetProperty("output")
+            .GetString()
+            .Should()
+            .Be($"/api/v1/jobs/{id}/files/o.json");
     }
 
     [Fact]
     public async Task Get_missing_job_returns_404_and_logs()
     {
-        using var factory = new TestWebAppFactory(_fx.RootPath);
+        await using var factory = new TestWebAppFactory(_fx.RootPath);
         var client = factory.CreateClient();
         var resp = await client.GetAsync($"/api/v1/jobs/{Guid.NewGuid()}");
         resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task File_endpoint_serves_artifact()
+    public async Task Get_running_job_with_markdown_returns_path()
     {
         using var factory = new TestWebAppFactory(_fx.RootPath);
+        var client = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var id = Guid.NewGuid();
+        var dir = Path.Combine(_fx.RootPath, "jobm");
+        Directory.CreateDirectory(dir);
+        var mdPath = Path.Combine(dir, "markdown.md");
+        await File.WriteAllTextAsync(mdPath, "# md");
+        var job = new JobDocument
+        {
+            Id = id,
+            Status = "Running",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Paths = new JobDocument.PathInfo
+            {
+                Dir = dir,
+                Input = Path.Combine(dir, "i.pdf"),
+                Output = Path.Combine(dir, "o.json"),
+                Error = Path.Combine(dir, "e.txt"),
+                Markdown = mdPath
+            }
+        };
+        store.Create(job);
+        uow.SaveChanges();
+        var resp = await client.GetAsync($"/api/v1/jobs/{id}");
+        var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        json.GetProperty("paths").GetProperty("markdown").GetString().Should().Be($"/api/v1/jobs/{id}/files/markdown.md");
+    }
+
+    [Fact]
+    public async Task File_endpoint_serves_artifact()
+    {
+        await using var factory = new TestWebAppFactory(_fx.RootPath);
         var client = factory.CreateClient();
         using var scope = factory.Services.CreateScope();
         var store = scope.ServiceProvider.GetRequiredService<IJobRepository>();
@@ -91,7 +135,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
             Hash = "h",
             Model = "m",
             TemplateToken = "t",
-            Paths = new JobDocument.PathInfo { Dir = dir, Output = outputPath }
+            Paths = new JobDocument.PathInfo { Dir = dir, Output = outputPath, Markdown = Path.Combine(dir, "markdown.md") }
         };
         store.Create(job);
         uow.SaveChanges();

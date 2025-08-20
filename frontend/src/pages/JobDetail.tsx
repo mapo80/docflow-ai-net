@@ -146,39 +146,16 @@ export default function JobDetail() {
   }, [job]);
 
   useEffect(() => {
-    const loadFiles = async () => {
-      if (!job) return;
-      const entries = Object.entries(job.paths || {}).filter(([k, v]) => {
-        if (!v) return false;
-        if (k === 'error' && job.status === 'Succeeded') return false;
-        if (k === 'output' && job.status === 'Running') return false;
-        return true;
-      });
-      const checks = await Promise.all(
-        entries.map(async ([k, v]) => {
-          let url = v as string;
-          if (!url.startsWith('http')) url = `${OpenAPI.BASE}${v}`;
-          try {
-            const resp = await fetch(url, {
-              method: 'HEAD',
-              headers: OpenAPI.HEADERS as Record<string, string> | undefined,
-            });
-            if (resp.ok) {
-              return { key: k, label: k, path: v as string };
-            }
-          } catch {
-            /* ignore */
-          }
-          return null;
-        }),
-      );
-      setFiles(
-        checks.filter(
-          (f): f is { key: string; label: string; path: string } => f != null,
-        ),
-      );
-    };
-    loadFiles();
+    if (!job) return;
+    const entries = Object.entries(job.paths || {}).filter(([k, v]) => {
+      if (!v) return false;
+      if (k === 'error' && job.status === 'Succeeded') return false;
+      if (k === 'output' && job.status === 'Running') return false;
+      return true;
+    });
+    setFiles(
+      entries.map(([k, v]) => ({ key: k, label: k, path: v as string })),
+    );
   }, [job]);
 
 

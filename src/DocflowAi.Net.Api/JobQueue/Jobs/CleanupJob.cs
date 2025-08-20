@@ -1,42 +1,34 @@
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.Options;
+using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.IO;
 
-namespace DocflowAi.Net.Api.JobQueue.Hosted;
+namespace DocflowAi.Net.Api.JobQueue.Jobs;
 
-public class CleanupService : BackgroundService
+public class CleanupJob
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IOptions<JobQueueOptions> _options;
-    private readonly ILogger<CleanupService> _logger;
+    private readonly ILogger<CleanupJob> _logger;
 
-    public CleanupService(IServiceScopeFactory scopeFactory, IOptions<JobQueueOptions> options, ILogger<CleanupService> logger)
+    public CleanupJob(IServiceScopeFactory scopeFactory, IOptions<JobQueueOptions> options, ILogger<CleanupJob> logger)
     {
         _scopeFactory = scopeFactory;
         _options = options;
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    [Queue("maintenance")]
+    [AutomaticRetry(Attempts = 0)]
+    public async Task RunAsync()
     {
-        var cfg = _options.Value.Cleanup;
-        if (!cfg.Enabled)
+        if (!_options.Value.Cleanup.Enabled)
             return;
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            var now = DateTimeOffset.UtcNow;
-            var next = new DateTimeOffset(now.Year, now.Month, now.Day, cfg.DailyHour, cfg.DailyMinute, 0, TimeSpan.Zero);
-            if (next <= now) next = next.AddDays(1);
-            var delay = next - now;
-            try { await Task.Delay(delay, stoppingToken); }
-            catch (OperationCanceledException) { break; }
-            await RunOnceAsync(stoppingToken);
-        }
+        await RunOnceAsync(CancellationToken.None);
     }
 
     public async Task RunOnceAsync(CancellationToken ct)
@@ -71,3 +63,4 @@ public class CleanupService : BackgroundService
         await Task.CompletedTask;
     }
 }
+

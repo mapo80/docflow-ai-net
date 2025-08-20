@@ -5,6 +5,7 @@ using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
+using Hangfire;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -35,19 +36,19 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
             Status = "Queued",
             Progress = 0,
             Attempts = 0,
-            AvailableAt = DateTimeOffset.UtcNow,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
                 Input = inputPath,
                 Output = PathHelpers.OutputPath(factory.DataRootPath, id),
-                Error = PathHelpers.ErrorPath(factory.DataRootPath, id)
+                Error = PathHelpers.ErrorPath(factory.DataRootPath, id),
+                Markdown = PathHelpers.MarkdownPath(factory.DataRootPath, id)
             }
         };
         store.Create(doc);
         uow.SaveChanges();
 
-        await runner.Run(id, CancellationToken.None);
+        await runner.Run(id, JobCancellationToken.Null, CancellationToken.None);
 
         using var scope2 = factory.Services.CreateScope();
         var db = scope2.ServiceProvider.GetRequiredService<JobDbContext>();
@@ -56,6 +57,7 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
         job.Progress.Should().Be(100);
         job.Metrics.EndedAt.Should().NotBeNull();
         File.Exists(PathHelpers.OutputPath(factory.DataRootPath, id)).Should().BeTrue();
+        File.ReadAllText(PathHelpers.MarkdownPath(factory.DataRootPath, id)).Should().Contain("md");
         File.Exists(PathHelpers.ErrorPath(factory.DataRootPath, id)).Should().BeFalse();
     }
 }

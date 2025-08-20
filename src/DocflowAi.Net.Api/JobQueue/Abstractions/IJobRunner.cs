@@ -6,5 +6,5 @@ namespace DocflowAi.Net.Api.JobQueue.Abstractions;
 
 public interface IJobRunner
 {
-    Task Run(Guid jobId, CancellationToken ct, bool acquireGate = true, int? overrideTimeoutSeconds = null);
+    Task Run(Guid jobId, Hangfire.IJobCancellationToken? jobToken, CancellationToken ct, bool acquireGate = true, int? overrideTimeoutSeconds = null);
 }

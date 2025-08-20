@@ -1,7 +1,7 @@
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.Options;
-using DocflowAi.Net.Api.JobQueue.Hosted;
+using DocflowAi.Net.Api.JobQueue.Jobs;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.JobQueue.Data;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +35,7 @@ public class CleanupE2ETests : IClassFixture<TempDirFixture>
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<JobDbContext>();
         DbTestHelper.SeedJobs(db, new[] { old1, old2 });
-        var svc = scope.ServiceProvider.GetRequiredService<CleanupService>();
+        var svc = scope.ServiceProvider.GetRequiredService<CleanupJob>();
         using (TestCorrelator.CreateContext())
         {
             await svc.RunOnceAsync(CancellationToken.None);
