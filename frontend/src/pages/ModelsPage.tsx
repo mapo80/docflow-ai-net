@@ -122,15 +122,17 @@ export default function ModelsPage() {
           )}
           {record.type === 'local' && (
             <>
-              <Button
-                icon={<DownloadOutlined />}
-                aria-label="Start download"
-                onClick={async () => {
-                  await ModelsService.modelsStartDownload({ id: record.id! });
-                  notify('success', 'Download started');
-                  load();
-                }}
-              />
+              {!record.downloaded && (
+                <Button
+                  icon={<DownloadOutlined />}
+                  aria-label="Start download"
+                  onClick={async () => {
+                    await ModelsService.modelsStartDownload({ id: record.id! });
+                    notify('success', 'Download started');
+                    load();
+                  }}
+                />
+              )}
               <Button
                 icon={<FileTextOutlined />}
                 aria-label="View log"
@@ -200,16 +202,20 @@ export default function ModelsPage() {
               actions={
                 r.type === 'local'
                   ? [
-                      <Button
-                        key="download"
-                        icon={<DownloadOutlined />}
-                        aria-label="Start download"
-                        onClick={async () => {
-                          await ModelsService.modelsStartDownload({ id: r.id! });
-                          notify('success', 'Download started');
-                          load();
-                        }}
-                      />,
+                      ...(r.downloaded
+                        ? []
+                        : [
+                            <Button
+                              key="download"
+                              icon={<DownloadOutlined />}
+                              aria-label="Start download"
+                              onClick={async () => {
+                                await ModelsService.modelsStartDownload({ id: r.id! });
+                                notify('success', 'Download started');
+                                load();
+                              }}
+                            />,
+                          ]),
                       <Button
                         key="log"
                         icon={<FileTextOutlined />}
