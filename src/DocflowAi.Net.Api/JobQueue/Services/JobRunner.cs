@@ -112,6 +112,11 @@ public class JobRunner : IJobRunner
                     try { await heartbeat; } catch { }
                 }
 
+                if (!string.IsNullOrEmpty(result.Markdown) && job.Paths.Markdown != null)
+                {
+                      await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Markdown!), result.Markdown);
+                }
+
                 if (result.Success)
                 {
                       await _fs.SaveTextAtomic(jobId, Path.GetFileName(job.Paths.Output!), result.OutputJson);

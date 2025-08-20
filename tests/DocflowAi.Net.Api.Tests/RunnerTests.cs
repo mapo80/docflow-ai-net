@@ -28,7 +28,8 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 Dir = dir,
                 Input = input,
                 Output = Path.Combine(dir, "output.json"),
-                Error = Path.Combine(dir, "error.txt")
+                Error = Path.Combine(dir, "error.txt"),
+                Markdown = Path.Combine(dir, "markdown.md")
             }
         };
 
@@ -38,7 +39,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         await using var factory = new TestWebAppFactory(_fx.RootPath)
             .WithWebHostBuilder(b => b.ConfigureServices(s =>
                 s.AddSingleton<IProcessService>(new DelegateProcessService((_, _) =>
-                    Task.FromResult(new ProcessResult(true, "{\"ok\":1}", null))))));
+                    Task.FromResult(new ProcessResult(true, "{\"ok\":1}", null, null))))));
         using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
         var store = sp.GetRequiredService<IJobRepository>();
@@ -66,7 +67,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         await using var factory = new TestWebAppFactory(_fx.RootPath)
             .WithWebHostBuilder(b => b.ConfigureServices(s =>
                 s.AddSingleton<IProcessService>(new DelegateProcessService((_, _) =>
-                    Task.FromResult(new ProcessResult(false, "", "boom"))))));
+                    Task.FromResult(new ProcessResult(false, "", null, "boom"))))));
         using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
         var store = sp.GetRequiredService<IJobRepository>();
@@ -101,7 +102,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 b.ConfigureServices(s => s.AddSingleton<IProcessService>(new DelegateProcessService(async (_, ct) =>
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5), ct);
-                    return new ProcessResult(true, "{}", null);
+                    return new ProcessResult(true, "{}", null, null);
                 })));
             });
         using var scope = factory.Services.CreateScope();
@@ -133,7 +134,7 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 s.AddSingleton<IProcessService>(new DelegateProcessService(async (_, ct) =>
                 {
                     await Task.Delay(Timeout.Infinite, ct);
-                    return new ProcessResult(true, "{}", null);
+                    return new ProcessResult(true, "{}", null, null);
                 }))));
         using var scope = factory.Services.CreateScope();
         var sp = scope.ServiceProvider;

@@ -106,5 +106,5 @@ Console.WriteLine(JsonSerializer.Serialize(summary, options));
 record SubmitResponse(Guid job_id, string status_url, string? dashboard_url);
 
 record MetricsInfo(DateTimeOffset? StartedAt, DateTimeOffset? EndedAt, long? DurationMs);
-record PathInfo(string Dir, string? Input, string? Output, string? Error);
+record PathInfo(string Dir, string? Input, string? Output, string? Error, string? Markdown);
 record JobDetail(Guid Id, string Status, string? DerivedStatus, int Progress, int Attempts, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, MetricsInfo Metrics, PathInfo Paths, string? ErrorMessage, string Model, string TemplateToken);

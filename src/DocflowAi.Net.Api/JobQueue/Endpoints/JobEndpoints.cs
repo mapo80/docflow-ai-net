@@ -97,7 +97,7 @@ public static class JobEndpoints
             var job = store.Get(id);
             if (job == null) return Results.NotFound();
             var name = Path.GetFileName(file);
-            var candidates = new[] { job.Paths.Input, job.Paths.Output, job.Paths.Error }
+            var candidates = new[] { job.Paths.Input, job.Paths.Output, job.Paths.Error, job.Paths.Markdown }
                 .Where(p => !string.IsNullOrEmpty(p));
             var match = candidates.FirstOrDefault(p => Path.GetFileName(p!)
                 .Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -191,7 +191,14 @@ public static class JobEndpoints
                 IdempotencyKey = idemKey,
                 Model = payload.Model,
                 TemplateToken = payload.TemplateToken,
-                Paths = new JobDocument.PathInfo { Dir = Path.GetDirectoryName(inputPath)!, Input = inputPath, Output = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json"), Error = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt") }
+                Paths = new JobDocument.PathInfo
+                {
+                    Dir = Path.GetDirectoryName(inputPath)!,
+                    Input = inputPath,
+                    Output = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json"),
+                    Error = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt"),
+                    Markdown = Path.Combine(Path.GetDirectoryName(inputPath)!, "markdown.md")
+                }
             };
             store.Create(doc);
             uow.SaveChanges();
@@ -262,7 +269,8 @@ public static class JobEndpoints
                 Dir = string.Empty,
                 Input = ToPublicPath(job.Id, job.Paths.Input),
                 Output = ToPublicPath(job.Id, job.Paths.Output),
-                Error = ToPublicPath(job.Id, job.Paths.Error)
+                Error = ToPublicPath(job.Id, job.Paths.Error),
+                Markdown = ToPublicPath(job.Id, job.Paths.Markdown)
             };
             var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
@@ -287,7 +295,8 @@ public static class JobEndpoints
                 {
                     ["input"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf"),
                     ["output"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json"),
-                    ["error"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt")
+                    ["error"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt"),
+                    ["markdown"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md")
                 },
                 ["model"] = new OpenApiString("model"),
                 ["templateToken"] = new OpenApiString("template")
@@ -359,6 +368,7 @@ public static class JobEndpoints
 
     private static string GetContentType(string fileName) =>
         fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? "application/json" :
+        fileName.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ? "text/markdown" :
         fileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) ? "text/plain" :
         "application/octet-stream";
 

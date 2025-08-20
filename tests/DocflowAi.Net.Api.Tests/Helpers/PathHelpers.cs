@@ -10,4 +10,7 @@ public static class PathHelpers
 
     public static string ErrorPath(string dataRoot, Guid jobId)
         => Path.Combine(JobDir(dataRoot, jobId), "error.txt");
+
+    public static string MarkdownPath(string dataRoot, Guid jobId)
+        => Path.Combine(JobDir(dataRoot, jobId), "markdown.md");
 }

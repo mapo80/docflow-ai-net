@@ -45,7 +45,8 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 Dir = dir,
                 Input = Path.Combine(dir, "i.pdf"),
                 Output = outputPath,
-                Error = Path.Combine(dir, "e.txt")
+                Error = Path.Combine(dir, "e.txt"),
+                Markdown = Path.Combine(dir, "markdown.md")
             },
             Metrics = new JobDocument.MetricsInfo()
         };
@@ -91,7 +92,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
             Hash = "h",
             Model = "m",
             TemplateToken = "t",
-            Paths = new JobDocument.PathInfo { Dir = dir, Output = outputPath }
+            Paths = new JobDocument.PathInfo { Dir = dir, Output = outputPath, Markdown = Path.Combine(dir, "markdown.md") }
         };
         store.Create(job);
         uow.SaveChanges();

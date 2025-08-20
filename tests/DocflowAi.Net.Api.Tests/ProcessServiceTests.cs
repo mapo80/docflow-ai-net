@@ -39,6 +39,7 @@ public class ProcessServiceTests
         var json = JsonDocument.Parse(res.OutputJson);
         json.RootElement.GetProperty("fields")[0].GetProperty("key").GetString().Should().Be("f");
         json.RootElement.GetProperty("metrics").GetProperty("total_ms").GetDouble().Should().BeGreaterThan(0);
+        res.Markdown.Should().Be("md");
     }
 
     private sealed class StubRepo : ITemplateRepository

@@ -41,7 +41,8 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
                 Dir = dir,
                 Input = inputPath,
                 Output = PathHelpers.OutputPath(factory.DataRootPath, id),
-                Error = PathHelpers.ErrorPath(factory.DataRootPath, id)
+                Error = PathHelpers.ErrorPath(factory.DataRootPath, id),
+                Markdown = PathHelpers.MarkdownPath(factory.DataRootPath, id)
             }
         };
         store.Create(doc);
@@ -56,6 +57,7 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
         job.Progress.Should().Be(100);
         job.Metrics.EndedAt.Should().NotBeNull();
         File.Exists(PathHelpers.OutputPath(factory.DataRootPath, id)).Should().BeTrue();
+        File.ReadAllText(PathHelpers.MarkdownPath(factory.DataRootPath, id)).Should().Contain("md");
         File.Exists(PathHelpers.ErrorPath(factory.DataRootPath, id)).Should().BeFalse();
     }
 }

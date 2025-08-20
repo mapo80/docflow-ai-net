@@ -193,4 +193,40 @@ test('lists all paths without extra requests', async () => {
   expect(fetchSpy).not.toHaveBeenCalled();
 });
 
+test('previews markdown file', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    createdAt: '',
+    updatedAt: '',
+    paths: { input: '/input.pdf', markdown: '/markdown.md' },
+  } as any);
+  const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+    ok: true,
+    headers: new Headers({ 'content-type': 'text/markdown' }),
+    text: async () => '# hi',
+  } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
+  fireEvent.click(filesTab);
+  await waitFor(() => screen.getByText('markdown'));
+  const previewBtn = screen.getByLabelText('Preview');
+  fireEvent.click(previewBtn);
+  await waitFor(() => screen.getByText('hi'));
+  expect(fetchSpy).toHaveBeenCalledTimes(1);
+});
+
 

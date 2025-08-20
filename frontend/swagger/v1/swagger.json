@@ -257,7 +257,8 @@
                   "paths": {
                     "input": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/input.pdf",
                     "output": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output.json",
-                    "error": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt"
+                    "error": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/error.txt",
+                    "markdown": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md"
                   },
                   "model": "model",
                   "templateToken": "template"
@@ -337,6 +338,76 @@
                   "error": "conflict",
                   "message": "job already in terminal state",
                   "status": "Succeeded"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/markdown": {
+      "post": {
+        "tags": [
+          "Markdown"
+        ],
+        "operationId": "Markdown_Convert",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkdownResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1006,6 +1077,52 @@
   },
   "components": {
     "schemas": {
+      "Box": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "xNorm": {
+            "type": "number",
+            "format": "double"
+          },
+          "yNorm": {
+            "type": "number",
+            "format": "double"
+          },
+          "widthNorm": {
+            "type": "number",
+            "format": "double"
+          },
+          "heightNorm": {
+            "type": "number",
+            "format": "double"
+          },
+          "text": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateModelRequest": {
         "type": "object",
         "properties": {
@@ -1205,6 +1322,30 @@
         "additionalProperties": false,
         "description": "Summary information for a job."
       },
+      "MarkdownResult": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string",
+            "nullable": true
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageInfo"
+            },
+            "nullable": true
+          },
+          "boxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Box"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "MetricsInfo": {
         "type": "object",
         "properties": {
@@ -1328,6 +1469,24 @@
         },
         "additionalProperties": false
       },
+      "PageInfo": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "PagedJobsResponse": {
         "type": "object",
         "properties": {
@@ -1370,6 +1529,10 @@
             "nullable": true
           },
           "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "markdown": {
             "type": "string",
             "nullable": true
           }

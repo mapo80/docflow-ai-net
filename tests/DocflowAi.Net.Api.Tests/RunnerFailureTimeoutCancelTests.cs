@@ -26,7 +26,8 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
                 Dir = dir,
                 Input = input,
                 Output = PathHelpers.OutputPath(dataRoot, id),
-                Error = PathHelpers.ErrorPath(dataRoot, id)
+                Error = PathHelpers.ErrorPath(dataRoot, id),
+                Markdown = PathHelpers.MarkdownPath(dataRoot, id)
             }
         };
 
