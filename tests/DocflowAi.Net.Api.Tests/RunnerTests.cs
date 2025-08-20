@@ -3,9 +3,11 @@ using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.JobQueue.Processing;
 using DocflowAi.Net.Api.Options;
 using DocflowAi.Net.Api.Tests.Helpers;
+using DocflowAi.Net.Api.Tests.Fakes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using System.Threading;
 
 using DocflowAi.Net.Api.Tests.Fixtures;
 namespace DocflowAi.Net.Api.Tests;
@@ -59,6 +61,33 @@ public class RunnerTests : IClassFixture<TempDirFixture>
         var job = store.Get(id)!;
         job.Status.Should().Be("Succeeded");
         File.Exists(Path.Combine(dir, "output.json")).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Run_WritesMarkdown_DuringProcessing()
+    {
+        await using var factory = new TestWebAppFactory_Step3A(_fx.RootPath);
+        factory.Fake.CurrentMode = FakeProcessService.Mode.Slow;
+        using var scope = factory.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        var store = sp.GetRequiredService<IJobRepository>();
+        var uow = sp.GetRequiredService<IUnitOfWork>();
+        var fs = sp.GetRequiredService<IFileSystemService>();
+        var runner = sp.GetRequiredService<IJobRunner>();
+
+        var id = Guid.NewGuid();
+        fs.CreateJobDirectory(id);
+        var inputPath = await fs.SaveTextAtomic(id, "input.txt", "hi");
+        var dir = Path.GetDirectoryName(inputPath)!;
+        store.Create(CreateDoc(id, dir, inputPath));
+        uow.SaveChanges();
+
+        var runTask = runner.Run(id, CancellationToken.None);
+        var mdPath = Path.Combine(dir, "markdown.md");
+        SpinWait.SpinUntil(() => File.Exists(mdPath), 5000);
+        File.Exists(mdPath).Should().BeTrue();
+
+        await runTask;
     }
 
     [Fact]

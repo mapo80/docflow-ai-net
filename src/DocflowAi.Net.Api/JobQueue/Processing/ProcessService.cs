@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Processing;
 using DocflowAi.Net.Api.Templates.Abstractions;
 using DocflowAi.Net.Application.Abstractions;
@@ -25,6 +26,7 @@ public class ProcessService : IProcessService
     private readonly IMarkdownConverter _converter;
     private readonly ILlamaExtractor _llama;
     private readonly IResolverOrchestrator _resolver;
+    private readonly IFileSystemService _fs;
     private readonly Serilog.ILogger _logger = Log.ForContext<ProcessService>();
     private readonly MarkdownOptions _mdOptions;
 
@@ -33,12 +35,14 @@ public class ProcessService : IProcessService
         IMarkdownConverter converter,
         ILlamaExtractor llama,
         IResolverOrchestrator resolver,
+        IFileSystemService fs,
         IOptions<MarkdownOptions> mdOptions)
     {
         _templates = templates;
         _converter = converter;
         _llama = llama;
         _resolver = resolver;
+        _fs = fs;
         _mdOptions = mdOptions.Value;
     }
 
@@ -67,6 +71,8 @@ public class ProcessService : IProcessService
                 md = await _converter.ConvertImageAsync(fs, _mdOptions, ct);
             }
             mdSw.Stop();
+
+            await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
 
             var llmSw = Stopwatch.StartNew();
             var analysis = await _llama.ExtractAsync(md.Markdown, tpl.Name, tpl.PromptMarkdown ?? string.Empty, fields, ct);
