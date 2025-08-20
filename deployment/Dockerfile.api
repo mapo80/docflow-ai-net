@@ -12,6 +12,12 @@ COPY --from=frontend /app/frontend/dist ./src/DocflowAi.Net.Api/wwwroot
 RUN dotnet restore ./src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj
 RUN dotnet publish ./src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
+
+RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV OCR_DATA_PATH=/usr/share/tesseract-ocr/5/tessdata
+
 WORKDIR /app
 COPY --from=build /app/publish .
 COPY ./dataset ./dataset
