@@ -33,7 +33,8 @@ public class ProcessServiceTests
     {
         var tpl = new TemplateDocument { Token = "tok", Name = "tpl", FieldsJson = "[{\"Key\":\"f\",\"Type\":\"string\"}]", PromptMarkdown = "p" };
         var repo = new StubRepo(tpl);
-        var svc = new ProcessService(repo, new StubConverter(), new StubLlama(), new StubResolver(), new StubFs(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var fs = new StubFs();
+        var svc = new ProcessService(repo, new StubConverter(), new StubLlama(), new StubResolver(), fs, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var tmp = Path.GetTempFileName();
         await File.WriteAllTextAsync(tmp, "data");
         var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), tmp, Path.Combine(Path.GetTempPath(), "md.md"), Path.Combine(Path.GetTempPath(), "pr.md"), "tok", "m"), CancellationToken.None);
@@ -42,6 +43,8 @@ public class ProcessServiceTests
         json.RootElement.GetProperty("fields")[0].GetProperty("key").GetString().Should().Be("f");
         json.RootElement.GetProperty("metrics").GetProperty("total_ms").GetDouble().Should().BeGreaterThan(0);
         res.Markdown.Should().Be("md");
+        fs.Files["pr.md"].Should().Contain("[SYSTEM]");
+        fs.Files["pr.md"].Should().Contain("[USER]");
     }
 
     private sealed class StubRepo : ITemplateRepository
@@ -71,8 +74,8 @@ public class ProcessServiceTests
 
     private sealed class StubLlama : ILlamaExtractor
     {
-        public Task<DocumentAnalysisResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
-            => Task.FromResult(new DocumentAnalysisResult(templateName, new List<ExtractedField> { new("f","v",1,null,null) }, "it", null));
+        public Task<LlamaExtractionResult> ExtractAsync(string markdown, string templateName, string prompt, IReadOnlyList<FieldSpec> fieldsSpec, CancellationToken ct)
+            => Task.FromResult(new LlamaExtractionResult(new DocumentAnalysisResult(templateName, new List<ExtractedField> { new("f","v",1,null,null) }, "it", null), "sys", "user"));
         public void Dispose() {}
     }
 
@@ -84,9 +87,14 @@ public class ProcessServiceTests
 
     private sealed class StubFs : IFileSystemService
     {
+        public Dictionary<string, string> Files { get; } = new();
         public void EnsureDirectory(string path) { }
         public string CreateJobDirectory(Guid jobId) => string.Empty;
         public Task<string> SaveInputAtomic(Guid jobId, IFormFile file, CancellationToken ct = default) => Task.FromResult(string.Empty);
-        public Task<string> SaveTextAtomic(Guid jobId, string filename, string content, CancellationToken ct = default) => Task.FromResult(string.Empty);
+        public Task<string> SaveTextAtomic(Guid jobId, string filename, string content, CancellationToken ct = default)
+        {
+            Files[filename] = content;
+            return Task.FromResult(string.Empty);
+        }
     }
 }

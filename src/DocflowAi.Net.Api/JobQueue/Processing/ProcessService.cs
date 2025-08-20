@@ -56,9 +56,6 @@ public class ProcessService : IProcessService
 
             var fields = JsonSerializer.Deserialize<List<FieldSpec>>(tpl.FieldsJson) ?? new();
 
-            await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.PromptPath), tpl.PromptMarkdown ?? string.Empty);
-            var promptCreated = DateTimeOffset.UtcNow;
-
             await using var fs = File.OpenRead(input.InputPath);
             var contentType = GetContentType(input.InputPath);
 
@@ -79,15 +76,19 @@ public class ProcessService : IProcessService
             var mdCreated = DateTimeOffset.UtcNow;
 
             var llmSw = Stopwatch.StartNew();
-            var analysis = await _llama.ExtractAsync(md.Markdown, tpl.Name, tpl.PromptMarkdown ?? string.Empty, fields, ct);
+            var llm = await _llama.ExtractAsync(md.Markdown, tpl.Name, tpl.PromptMarkdown ?? string.Empty, fields, ct);
             llmSw.Stop();
+
+            var fullPrompt = $"[SYSTEM]\n{llm.SystemPrompt}\n\n[USER]\n{llm.UserPrompt}";
+            await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.PromptPath), fullPrompt);
+            var promptCreated = DateTimeOffset.UtcNow;
 
             var pages = md.Pages.Select(p => new DocumentIndexBuilder.SourcePage(p.Number, (float)p.Width, (float)p.Height)).ToList();
             var words = md.Boxes.Select(b => new DocumentIndexBuilder.SourceWord(b.Page, b.Text, (float)b.XNorm, (float)b.YNorm, (float)b.WidthNorm, (float)b.HeightNorm, false)).ToList();
             var index = DocumentIndexBuilder.Build(pages, words);
-            var resolved = await _resolver.ResolveAsync(index, analysis.Fields, ct);
+            var resolved = await _resolver.ResolveAsync(index, llm.Analysis.Fields, ct);
             var enrichedFields = resolved.Select(r => new ExtractedField(r.FieldName, r.Value, r.Confidence, r.Spans, r.Pointer)).ToList();
-            var enriched = new DocumentAnalysisResult(analysis.DocumentType, enrichedFields, analysis.Language, analysis.Notes);
+            var enriched = new DocumentAnalysisResult(llm.Analysis.DocumentType, enrichedFields, llm.Analysis.Language, llm.Analysis.Notes);
 
             totalSw.Stop();
 

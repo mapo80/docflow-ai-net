@@ -93,16 +93,16 @@ public sealed class ProcessingOrchestrator : IProcessingOrchestrator
 
             _logger.LogInformation("Running LLM extraction for {FileName}", file.FileName);
             var result = await _llama.ExtractAsync(mdResult.Markdown, templateName, prompt, fields, ct);
-            _logger.LogInformation("LLM extraction returned {FieldCount} fields", result.Fields.Count);
+            _logger.LogInformation("LLM extraction returned {FieldCount} fields", result.Analysis.Fields.Count);
             _logger.LogDebug("Building document index for {FileName}", file.FileName);
             var pagesIn = mdResult.Pages.Select(p => new DocumentIndexBuilder.SourcePage(p.Number, (float)p.Width, (float)p.Height)).ToList();
             var wordsIn = mdResult.Boxes.Select(b => new DocumentIndexBuilder.SourceWord(b.Page, b.Text, (float)b.XNorm, (float)b.YNorm, (float)b.WidthNorm, (float)b.HeightNorm, false)).ToList();
             var index = DocumentIndexBuilder.Build(pagesIn, wordsIn);
-            _logger.LogInformation("Resolving bounding boxes for {FieldCount} fields", result.Fields.Count);
-            var resolved = await _resolver.ResolveAsync(index, result.Fields, ct);
+            _logger.LogInformation("Resolving bounding boxes for {FieldCount} fields", result.Analysis.Fields.Count);
+            var resolved = await _resolver.ResolveAsync(index, result.Analysis.Fields, ct);
             var enrichedFields = resolved.Select(r => new ExtractedField(r.FieldName, r.Value, r.Confidence, r.Spans, r.Pointer)).ToList();
-            var enriched = new DocumentAnalysisResult(result.DocumentType, enrichedFields, result.Language, result.Notes);
-
+            var enriched = new DocumentAnalysisResult(result.Analysis.DocumentType, enrichedFields, result.Analysis.Language, result.Analysis.Notes);
+            
             _logger.LogInformation(
                 "Processing completed: {FileName}. Extracted {Count} fields.",
                 file.FileName,
