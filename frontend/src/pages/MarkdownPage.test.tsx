@@ -32,7 +32,7 @@ test('renders markdown and json', async () => {
   fireEvent.change(input, { target: { files: [file] } });
   fireEvent.click(screen.getByRole('button', { name: /convert/i }));
   await screen.findByText(/Execution time/);
-  await screen.findByDisplayValue('hello');
+  await screen.findByText('hello');
   fireEvent.click(screen.getByRole('tab', { name: 'JSON' }));
   await screen.findByText('markdown');
 });
