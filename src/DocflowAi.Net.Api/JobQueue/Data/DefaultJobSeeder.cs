@@ -61,7 +61,8 @@ public static class DefaultJobSeeder
                         Dir = okDir,
                         Input = Path.Combine(okDir, "input.pdf"),
                         Output = Path.Combine(okDir, "output.json"),
-                        Error = string.Empty
+                        Error = string.Empty,
+                        Markdown = Path.Combine(okDir, "markdown.md")
                     }
                 };
 
@@ -87,7 +88,8 @@ public static class DefaultJobSeeder
                         Dir = errDir,
                         Input = Path.Combine(errDir, "input.png"),
                         Output = string.Empty,
-                        Error = Path.Combine(errDir, "error.txt")
+                        Error = Path.Combine(errDir, "error.txt"),
+                        Markdown = Path.Combine(errDir, "markdown.md")
                     }
                 };
 

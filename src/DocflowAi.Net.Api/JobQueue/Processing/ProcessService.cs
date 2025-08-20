@@ -48,7 +48,7 @@ public class ProcessService : IProcessService
         {
             var tpl = _templates.GetByToken(input.TemplateToken);
             if (tpl == null)
-                return new ProcessResult(false, string.Empty, "template not found");
+                return new ProcessResult(false, string.Empty, null, "template not found");
 
             var fields = JsonSerializer.Deserialize<List<FieldSpec>>(tpl.FieldsJson) ?? new();
 
@@ -95,12 +95,12 @@ public class ProcessService : IProcessService
                 }
             };
             var json = JsonSerializer.Serialize(output);
-            return new ProcessResult(true, json, null);
+            return new ProcessResult(true, json, md.Markdown, null);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "ProcessFailed {JobId}", input.JobId);
-            return new ProcessResult(false, string.Empty, ex.Message);
+            return new ProcessResult(false, string.Empty, null, ex.Message);
         }
     }
 

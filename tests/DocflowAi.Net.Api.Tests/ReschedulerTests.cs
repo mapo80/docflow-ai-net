@@ -28,7 +28,8 @@ public class ReschedulerTests : IClassFixture<TempDirFixture>
                 Dir = dir,
                 Input = input,
                 Output = Path.Combine(dir, "output.json"),
-                Error = Path.Combine(dir, "error.txt")
+                Error = Path.Combine(dir, "error.txt"),
+                Markdown = Path.Combine(dir, "markdown.md")
             },
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,

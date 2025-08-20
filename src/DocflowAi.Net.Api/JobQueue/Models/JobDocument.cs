@@ -32,5 +32,6 @@ public class JobDocument
         public string? Input { get; set; }
         public string? Output { get; set; }
         public string? Error { get; set; }
+        public string? Markdown { get; set; }
     }
 }

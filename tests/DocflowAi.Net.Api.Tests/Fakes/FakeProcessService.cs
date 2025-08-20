@@ -34,17 +34,17 @@ public class FakeProcessService : IProcessService
             switch (CurrentMode)
             {
                 case Mode.Success:
-                    return new ProcessResult(true, "{\"ok\":true}", null);
+                    return new ProcessResult(true, "{\"ok\":true}", "# md", null);
                 case Mode.Fail:
-                    return new ProcessResult(false, string.Empty, "boom");
+                    return new ProcessResult(false, string.Empty, null, "boom");
                 case Mode.Slow:
                     await Task.Delay(SlowDelay, ct);
-                    return new ProcessResult(true, "{}", null);
+                    return new ProcessResult(true, "{}", "# md", null);
                 case Mode.Cancellable:
                     await Task.Delay(Timeout.InfiniteTimeSpan, ct);
-                    return new ProcessResult(true, "{}", null);
+                    return new ProcessResult(true, "{}", "# md", null);
                 default:
-                    return new ProcessResult(true, "{}", null);
+                    return new ProcessResult(true, "{}", "# md", null);
             }
         }
         finally
