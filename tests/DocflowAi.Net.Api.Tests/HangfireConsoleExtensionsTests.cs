@@ -1,7 +1,9 @@
 using DocflowAi.Net.Api.Tests.Fixtures;
 using FluentAssertions;
+using Hangfire;
 using Hangfire.Console.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace DocflowAi.Net.Api.Tests;
 
@@ -16,5 +18,8 @@ public class HangfireConsoleExtensionsTests : IClassFixture<TempDirFixture>
         using var factory = new TestWebAppFactory(_fx.RootPath);
         var manager = factory.Services.GetService<IJobManager>();
         manager.Should().NotBeNull();
+        GlobalJobFilters.Filters
+            .Any(f => f.Instance.GetType().Name == "ConsoleServerFilter")
+            .Should().BeTrue();
     }
 }

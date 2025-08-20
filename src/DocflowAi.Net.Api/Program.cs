@@ -46,6 +46,7 @@ using Hangfire.Dashboard;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using DocflowAi.Net.Infrastructure.Security;
 using Hangfire.Console.Extensions;
+using Hangfire.Console;
 using Microsoft.Data.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -138,6 +139,8 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<CleanupService>())
 
 builder.Services.AddHangfire(config =>
 {
+    config.UseSerilogLogProvider();
+    config.UseConsole(new ConsoleOptions());
     config.UseSimpleAssemblyNameTypeSerializer()
           .UseRecommendedSerializerSettings()
           .UseMemoryStorage();
