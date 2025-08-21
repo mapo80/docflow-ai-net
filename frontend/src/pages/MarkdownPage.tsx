@@ -4,6 +4,8 @@ import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import MDEditor from '@uiw/react-md-editor';
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import { ApiError, OpenAPI } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { validateFile } from './JobNew';
@@ -97,7 +99,10 @@ export default function MarkdownPage() {
                 label: 'Markdown',
                 children: (
                   <div style={{ maxHeight: 400, overflow: 'auto' }} data-color-mode="light">
-                    <MDEditor.Markdown source={result.markdown} />
+                    <MDEditor.Markdown
+                      source={result.markdown}
+                      remarkPlugins={[remarkGfm, remarkBreaks]}
+                    />
                   </div>
                 ),
               },

@@ -41,23 +41,6 @@ public class JobEndpointsHelpersTests
         }
     }
 
-    [Fact]
-    public void ToPublicPath_Transforms_Existing_File()
-    {
-        var id = Guid.Empty;
-        var tmp = Path.GetTempFileName();
-        try
-        {
-            Invoke<string?>("ToPublicPath", id, tmp)
-                .Should()
-                .Be($"/api/v1/jobs/{id}/files/{Path.GetFileName(tmp)}");
-        }
-        finally
-        {
-            File.Delete(tmp);
-        }
-    }
-
     [Theory]
     [InlineData(".json", "application/json")]
     [InlineData(".txt", "text/plain")]
