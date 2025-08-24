@@ -7,7 +7,7 @@ public sealed class MarkdownOptions
     public string? OcrDataPath { get; set; }
 
     /// <summary>Languages for OCR, e.g. "eng" or "ita+eng".</summary>
-    public string OcrLanguages { get; set; } = "eng";
+    public string OcrLanguages { get; set; } = "ita";
 
     /// <summary>DPI used when rasterizing PDFs for OCR fallback.</summary>
     public int PdfRasterDpi { get; set; } = 300;
