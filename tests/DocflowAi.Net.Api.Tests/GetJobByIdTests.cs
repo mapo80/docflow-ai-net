@@ -29,18 +29,19 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         var outputPath = Path.Combine(dir, "o.json");
         await File.WriteAllTextAsync(outputPath, "{}");
         var now = DateTimeOffset.UtcNow;
-        var job = new JobDocument
-        {
-            Id = id,
-            Status = "Running",
-            Progress = 42,
-            Attempts = 0,
-            Priority = 0,
-            CreatedAt = now,
-            UpdatedAt = now,
-            Hash = "h",
-            Model = "m",
-            TemplateToken = "t",
+            var job = new JobDocument
+            {
+                Id = id,
+                Status = "Running",
+                Progress = 42,
+                Attempts = 0,
+                Priority = 0,
+                CreatedAt = now,
+                UpdatedAt = now,
+                Hash = "h",
+                Model = "m",
+                TemplateToken = "t",
+                Language = "eng",
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
@@ -60,6 +61,7 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         json.GetProperty("status").GetString().Should().Be("Running");
         json.GetProperty("derivedStatus").GetString().Should().Be("Processing");
         json.GetProperty("progress").GetInt32().Should().Be(42);
+        json.GetProperty("language").GetString().Should().Be("eng");
         var paths = json.GetProperty("paths");
         paths.GetProperty("input").ValueKind.Should().Be(JsonValueKind.Null);
         paths.GetProperty("error").ValueKind.Should().Be(JsonValueKind.Null);
@@ -92,13 +94,14 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         var mdPath = Path.Combine(dir, "markdown.md");
         await File.WriteAllTextAsync(mdPath, "# md");
         var now2 = DateTimeOffset.UtcNow;
-        var job = new JobDocument
-        {
-            Id = id,
-            Status = "Running",
-            CreatedAt = now2,
-            UpdatedAt = now2,
-            Paths = new JobDocument.PathInfo
+            var job = new JobDocument
+            {
+                Id = id,
+                Status = "Running",
+                CreatedAt = now2,
+                UpdatedAt = now2,
+                Language = "eng",
+                Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
                 Input = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "i.pdf"), CreatedAt = now2 },
@@ -129,15 +132,16 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         var outputPath = Path.Combine(dir, "res.json");
         await File.WriteAllTextAsync(outputPath, "{\"ok\":true}");
         var now3 = DateTimeOffset.UtcNow;
-        var job = new JobDocument
-        {
-            Id = id,
-            Status = "Succeeded",
-            CreatedAt = now3,
-            UpdatedAt = now3,
-            Hash = "h",
-            Model = "m",
-            TemplateToken = "t",
+            var job = new JobDocument
+            {
+                Id = id,
+                Status = "Succeeded",
+                CreatedAt = now3,
+                UpdatedAt = now3,
+                Hash = "h",
+                Model = "m",
+                TemplateToken = "t",
+                Language = "eng",
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,

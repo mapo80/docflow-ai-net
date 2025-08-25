@@ -1,24 +1,21 @@
 import { useState } from 'react';
-import { Card, Form, Upload, Button, Tabs } from 'antd';
+import { Card, Form, Upload, Button, Tabs, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import MDEditor from '@uiw/react-md-editor';
 import JsonView from '@uiw/react-json-view';
 import { githubLightTheme } from '@uiw/react-json-view/githubLight';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
-import { ApiError, OpenAPI } from '../generated';
-import { request as __request } from '../generated/core/request';
+import { ApiError } from '../generated';
+import { MarkdownService } from '../generated/services/MarkdownService';
 import { validateFile } from './JobNew';
 import { useApiError } from '../components/ApiErrorProvider';
 
-export async function convertFile(file: File) {
-  const res = await __request(OpenAPI, {
-    method: 'POST',
-    url: '/api/v1/markdown',
+export async function convertFile(file: File, language: string) {
+  return await MarkdownService.markdownConvert({
+    language,
     formData: { file },
-    mediaType: 'multipart/form-data',
   });
-  return typeof res === 'string' ? JSON.parse(res) : res;
 }
 
 export default function MarkdownPage() {
@@ -26,6 +23,7 @@ export default function MarkdownPage() {
   const [result, setResult] = useState<any>(null);
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState('ita');
   const { showError } = useApiError();
 
   const handleConvert = async () => {
@@ -41,7 +39,7 @@ export default function MarkdownPage() {
     setLoading(true);
     const start = performance.now();
     try {
-      const res = await convertFile(file);
+      const res = await convertFile(file, language);
       setResult(res);
       setElapsed(performance.now() - start);
     } catch (e) {
@@ -80,6 +78,16 @@ export default function MarkdownPage() {
               </p>
             )}
           </Upload.Dragger>
+        </Form.Item>
+        <Form.Item label="Language" required>
+          <Select
+            value={language}
+            onChange={setLanguage}
+            options={[
+              { label: 'ita', value: 'ita' },
+              { label: 'eng', value: 'eng' },
+            ]}
+          />
         </Form.Item>
         <Form.Item>
           <Button type="primary" onClick={handleConvert} loading={loading}>

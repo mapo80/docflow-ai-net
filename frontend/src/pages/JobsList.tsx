@@ -121,6 +121,11 @@ export default function JobsList() {
       responsive: ['xl'],
     },
     {
+      title: 'Language',
+      dataIndex: 'language',
+      responsive: ['lg'],
+    },
+    {
       title: 'Attempts',
       dataIndex: 'attempts',
       render: (a?: number) => <Badge count={a || 0} showZero />,
@@ -219,6 +224,7 @@ export default function JobsList() {
                 </div>
                 <div>Template: {record.templateToken}</div>
                 <div>Model: {record.model}</div>
+                <div>Language: {record.language}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>{dayjs(record.updatedAt!).format('YYYY-MM-DD HH:mm')}</span>
                   <Space>

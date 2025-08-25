@@ -49,6 +49,7 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
         r1.items.Should().HaveCount(10);
         r1.items[0].id.Should().Be(jobs[34].Id);
         r1.items[9].id.Should().Be(jobs[25].Id);
+        r1.items[0].language.Should().Be("eng");
 
         var r2 = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs?page=2&pageSize=10");
         r2!.items[0].id.Should().Be(jobs[24].Id);
@@ -107,6 +108,6 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
     }
 
     private record JobListResponse(int page, int pageSize, int total, List<JobItem> items);
-    private record JobItem(Guid id, string status, string derivedStatus, int progress, int attempts, DateTimeOffset createdAt, DateTimeOffset updatedAt, string model, string templateToken);
+    private record JobItem(Guid id, string status, string derivedStatus, int progress, int attempts, DateTimeOffset createdAt, DateTimeOffset updatedAt, string model, string templateToken, string language);
     private record ErrorResponse(string error, string? message);
 }

@@ -33,13 +33,15 @@ export async function fileToBase64(file: File): Promise<string> {
 export async function buildPayload(
   file: File,
   model: string,
-  templateToken: string
+  templateToken: string,
+  language: string
 ) {
   return {
     fileBase64: await fileToBase64(file),
     fileName: file.name,
     model,
     templateToken,
+    language,
   };
 }
 
@@ -63,6 +65,7 @@ export default function JobNew() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [model, setModel] = useState('');
   const [templateToken, setTemplateToken] = useState('');
+  const [language, setLanguage] = useState('');
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -95,11 +98,11 @@ export default function JobNew() {
       showError(err);
       return;
     }
-    if (!model || !templateToken) {
-      showError('Model and template are required');
+    if (!model || !templateToken || !language) {
+      showError('Model, template and language are required');
       return;
     }
-    const payload = await buildPayload(file, model, templateToken);
+    const payload = await buildPayload(file, model, templateToken, language);
     setLoading(true);
     try {
       const data = await submitPayload(payload, idempotencyKey || undefined);
@@ -163,6 +166,17 @@ export default function JobNew() {
             options={templates.map((t) => ({ value: t.token, label: t.name }))}
             value={templateToken || undefined}
             onChange={(v) => setTemplateToken(v)}
+          />
+        </Form.Item>
+        <Form.Item label="OCR Language" required>
+          <Select
+            placeholder="Select language"
+            options={[
+              { value: 'eng', label: 'English' },
+              { value: 'ita', label: 'Italian' },
+            ]}
+            value={language || undefined}
+            onChange={(v) => setLanguage(v)}
           />
         </Form.Item>
         <Form.Item label="Idempotency Key">

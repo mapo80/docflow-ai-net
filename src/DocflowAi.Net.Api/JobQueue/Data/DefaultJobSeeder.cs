@@ -56,6 +56,7 @@ public static class DefaultJobSeeder
                     Metrics = new JobDocument.MetricsInfo { StartedAt = now, EndedAt = now, DurationMs = 0 },
                     Model = modelName,
                     TemplateToken = templateToken,
+                    Language = "eng",
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = okDir,
@@ -84,6 +85,7 @@ public static class DefaultJobSeeder
                     Metrics = new JobDocument.MetricsInfo(),
                     Model = modelName,
                     TemplateToken = templateToken,
+                    Language = "ita",
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = errDir,

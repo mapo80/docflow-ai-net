@@ -1,7 +1,11 @@
 using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using DocflowAi.Net.Api.Markdown.Endpoints;
 using DocflowAi.Net.Api.Contracts;
 using DocflowAi.Net.Api.Tests.Fakes;
+using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Markdown;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -17,7 +21,7 @@ public class MarkdownEndpointTests
     public async Task Convert_returns_markdown_json()
     {
         var file = new FormFile(new MemoryStream(new byte[] {1,2,3}), 0, 3, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, null, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var ctx = new DefaultHttpContext();
         ctx.RequestServices = new ServiceCollection().AddLogging().BuildServiceProvider();
         var ms = new MemoryStream();
@@ -32,7 +36,7 @@ public class MarkdownEndpointTests
     [Fact]
     public async Task Missing_file_returns_bad_request()
     {
-        var result = await MarkdownEndpoints.ConvertFileAsync(null, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(null, null, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(400, json.StatusCode);
     }
@@ -43,7 +47,7 @@ public class MarkdownEndpointTests
     public async Task Conversion_errors_are_translated(string code, int status)
     {
         var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, new ThrowingMarkdownConverter(code), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, null, new ThrowingMarkdownConverter(code), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(status, json.StatusCode);
         Assert.Equal(code, json.Value.Error);
@@ -53,9 +57,35 @@ public class MarkdownEndpointTests
     public async Task Native_library_failure_returns_internal_error()
     {
         var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, new ThrowingMarkdownConverter(new DllNotFoundException("liblept.so.5")), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, null, new ThrowingMarkdownConverter(new DllNotFoundException("liblept.so.5")), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(500, json.StatusCode);
         Assert.Equal("native_library_missing", json.Value.Error);
+    }
+
+    [Fact]
+    public async Task Language_parameter_is_passed_to_converter()
+    {
+        var file = new FormFile(new MemoryStream(new byte[] {1,2,3}), 0, 3, "file", "test.png");
+        var conv = new RecordingMarkdownConverter();
+        await MarkdownEndpoints.ConvertFileAsync(file, "eng", conv, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        Assert.Equal("eng", conv.LastOptions.OcrLanguages);
+    }
+
+    private sealed class RecordingMarkdownConverter : IMarkdownConverter
+    {
+        public MarkdownOptions? LastOptions { get; private set; }
+
+        public Task<MarkdownResult> ConvertPdfAsync(Stream pdf, MarkdownOptions opts, CancellationToken ct = default)
+        {
+            LastOptions = opts;
+            return Task.FromResult(new MarkdownResult(string.Empty, Array.Empty<PageInfo>(), Array.Empty<Box>()));
+        }
+
+        public Task<MarkdownResult> ConvertImageAsync(Stream image, MarkdownOptions opts, CancellationToken ct = default)
+        {
+            LastOptions = opts;
+            return Task.FromResult(new MarkdownResult(string.Empty, Array.Empty<PageInfo>(), Array.Empty<Box>()));
+        }
     }
 }

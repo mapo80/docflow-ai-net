@@ -56,7 +56,8 @@
                       "derivedStatus": "Pending",
                       "progress": 0,
                       "createdAt": "2024-01-01T00:00:00Z",
-                      "updatedAt": "2024-01-01T00:00:00Z"
+                      "updatedAt": "2024-01-01T00:00:00Z",
+                      "language": "eng"
                     },
                     {
                       "id": "00000000-0000-0000-0000-000000000002",
@@ -64,7 +65,8 @@
                       "derivedStatus": "Completed",
                       "progress": 100,
                       "createdAt": "2024-01-01T00:00:00Z",
-                      "updatedAt": "2024-01-01T00:01:00Z"
+                      "updatedAt": "2024-01-01T00:01:00Z",
+                      "language": "ita"
                     }
                   ]
                 }
@@ -367,6 +369,15 @@
           "Markdown"
         ],
         "operationId": "Markdown_Convert",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -409,7 +420,7 @@
             }
           },
           "422": {
-            "description": "Unprocessable Content",
+            "description": "Unprocessable Entity",
             "content": {
               "application/json": {
                 "schema": {
@@ -1305,6 +1316,10 @@
           "templateToken": {
             "type": "string",
             "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -1346,6 +1361,10 @@
             "nullable": true
           },
           "templateToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
             "type": "string",
             "nullable": true
           }

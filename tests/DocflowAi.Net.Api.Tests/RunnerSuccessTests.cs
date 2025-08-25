@@ -45,7 +45,8 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
                 Output = new JobDocument.DocumentInfo { Path = PathHelpers.OutputPath(factory.DataRootPath, id) },
                 Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(factory.DataRootPath, id) },
                 Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(factory.DataRootPath, id) }
-            }
+            },
+            Language = "eng"
         };
         store.Create(doc);
         uow.SaveChanges();

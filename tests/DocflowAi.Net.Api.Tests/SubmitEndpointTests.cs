@@ -25,7 +25,7 @@ public class SubmitEndpointTests : IClassFixture<TempDirFixture>
         new Random(1).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", model = "m", templateToken = "t" });
+        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", model = "m", templateToken = "t", language = "eng" });
         resp.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
         var id = json.GetProperty("job_id").GetGuid();
@@ -42,5 +42,6 @@ public class SubmitEndpointTests : IClassFixture<TempDirFixture>
         var job = DbTestHelper.GetJob(db, id);
         job.Should().NotBeNull();
         job!.Status.Should().BeOneOf("Queued","Succeeded","Running");
+        job.Language.Should().Be("eng");
     }
 }
