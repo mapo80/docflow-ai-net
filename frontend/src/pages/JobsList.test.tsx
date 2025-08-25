@@ -15,7 +15,7 @@ vi.mock('antd', () => ({
       {dataSource.map((row: any) => (
         <div key={row.id}>
           <span>{row.id}</span>
-          {columns[7].render(null, row)}
+          {columns[8].render(null, row)}
         </div>
       ))}
       <button onClick={() => pagination.onChange(2, pagination.pageSize)}>2</button>
@@ -41,7 +41,7 @@ test('pagination and cancel', async () => {
     .spyOn(JobsService, 'jobsList')
     .mockResolvedValue({
       items: [
-        { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm' } as any,
+        { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'eng' } as any,
       ],
       page: 1,
       pageSize: 10,

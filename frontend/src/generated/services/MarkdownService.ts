@@ -12,8 +12,10 @@ export class MarkdownService {
      * @throws ApiError
      */
     public static markdownConvert({
+        language,
         formData,
     }: {
+        language?: string,
         formData?: {
             file?: Blob;
         },
@@ -21,11 +23,14 @@ export class MarkdownService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/markdown',
+            query: {
+                'language': language,
+            },
             formData: formData,
             mediaType: 'multipart/form-data',
             errors: {
                 400: `Bad Request`,
-                422: `Unprocessable Content`,
+                422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
             },
         });

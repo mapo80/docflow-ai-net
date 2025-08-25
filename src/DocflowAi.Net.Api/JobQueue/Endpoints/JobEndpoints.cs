@@ -21,7 +21,7 @@ namespace DocflowAi.Net.Api.JobQueue.Endpoints;
 
 public static class JobEndpoints
 {
-    private record SubmitRequest(string FileBase64, string FileName, string Model, string TemplateToken);
+    private record SubmitRequest(string FileBase64, string FileName, string Model, string TemplateToken, string Language);
 
     public static IEndpointRouteBuilder MapJobEndpoints(this IEndpointRouteBuilder builder)
     {
@@ -52,7 +52,8 @@ public static class JobEndpoints
                     i.CreatedAt,
                     i.UpdatedAt,
                     i.Model,
-                    i.TemplateToken
+                    i.TemplateToken,
+                    i.Language
                 )).ToList()
             );
             return Results.Ok(response);
@@ -76,7 +77,8 @@ public static class JobEndpoints
                         ["derivedStatus"] = new OpenApiString("Pending"),
                         ["progress"] = new OpenApiInteger(0),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
-                        ["updatedAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                        ["updatedAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
+                        ["language"] = new OpenApiString("eng")
                     },
                     new OpenApiObject
                     {
@@ -85,7 +87,8 @@ public static class JobEndpoints
                         ["derivedStatus"] = new OpenApiString("Completed"),
                         ["progress"] = new OpenApiInteger(100),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
-                        ["updatedAt"] = new OpenApiString("2024-01-01T00:01:00Z")
+                        ["updatedAt"] = new OpenApiString("2024-01-01T00:01:00Z"),
+                        ["language"] = new OpenApiString("ita")
                     }
                 }
             };
@@ -126,8 +129,8 @@ public static class JobEndpoints
 
             SubmitRequest? payload = await req.ReadFromJsonAsync<SubmitRequest>();
             if (payload is null || string.IsNullOrEmpty(payload.FileBase64) || string.IsNullOrEmpty(payload.FileName)
-                || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken))
-                return Results.Json(new ErrorResponse("bad_request", "file, model and template required"), statusCode: 400);
+                || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken) || string.IsNullOrEmpty(payload.Language))
+                return Results.Json(new ErrorResponse("bad_request", "file, model, template and language required"), statusCode: 400);
 
             var bytes = Convert.FromBase64String(payload.FileBase64);
             var optsVal = opts.Value;
@@ -184,7 +187,7 @@ public static class JobEndpoints
             var jobId = Guid.NewGuid();
             fs.CreateJobDirectory(jobId);
             var inputPath = await fs.SaveInputAtomic(jobId, formFile);
-            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken });
+            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken, language = payload.Language });
             await fs.SaveTextAtomic(jobId, "manifest.json", manifest);
 
             var doc = new JobDocument
@@ -197,6 +200,7 @@ public static class JobEndpoints
                 IdempotencyKey = idemKey,
                 Model = payload.Model,
                 TemplateToken = payload.TemplateToken,
+                Language = payload.Language,
                 Paths = new JobDocument.PathInfo
                 {
                     Dir = Path.GetDirectoryName(inputPath)!,
@@ -280,7 +284,7 @@ public static class JobEndpoints
                 Error = ToPublicDoc(job.Id, job.Paths.Error),
                 Markdown = ToPublicDoc(job.Id, job.Paths.Markdown)
             };
-            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken);
+            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken, job.Language);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
             return Results.Ok(resp);
         })

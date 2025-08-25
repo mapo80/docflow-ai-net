@@ -16,6 +16,7 @@ public class JobDocument
     public string? ErrorMessage { get; set; }
     public string Model { get; set; } = string.Empty;
     public string TemplateToken { get; set; } = string.Empty;
+    public string Language { get; set; } = string.Empty;
 
     public class MetricsInfo
     {

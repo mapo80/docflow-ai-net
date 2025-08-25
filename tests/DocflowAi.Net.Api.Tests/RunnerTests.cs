@@ -34,7 +34,8 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 Output = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "output.json") },
                 Error = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "error.txt") },
                 Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "markdown.md") }
-            }
+            },
+            Language = "eng"
         };
 
     [Fact]

@@ -15,5 +15,6 @@ export type JobSummary = {
     updatedAt?: string;
     model?: string | null;
     templateToken?: string | null;
+    language?: string | null;
 };
 

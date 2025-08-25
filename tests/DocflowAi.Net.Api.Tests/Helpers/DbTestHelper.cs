@@ -40,6 +40,7 @@ public static class DbTestHelper
             Hash = faker.Random.Hash(),
             Model = "m",
             TemplateToken = "t",
+            Language = "eng",
             Paths = new JobDocument.PathInfo
             {
                 Dir = string.Empty,

@@ -18,7 +18,7 @@ public class RateLimitSubmitTests : IClassFixture<TempDirFixture>
     {
         using var factory = new TestWebAppFactory(_fx.RootPath, permit:1, windowSeconds:1);
         var client = factory.CreateClient();
-        var body = new { fileBase64 = Convert.ToBase64String(new byte[10]), fileName = "a.pdf", model = "m", templateToken = "t" };
+        var body = new { fileBase64 = Convert.ToBase64String(new byte[10]), fileName = "a.pdf", model = "m", templateToken = "t", language = "eng" };
         await client.PostAsJsonAsync("/api/v1/jobs", body);
         using (TestCorrelator.CreateContext())
         {
