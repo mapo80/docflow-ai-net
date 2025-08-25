@@ -373,6 +373,15 @@
           {
             "name": "language",
             "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "engine",
+            "in": "query",
+            "required": true,
             "schema": {
               "type": "string"
             }

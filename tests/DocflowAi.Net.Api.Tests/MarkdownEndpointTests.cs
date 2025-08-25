@@ -21,7 +21,7 @@ public class MarkdownEndpointTests
     public async Task Convert_returns_markdown_json()
     {
         var file = new FormFile(new MemoryStream(new byte[] {1,2,3}), 0, 3, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", "tesseract", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var ctx = new DefaultHttpContext();
         ctx.RequestServices = new ServiceCollection().AddLogging().BuildServiceProvider();
         var ms = new MemoryStream();
@@ -36,7 +36,7 @@ public class MarkdownEndpointTests
     [Fact]
     public async Task Missing_file_returns_bad_request()
     {
-        var result = await MarkdownEndpoints.ConvertFileAsync(null, "eng", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(null, "eng", "tesseract", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(400, json.StatusCode);
     }
@@ -47,7 +47,7 @@ public class MarkdownEndpointTests
     public async Task Conversion_errors_are_translated(string code, int status)
     {
         var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", new ThrowingMarkdownConverter(code), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", "tesseract", new ThrowingMarkdownConverter(code), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(status, json.StatusCode);
         Assert.Equal(code, json.Value.Error);
@@ -57,7 +57,7 @@ public class MarkdownEndpointTests
     public async Task Native_library_failure_returns_internal_error()
     {
         var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", new ThrowingMarkdownConverter(new DllNotFoundException("liblept.so.5")), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", "tesseract", new ThrowingMarkdownConverter(new DllNotFoundException("liblept.so.5")), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(500, json.StatusCode);
         Assert.Equal("native_library_missing", json.Value.Error);
@@ -68,15 +68,16 @@ public class MarkdownEndpointTests
     {
         var file = new FormFile(new MemoryStream(new byte[] {1,2,3}), 0, 3, "file", "test.png");
         var conv = new RecordingMarkdownConverter();
-        await MarkdownEndpoints.ConvertFileAsync(file, "eng", conv, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        await MarkdownEndpoints.ConvertFileAsync(file, "eng", "rapidocr", conv, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         Assert.Equal("eng", conv.LastOptions.OcrLanguages);
+        Assert.Equal(OcrEngine.RapidOcr, conv.LastOptions.Engine);
     }
 
     [Fact]
     public async Task Missing_language_returns_bad_request()
     {
         var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, null, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, null, "tesseract", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(400, json.StatusCode);
     }
@@ -85,7 +86,25 @@ public class MarkdownEndpointTests
     public async Task Invalid_language_returns_bad_request()
     {
         var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
-        var result = await MarkdownEndpoints.ConvertFileAsync(file, "fra", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, "fra", "tesseract", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
+        Assert.Equal(400, json.StatusCode);
+    }
+
+    [Fact]
+    public async Task Missing_engine_returns_bad_request()
+    {
+        var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", null, new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
+        Assert.Equal(400, json.StatusCode);
+    }
+
+    [Fact]
+    public async Task Invalid_engine_returns_bad_request()
+    {
+        var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", "foo", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(400, json.StatusCode);
     }
