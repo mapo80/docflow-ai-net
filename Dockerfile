@@ -79,7 +79,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   && lepto=$(find /usr/lib -name 'libleptonica.so*' | head -n 1) \
   && [ -z "$lepto" ] || [ -f /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so ] || ln -s "$lepto" /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
   && mkdir -p /app/models \
-  && cp /usr/share/tesseract-ocr/5/tessdata/* /app/models/ \
+  && cp -r /usr/share/tesseract-ocr/5/tessdata/* /app/models/ \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
