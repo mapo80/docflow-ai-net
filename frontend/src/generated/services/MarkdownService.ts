@@ -13,9 +13,11 @@ export class MarkdownService {
      */
     public static markdownConvert({
         language,
+        engine,
         formData,
     }: {
-        language?: string,
+        language: string,
+        engine: string,
         formData?: {
             file?: Blob;
         },
@@ -25,6 +27,7 @@ export class MarkdownService {
             url: '/api/v1/markdown',
             query: {
                 'language': language,
+                'engine': engine,
             },
             formData: formData,
             mediaType: 'multipart/form-data',

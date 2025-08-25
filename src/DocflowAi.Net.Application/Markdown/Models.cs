@@ -1,5 +1,12 @@
 namespace DocflowAi.Net.Application.Markdown;
 
+/// <summary>Supported OCR engines.</summary>
+public enum OcrEngine
+{
+    Tesseract,
+    RapidOcr
+}
+
 /// <summary>Options for markdown conversion.</summary>
 public sealed class MarkdownOptions
 {
@@ -17,6 +24,9 @@ public sealed class MarkdownOptions
 
     /// <summary>Normalize markdown output using Markdig.</summary>
     public bool NormalizeMarkdown { get; set; } = true;
+
+    /// <summary>OCR engine to use.</summary>
+    public OcrEngine Engine { get; set; } = OcrEngine.Tesseract;
 }
 
 /// <summary>Conversion result containing markdown and bounding boxes.</summary>

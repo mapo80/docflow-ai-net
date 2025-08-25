@@ -11,9 +11,10 @@ import { MarkdownService } from '../generated/services/MarkdownService';
 import { validateFile } from './JobNew';
 import { useApiError } from '../components/ApiErrorProvider';
 
-export async function convertFile(file: File, language: string) {
+export async function convertFile(file: File, language: string, engine: string) {
   return await MarkdownService.markdownConvert({
     language,
+    engine,
     formData: { file },
   });
 }
@@ -24,6 +25,7 @@ export default function MarkdownPage() {
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('ita');
+  const [engine, setEngine] = useState('tesseract');
   const { showError } = useApiError();
 
   const handleConvert = async () => {
@@ -39,7 +41,7 @@ export default function MarkdownPage() {
     setLoading(true);
     const start = performance.now();
     try {
-      const res = await convertFile(file, language);
+      const res = await convertFile(file, language, engine);
       setResult(res);
       setElapsed(performance.now() - start);
     } catch (e) {
@@ -86,6 +88,16 @@ export default function MarkdownPage() {
             options={[
               { label: 'Italian', value: 'ita' },
               { label: 'English', value: 'eng' },
+            ]}
+          />
+        </Form.Item>
+        <Form.Item label="OCR engine" required>
+          <Select
+            value={engine}
+            onChange={setEngine}
+            options={[
+              { label: 'Tesseract', value: 'tesseract' },
+              { label: 'RapidOCR', value: 'rapidocr' },
             ]}
           />
         </Form.Item>
