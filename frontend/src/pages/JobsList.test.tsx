@@ -15,6 +15,9 @@ vi.mock('antd', () => ({
       {dataSource.map((row: any) => (
         <div key={row.id}>
           <span>{row.id}</span>
+          <div>
+            {columns[4].title}: {columns[4].render(row.language, row)}
+          </div>
           {columns[8].render(null, row)}
         </div>
       ))}
@@ -56,6 +59,7 @@ test('pagination and cancel', async () => {
     </ApiErrorProvider>,
   );
   await waitFor(() => expect(getSpy).toHaveBeenCalledWith({ page: 1, pageSize: 10 }));
+  await screen.findByText('OCR language: English');
   fireEvent.click(screen.getByText('2'));
   await waitFor(() => expect(getSpy).toHaveBeenLastCalledWith({ page: 2, pageSize: 10 }));
   fireEvent.click(screen.getByTitle('Cancel job'));

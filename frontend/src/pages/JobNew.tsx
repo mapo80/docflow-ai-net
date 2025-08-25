@@ -168,7 +168,7 @@ export default function JobNew() {
             onChange={(v) => setTemplateToken(v)}
           />
         </Form.Item>
-        <Form.Item label="OCR Language" required>
+        <Form.Item label="OCR language" required>
           <Select
             placeholder="Select language"
             options={[
