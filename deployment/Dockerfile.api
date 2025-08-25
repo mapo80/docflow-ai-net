@@ -26,11 +26,11 @@ WORKDIR /app
 COPY --from=build /app/publish .
 COPY ./dataset ./dataset
 COPY markitdownnet/src/RapidOcrNet/RapidOcrNet/models /tmp/rapidocr-models
-RUN mkdir -p /app/models/rec /app/models/det /app/models/cls \
-    && cp /tmp/rapidocr-models/*det* /app/models/det/ \
+RUN mkdir -p /app/models/rec /app/models/labels \
+    && cp /tmp/rapidocr-models/*det* /app/models/ \
+    && cp /tmp/rapidocr-models/*cls* /app/models/ \
     && cp /tmp/rapidocr-models/*rec* /app/models/rec/ \
-    && cp /tmp/rapidocr-models/*cls* /app/models/cls/ \
-    && cp /tmp/rapidocr-models/*.txt /app/models/ \
+    && cp /tmp/rapidocr-models/*dict.txt /app/models/labels/ \
     && cp /tmp/rapidocr-models/*SLANet* /app/models/ \
     && rm -rf /tmp/rapidocr-models
 ENV ASPNETCORE_URLS=http://+:8080
