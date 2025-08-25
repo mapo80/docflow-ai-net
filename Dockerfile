@@ -78,8 +78,20 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
       ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 tesseract-ocr \
   && lepto=$(find /usr/lib -name 'libleptonica.so*' | head -n 1) \
   && [ -z "$lepto" ] || [ -f /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so ] || ln -s "$lepto" /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
+  && mkdir -p /app/models \
+  && cp /usr/share/tesseract-ocr/5/tessdata/* /app/models/ \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+
+# RapidOCR models
+COPY markitdownnet/src/RapidOcrNet/RapidOcrNet/models /tmp/rapidocr-models
+RUN mkdir -p /app/models/rec /app/models/labels \
+    && cp /tmp/rapidocr-models/*det* /app/models/ \
+    && cp /tmp/rapidocr-models/*cls* /app/models/ \
+    && cp /tmp/rapidocr-models/*rec* /app/models/rec/ \
+    && cp /tmp/rapidocr-models/*dict.txt /app/models/labels/ \
+    && cp /tmp/rapidocr-models/*SLANet* /app/models/ \
+    && rm -rf /tmp/rapidocr-models
 
 # Re-import ARGs so they can be promoted to ENV
 ARG LLM_DEFAULT_MODEL_REPO
@@ -95,10 +107,10 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     LLM__DefaultModelRepo=${LLM_DEFAULT_MODEL_REPO} \
     LLM__DefaultModelFile=${LLM_DEFAULT_MODEL_FILE} \
     LLM_MODEL_REV=${LLM_MODEL_REV} \
-    OCR_DATA_PATH=/usr/share/tesseract-ocr/5/tessdata
+    OCR_DATA_PATH=/app/models
 
 # Non-root user
-RUN useradd -ms /bin/bash appuser
+RUN useradd -ms /bin/bash appuser && chown -R appuser:appuser /app/models
 USER appuser
 WORKDIR /app
 
