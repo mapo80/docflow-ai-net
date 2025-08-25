@@ -132,6 +132,9 @@ public static class JobEndpoints
                 || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken) || string.IsNullOrEmpty(payload.Language))
                 return Results.Json(new ErrorResponse("bad_request", "file, model, template and language required"), statusCode: 400);
 
+            if (payload.Language != "ita" && payload.Language != "eng")
+                return Results.Json(new ErrorResponse("bad_request", "language must be 'ita' or 'eng'"), statusCode: 400);
+
             var bytes = Convert.FromBase64String(payload.FileBase64);
             var optsVal = opts.Value;
             if (bytes.Length > optsVal.UploadLimits.MaxRequestBodyMB * 1024 * 1024)

@@ -121,8 +121,9 @@ export default function JobsList() {
       responsive: ['xl'],
     },
     {
-      title: 'Language',
+      title: 'OCR language',
       dataIndex: 'language',
+      render: (v: string) => (v === 'eng' ? 'English' : v === 'ita' ? 'Italian' : v),
       responsive: ['lg'],
     },
     {
@@ -224,7 +225,7 @@ export default function JobsList() {
                 </div>
                 <div>Template: {record.templateToken}</div>
                 <div>Model: {record.model}</div>
-                <div>Language: {record.language}</div>
+                <div>OCR language: {record.language === 'eng' ? 'English' : record.language === 'ita' ? 'Italian' : record.language}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>{dayjs(record.updatedAt!).format('YYYY-MM-DD HH:mm')}</span>
                   <Space>

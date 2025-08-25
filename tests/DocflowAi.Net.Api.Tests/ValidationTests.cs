@@ -50,4 +50,14 @@ public class ValidationTests : IClassFixture<TempDirFixture>
         var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(bytes), fileName = "a.pdf", model = "m", templateToken = "t" });
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task Invalid_language_returns_400()
+    {
+        await using var factory = new TestWebAppFactory(_fx.RootPath);
+        var client = factory.CreateClient();
+        var bytes = new byte[10];
+        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(bytes), fileName = "a.pdf", model = "m", templateToken = "t", language = "fra" });
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }

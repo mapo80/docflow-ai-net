@@ -35,12 +35,18 @@ public static class MarkdownEndpoints
         .WithOpenApi(op =>
         {
             var p = op.Parameters?.FirstOrDefault(x => x.Name == "language");
-            if (p?.Schema != null)
-                p.Schema.Enum = new List<IOpenApiAny>
+            if (p != null)
+            {
+                p.Required = true;
+                if (p.Schema != null)
                 {
-                    new OpenApiString("ita"),
-                    new OpenApiString("eng"),
-                };
+                    p.Schema.Enum = new OpenApiArray
+                    {
+                        new OpenApiString("ita"),
+                        new OpenApiString("eng"),
+                    };
+                }
+            }
             return op;
         });
 
@@ -51,6 +57,8 @@ public static class MarkdownEndpoints
     {
         if (file == null || file.Length == 0)
             return Results.Json(new ErrorResponse("bad_request", "file required"), statusCode: 400);
+        if (string.IsNullOrWhiteSpace(language) || (language != "ita" && language != "eng"))
+            return Results.Json(new ErrorResponse("bad_request", "language must be 'ita' or 'eng'"), statusCode: 400);
 
         await using var stream = file.OpenReadStream();
         try
@@ -60,7 +68,7 @@ public static class MarkdownEndpoints
             var mdOpts = new MarkdownOptions
             {
                 OcrDataPath = opts.Value.OcrDataPath,
-                OcrLanguages = string.IsNullOrWhiteSpace(language) ? opts.Value.OcrLanguages : language,
+                OcrLanguages = language,
                 PdfRasterDpi = opts.Value.PdfRasterDpi,
                 MinimumNativeWordThreshold = opts.Value.MinimumNativeWordThreshold,
                 NormalizeMarkdown = opts.Value.NormalizeMarkdown

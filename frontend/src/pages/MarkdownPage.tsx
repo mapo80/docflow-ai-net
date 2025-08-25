@@ -79,13 +79,13 @@ export default function MarkdownPage() {
             )}
           </Upload.Dragger>
         </Form.Item>
-        <Form.Item label="Language" required>
+        <Form.Item label="OCR language" required>
           <Select
             value={language}
             onChange={setLanguage}
             options={[
-              { label: 'ita', value: 'ita' },
-              { label: 'eng', value: 'eng' },
+              { label: 'Italian', value: 'ita' },
+              { label: 'English', value: 'eng' },
             ]}
           />
         </Form.Item>
