@@ -1,6 +1,7 @@
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.JobQueue.Processing;
+using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Api.Options;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.Tests.Fakes;
@@ -35,7 +36,8 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 Error = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "error.txt") },
                 Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "markdown.md") }
             },
-            Language = "eng"
+            Language = "eng",
+            Engine = OcrEngine.Tesseract
         };
 
     [Fact]

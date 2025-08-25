@@ -1,8 +1,9 @@
 using System;
+using DocflowAi.Net.Application.Markdown;
 
 namespace DocflowAi.Net.Api.JobQueue.Processing;
 
-public record ProcessInput(Guid JobId, string InputPath, string MarkdownPath, string PromptPath, string TemplateToken, string Model);
+public record ProcessInput(Guid JobId, string InputPath, string MarkdownPath, string PromptPath, string TemplateToken, string Model, OcrEngine Engine);
 public record ProcessResult(bool Success, string OutputJson, string? Markdown, string? ErrorMessage, DateTimeOffset? MarkdownCreatedAt, DateTimeOffset? PromptCreatedAt);
 
 public interface IProcessService

@@ -2,6 +2,7 @@ using DocflowAi.Net.Api.Contracts;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Options;
+using DocflowAi.Net.Application.Markdown;
 using Hangfire;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
@@ -21,7 +22,7 @@ namespace DocflowAi.Net.Api.JobQueue.Endpoints;
 
 public static class JobEndpoints
 {
-    private record SubmitRequest(string FileBase64, string FileName, string Model, string TemplateToken, string Language);
+    private record SubmitRequest(string FileBase64, string FileName, string Model, string TemplateToken, string Language, string Engine);
 
     public static IEndpointRouteBuilder MapJobEndpoints(this IEndpointRouteBuilder builder)
     {
@@ -53,7 +54,8 @@ public static class JobEndpoints
                     i.UpdatedAt,
                     i.Model,
                     i.TemplateToken,
-                    i.Language
+                    i.Language,
+                    i.Engine == OcrEngine.RapidOcr ? "rapidocr" : "tesseract"
                 )).ToList()
             );
             return Results.Ok(response);
@@ -78,7 +80,8 @@ public static class JobEndpoints
                         ["progress"] = new OpenApiInteger(0),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
                         ["updatedAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
-                        ["language"] = new OpenApiString("eng")
+                        ["language"] = new OpenApiString("eng"),
+                        ["engine"] = new OpenApiString("tesseract")
                     },
                     new OpenApiObject
                     {
@@ -88,7 +91,8 @@ public static class JobEndpoints
                         ["progress"] = new OpenApiInteger(100),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
                         ["updatedAt"] = new OpenApiString("2024-01-01T00:01:00Z"),
-                        ["language"] = new OpenApiString("ita")
+                        ["language"] = new OpenApiString("ita"),
+                        ["engine"] = new OpenApiString("rapidocr")
                     }
                 }
             };
@@ -129,11 +133,13 @@ public static class JobEndpoints
 
             SubmitRequest? payload = await req.ReadFromJsonAsync<SubmitRequest>();
             if (payload is null || string.IsNullOrEmpty(payload.FileBase64) || string.IsNullOrEmpty(payload.FileName)
-                || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken) || string.IsNullOrEmpty(payload.Language))
-                return Results.Json(new ErrorResponse("bad_request", "file, model, template and language required"), statusCode: 400);
+                || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken) || string.IsNullOrEmpty(payload.Language) || string.IsNullOrEmpty(payload.Engine))
+                return Results.Json(new ErrorResponse("bad_request", "file, model, template, language and engine required"), statusCode: 400);
 
             if (payload.Language != "ita" && payload.Language != "eng")
                 return Results.Json(new ErrorResponse("bad_request", "language must be 'ita' or 'eng'"), statusCode: 400);
+            if (payload.Engine != "tesseract" && payload.Engine != "rapidocr")
+                return Results.Json(new ErrorResponse("bad_request", "engine must be 'tesseract' or 'rapidocr'"), statusCode: 400);
 
             var bytes = Convert.FromBase64String(payload.FileBase64);
             var optsVal = opts.Value;
@@ -190,7 +196,7 @@ public static class JobEndpoints
             var jobId = Guid.NewGuid();
             fs.CreateJobDirectory(jobId);
             var inputPath = await fs.SaveInputAtomic(jobId, formFile);
-            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken, language = payload.Language });
+            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken, language = payload.Language, engine = payload.Engine });
             await fs.SaveTextAtomic(jobId, "manifest.json", manifest);
 
             var doc = new JobDocument
@@ -204,6 +210,7 @@ public static class JobEndpoints
                 Model = payload.Model,
                 TemplateToken = payload.TemplateToken,
                 Language = payload.Language,
+                Engine = payload.Engine == "rapidocr" ? OcrEngine.RapidOcr : OcrEngine.Tesseract,
                 Paths = new JobDocument.PathInfo
                 {
                     Dir = Path.GetDirectoryName(inputPath)!,
@@ -287,7 +294,7 @@ public static class JobEndpoints
                 Error = ToPublicDoc(job.Id, job.Paths.Error),
                 Markdown = ToPublicDoc(job.Id, job.Paths.Markdown)
             };
-            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken, job.Language);
+            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken, job.Language, job.Engine == OcrEngine.RapidOcr ? "rapidocr" : "tesseract");
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
             return Results.Ok(resp);
         })
@@ -335,7 +342,9 @@ public static class JobEndpoints
                     }
                 },
                 ["model"] = new OpenApiString("model"),
-                ["templateToken"] = new OpenApiString("template")
+                ["templateToken"] = new OpenApiString("template"),
+                ["language"] = new OpenApiString("eng"),
+                ["engine"] = new OpenApiString("tesseract")
             };
             op.Responses["404"].Content["application/json"].Example = new OpenApiObject
             {

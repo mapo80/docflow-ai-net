@@ -1,5 +1,6 @@
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Models;
+using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
@@ -33,7 +34,8 @@ public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
             UpdatedAt = DateTimeOffset.UtcNow,
             Hash = "h",
             Metrics = new JobDocument.MetricsInfo(),
-            Language = "eng"
+            Language = "eng",
+            Engine = OcrEngine.Tesseract
         };
 
     [Fact]

@@ -34,7 +34,8 @@ export async function buildPayload(
   file: File,
   model: string,
   templateToken: string,
-  language: string
+  language: string,
+  engine: string,
 ) {
   return {
     fileBase64: await fileToBase64(file),
@@ -42,6 +43,7 @@ export async function buildPayload(
     model,
     templateToken,
     language,
+    engine,
   };
 }
 
@@ -66,6 +68,7 @@ export default function JobNew() {
   const [model, setModel] = useState('');
   const [templateToken, setTemplateToken] = useState('');
   const [language, setLanguage] = useState('');
+  const [engine, setEngine] = useState('');
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -98,11 +101,11 @@ export default function JobNew() {
       showError(err);
       return;
     }
-    if (!model || !templateToken || !language) {
-      showError('Model, template and language are required');
+    if (!model || !templateToken || !language || !engine) {
+      showError('Model, template, language and engine are required');
       return;
     }
-    const payload = await buildPayload(file, model, templateToken, language);
+    const payload = await buildPayload(file, model, templateToken, language, engine);
     setLoading(true);
     try {
       const data = await submitPayload(payload, idempotencyKey || undefined);
@@ -177,6 +180,17 @@ export default function JobNew() {
             ]}
             value={language || undefined}
             onChange={(v) => setLanguage(v)}
+          />
+        </Form.Item>
+        <Form.Item label="OCR engine" required>
+          <Select
+            placeholder="Select engine"
+            options={[
+              { value: 'tesseract', label: 'Tesseract' },
+              { value: 'rapidocr', label: 'RapidOCR' },
+            ]}
+            value={engine || undefined}
+            onChange={(v) => setEngine(v)}
           />
         </Form.Item>
         <Form.Item label="Idempotency Key">

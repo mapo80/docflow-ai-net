@@ -160,5 +160,5 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
     }
 
     private record JobListResponse(int page, int pageSize, int total, List<JobItem> items);
-    private record JobItem(Guid id, string status, string derivedStatus, int progress, DateTimeOffset createdAt, DateTimeOffset updatedAt, string language);
+    private record JobItem(Guid id, string status, string derivedStatus, int progress, DateTimeOffset createdAt, DateTimeOffset updatedAt, string language, string engine);
 }

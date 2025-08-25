@@ -62,13 +62,22 @@ public class ProcessService : IProcessService
             var totalSw = Stopwatch.StartNew();
             MarkdownResult md;
             var mdSw = Stopwatch.StartNew();
+            var mdOpts = new MarkdownOptions
+            {
+                OcrDataPath = _mdOptions.OcrDataPath,
+                OcrLanguages = _mdOptions.OcrLanguages,
+                PdfRasterDpi = _mdOptions.PdfRasterDpi,
+                MinimumNativeWordThreshold = _mdOptions.MinimumNativeWordThreshold,
+                NormalizeMarkdown = _mdOptions.NormalizeMarkdown,
+                Engine = input.Engine
+            };
             if (contentType == "application/pdf")
             {
-                md = await _converter.ConvertPdfAsync(fs, _mdOptions, ct);
+                md = await _converter.ConvertPdfAsync(fs, mdOpts, ct);
             }
             else
             {
-                md = await _converter.ConvertImageAsync(fs, _mdOptions, ct);
+                md = await _converter.ConvertImageAsync(fs, mdOpts, ct);
             }
             mdSw.Stop();
 

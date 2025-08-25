@@ -30,10 +30,12 @@ public class JobDbContext : DbContext
         job.HasIndex(j => j.IdempotencyKey);
         job.HasIndex(j => j.Hash);
         job.HasIndex(j => j.Language);
+        job.HasIndex(j => j.Engine);
 
         job.Property(j => j.CreatedAt).HasConversion(converter);
         job.Property(j => j.UpdatedAt).HasConversion(converter);
         job.Property(j => j.Language).IsRequired();
+        job.Property(j => j.Engine).IsRequired();
         
 
         job.OwnsOne(j => j.Metrics, m =>
