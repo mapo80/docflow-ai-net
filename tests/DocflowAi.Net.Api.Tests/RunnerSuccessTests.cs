@@ -1,5 +1,6 @@
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Models;
+using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Helpers;
@@ -46,7 +47,8 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
                 Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(factory.DataRootPath, id) },
                 Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(factory.DataRootPath, id) }
             },
-            Language = "eng"
+            Language = "eng",
+            Engine = OcrEngine.Tesseract
         };
         store.Create(doc);
         uow.SaveChanges();

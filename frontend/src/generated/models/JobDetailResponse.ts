@@ -2,10 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { MetricsInfo } from './MetricsInfo';
+import type { PathInfo } from './PathInfo';
 /**
- * Summary information for a job.
+ * Detailed job information.
  */
-export type JobSummary = {
+export type JobDetailResponse = {
     id?: string;
     status?: string | null;
     derivedStatus?: string | null;
@@ -13,6 +15,9 @@ export type JobSummary = {
     attempts?: number;
     createdAt?: string;
     updatedAt?: string;
+    metrics?: MetricsInfo;
+    paths?: PathInfo;
+    errorMessage?: string | null;
     model?: string | null;
     templateToken?: string | null;
     language?: string | null;
