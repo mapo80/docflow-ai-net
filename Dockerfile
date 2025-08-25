@@ -85,13 +85,15 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 
 # RapidOCR models
 COPY markitdownnet/src/RapidOcrNet/RapidOcrNet/models /tmp/rapidocr-models
-RUN mkdir -p /app/models/rec /app/models/labels \
-    && cp /tmp/rapidocr-models/*det* /app/models/ \
-    && cp /tmp/rapidocr-models/*cls* /app/models/ \
-    && cp /tmp/rapidocr-models/*rec* /app/models/rec/ \
-    && cp /tmp/rapidocr-models/*dict.txt /app/models/labels/ \
-    && cp /tmp/rapidocr-models/*SLANet* /app/models/ \
-    && rm -rf /tmp/rapidocr-models
+RUN set -e; \
+    mkdir -p /app/models/rec /app/models/labels; \
+    cp /tmp/rapidocr-models/*det* /app/models/; \
+    cp /tmp/rapidocr-models/*cls* /app/models/; \
+    cp /tmp/rapidocr-models/*rec* /app/models/rec/; \
+    cp /tmp/rapidocr-models/*dict.txt /app/models/labels/; \
+    cp /tmp/rapidocr-models/*SLANet* /app/models/; \
+    test -f /app/models/rec/it_mobile_v2.0_rec_infer.onnx; \
+    rm -rf /tmp/rapidocr-models
 
 # Re-import ARGs so they can be promoted to ENV
 ARG LLM_DEFAULT_MODEL_REPO
