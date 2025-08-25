@@ -14,15 +14,25 @@ RUN dotnet publish ./src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj -c Release -
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr \
+    && mkdir -p /app/models \
+    && cp /usr/share/tesseract-ocr/5/tessdata/* /app/models/ \
     && lepto=$(find /usr/lib -name 'libleptonica.so*' | head -n 1) \
     && [ -z "$lepto" ] || [ -f /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so ] || ln -s "$lepto" /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
     && rm -rf /var/lib/apt/lists/*
 
-ENV OCR_DATA_PATH=/usr/share/tesseract-ocr/5/tessdata
+ENV OCR_DATA_PATH=/app/models
 
 WORKDIR /app
 COPY --from=build /app/publish .
 COPY ./dataset ./dataset
+COPY markitdownnet/src/RapidOcrNet/RapidOcrNet/models /tmp/rapidocr-models
+RUN mkdir -p /app/models/rec /app/models/det /app/models/cls \
+    && cp /tmp/rapidocr-models/*det* /app/models/det/ \
+    && cp /tmp/rapidocr-models/*rec* /app/models/rec/ \
+    && cp /tmp/rapidocr-models/*cls* /app/models/cls/ \
+    && cp /tmp/rapidocr-models/*.txt /app/models/ \
+    && cp /tmp/rapidocr-models/*SLANet* /app/models/ \
+    && rm -rf /tmp/rapidocr-models
 ENV ASPNETCORE_URLS=http://+:8080
 ENV JobQueue__SeedDefaults=true
 EXPOSE 8080
