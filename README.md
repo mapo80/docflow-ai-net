@@ -108,7 +108,7 @@ Input (PDF/JPG/PNG)
   - `FromOcr` per word for diagnostics
 - OCR fallback: PDF → image via **PDFtoImage** + **Tesseract** when native words are scarce
 - **Tesseract/Leptonica** (linux x64) included under `src/MarkItDownNet/TesseractOCR/x64`
-- Options: `OcrDataPath`, `OcrLanguages ("ita+eng")`, `PdfRasterDpi`, `MinimumNativeWordThreshold`, `NormalizeMarkdown`
+- Options: `OcrDataPath`, `OcrLanguage ("ita", "eng", "lat")`, `PdfRasterDpi`, `MinimumNativeWordThreshold`, `NormalizeMarkdown`
 
 ### Build & Test (local SDK)
 

@@ -93,6 +93,17 @@ public static class JobEndpoints
                         ["updatedAt"] = new OpenApiString("2024-01-01T00:01:00Z"),
                         ["language"] = new OpenApiString("ita"),
                         ["engine"] = new OpenApiString("rapidocr")
+                    },
+                    new OpenApiObject
+                    {
+                        ["id"] = new OpenApiString("00000000-0000-0000-0000-000000000003"),
+                        ["status"] = new OpenApiString("Failed"),
+                        ["derivedStatus"] = new OpenApiString("Failed"),
+                        ["progress"] = new OpenApiInteger(0),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
+                        ["updatedAt"] = new OpenApiString("2024-01-01T00:02:00Z"),
+                        ["language"] = new OpenApiString("lat"),
+                        ["engine"] = new OpenApiString("rapidocr")
                     }
                 }
             };
@@ -136,10 +147,12 @@ public static class JobEndpoints
                 || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken) || string.IsNullOrEmpty(payload.Language) || string.IsNullOrEmpty(payload.Engine))
                 return Results.Json(new ErrorResponse("bad_request", "file, model, template, language and engine required"), statusCode: 400);
 
-            if (payload.Language != "ita" && payload.Language != "eng")
-                return Results.Json(new ErrorResponse("bad_request", "language must be 'ita' or 'eng'"), statusCode: 400);
+            if (payload.Language != "ita" && payload.Language != "eng" && payload.Language != "lat")
+                return Results.Json(new ErrorResponse("bad_request", "language must be 'ita', 'eng', or 'lat'"), statusCode: 400);
             if (payload.Engine != "tesseract" && payload.Engine != "rapidocr")
                 return Results.Json(new ErrorResponse("bad_request", "engine must be 'tesseract' or 'rapidocr'"), statusCode: 400);
+            if (payload.Language == "lat" && payload.Engine == "tesseract")
+                return Results.Json(new ErrorResponse("unsupported_language", "Latin is not supported with Tesseract. Please select Italian or English."), statusCode: 422);
 
             var bytes = Convert.FromBase64String(payload.FileBase64);
             var optsVal = opts.Value;

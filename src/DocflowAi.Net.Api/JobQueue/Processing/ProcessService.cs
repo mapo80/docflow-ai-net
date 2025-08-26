@@ -65,7 +65,7 @@ public class ProcessService : IProcessService
             var mdOpts = new MarkdownOptions
             {
                 OcrDataPath = _mdOptions.OcrDataPath,
-                OcrLanguages = _mdOptions.OcrLanguages,
+                OcrLanguage = _mdOptions.OcrLanguage,
                 PdfRasterDpi = _mdOptions.PdfRasterDpi,
                 MinimumNativeWordThreshold = _mdOptions.MinimumNativeWordThreshold,
                 NormalizeMarkdown = _mdOptions.NormalizeMarkdown,

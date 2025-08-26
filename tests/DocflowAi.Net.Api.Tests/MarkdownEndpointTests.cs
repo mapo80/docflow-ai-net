@@ -69,7 +69,7 @@ public class MarkdownEndpointTests
         var file = new FormFile(new MemoryStream(new byte[] {1,2,3}), 0, 3, "file", "test.png");
         var conv = new RecordingMarkdownConverter();
         await MarkdownEndpoints.ConvertFileAsync(file, "eng", "rapidocr", conv, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
-        Assert.Equal("eng", conv.LastOptions.OcrLanguages);
+        Assert.Equal("eng", conv.LastOptions.OcrLanguage);
         Assert.Equal(OcrEngine.RapidOcr, conv.LastOptions.Engine);
     }
 
@@ -89,6 +89,16 @@ public class MarkdownEndpointTests
         var result = await MarkdownEndpoints.ConvertFileAsync(file, "fra", "tesseract", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(400, json.StatusCode);
+    }
+
+    [Fact]
+    public async Task Latin_with_tesseract_returns_error()
+    {
+        var file = new FormFile(new MemoryStream(new byte[] {1}), 0, 1, "file", "test.png");
+        var result = await MarkdownEndpoints.ConvertFileAsync(file, "lat", "tesseract", new FakeMarkdownConverter(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
+        var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
+        Assert.Equal(422, json.StatusCode);
+        Assert.Equal("unsupported_language", json.Value.Error);
     }
 
     [Fact]

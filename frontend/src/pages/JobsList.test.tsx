@@ -66,3 +66,23 @@ test('pagination and cancel', async () => {
   await waitFor(() => expect(cancelSpy).toHaveBeenCalledWith({ id: '1' }));
   expect(notify).toHaveBeenCalledWith('success', 'Job canceled');
 });
+
+test('displays latin language', async () => {
+  vi.restoreAllMocks();
+  vi.spyOn(JobsService, 'jobsList').mockResolvedValue({
+    items: [
+      { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'lat', engine: 'rapidocr' } as any,
+    ],
+    page: 1,
+    pageSize: 10,
+    total: 1,
+  });
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter>
+        <JobsList />
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await screen.findByText('OCR language: Latin');
+});

@@ -177,6 +177,7 @@ export default function JobNew() {
             options={[
               { value: 'eng', label: 'English' },
               { value: 'ita', label: 'Italian' },
+              { value: 'lat', label: 'Latin' },
             ]}
             value={language || undefined}
             onChange={(v) => setLanguage(v)}

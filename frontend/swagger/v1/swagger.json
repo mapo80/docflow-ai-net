@@ -69,6 +69,16 @@
                       "updatedAt": "2024-01-01T00:01:00Z",
                       "language": "ita",
                       "engine": "rapidocr"
+                    },
+                    {
+                      "id": "00000000-0000-0000-0000-000000000003",
+                      "status": "Failed",
+                      "derivedStatus": "Failed",
+                      "progress": 0,
+                      "createdAt": "2024-01-01T00:00:00Z",
+                      "updatedAt": "2024-01-01T00:02:00Z",
+                      "language": "lat",
+                      "engine": "rapidocr"
                     }
                   ]
                 }

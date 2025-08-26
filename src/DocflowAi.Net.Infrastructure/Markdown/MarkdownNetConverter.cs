@@ -45,11 +45,13 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
             _logger.LogDebug("Copying input stream to temp file {TempFile}", tmp);
             await CopyWithRetryAsync(input, tmp, ct);
             _logger.LogDebug("Starting MarkItDownNet conversion for {Mime} into {TempFile}", mime, tmp);
+            if (opts.Engine == OcrEngine.Tesseract && string.Equals(opts.OcrLanguage, "lat", StringComparison.OrdinalIgnoreCase))
+                throw new MarkdownConversionException("unsupported_language", "Latin is not supported with Tesseract. Please select Italian or English.");
             var options = new MkdnOptions
             {
                 NormalizeMarkdown = opts.NormalizeMarkdown,
                 OcrDataPath = opts.OcrDataPath ?? Environment.GetEnvironmentVariable("OCR_DATA_PATH"),
-                OcrLanguage = ParseLanguage(opts.OcrLanguages),
+                OcrLanguage = ParseLanguage(opts.OcrLanguage),
                 PdfRasterDpi = opts.PdfRasterDpi,
                 MinimumNativeWordThreshold = opts.MinimumNativeWordThreshold,
                 OcrEngine = opts.Engine == OcrEngine.RapidOcr ? MkdnOcrEngine.RapidOcr : MkdnOcrEngine.Tesseract
@@ -96,6 +98,7 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
         {
             "ita" => OcrLanguage.Italian,
             "eng" => OcrLanguage.English,
+            "lat" => OcrLanguage.Latin,
             _ => OcrLanguage.English
         };
     }

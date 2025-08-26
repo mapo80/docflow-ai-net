@@ -44,6 +44,7 @@ public static class MarkdownEndpoints
                     {
                         new OpenApiString("ita"),
                         new OpenApiString("eng"),
+                        new OpenApiString("lat"),
                     };
                 }
             }
@@ -71,10 +72,12 @@ public static class MarkdownEndpoints
     {
         if (file == null || file.Length == 0)
             return Results.Json(new ErrorResponse("bad_request", "file required"), statusCode: 400);
-        if (string.IsNullOrWhiteSpace(language) || (language != "ita" && language != "eng"))
-            return Results.Json(new ErrorResponse("bad_request", "language must be 'ita' or 'eng'"), statusCode: 400);
+        if (string.IsNullOrWhiteSpace(language) || (language != "ita" && language != "eng" && language != "lat"))
+            return Results.Json(new ErrorResponse("bad_request", "language must be 'ita', 'eng', or 'lat'"), statusCode: 400);
         if (string.IsNullOrWhiteSpace(engine) || (engine != "tesseract" && engine != "rapidocr"))
             return Results.Json(new ErrorResponse("bad_request", "engine must be 'tesseract' or 'rapidocr'"), statusCode: 400);
+        if (language == "lat" && engine == "tesseract")
+            return Results.Json(new ErrorResponse("unsupported_language", "Latin is not supported with Tesseract. Please select Italian or English."), statusCode: 422);
 
         await using var stream = file.OpenReadStream();
         try
@@ -84,7 +87,7 @@ public static class MarkdownEndpoints
             var mdOpts = new MarkdownOptions
             {
                 OcrDataPath = opts.Value.OcrDataPath,
-                OcrLanguages = language,
+                OcrLanguage = language,
                 PdfRasterDpi = opts.Value.PdfRasterDpi,
                 MinimumNativeWordThreshold = opts.Value.MinimumNativeWordThreshold,
                 NormalizeMarkdown = opts.Value.NormalizeMarkdown,

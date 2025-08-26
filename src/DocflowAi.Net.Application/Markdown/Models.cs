@@ -13,8 +13,8 @@ public sealed class MarkdownOptions
     /// <summary>Path to Tesseract language data (TESSDATA_PREFIX).</summary>
     public string? OcrDataPath { get; set; }
 
-    /// <summary>Languages for OCR, e.g. "eng" or "ita+eng".</summary>
-    public string OcrLanguages { get; set; } = "ita";
+    /// <summary>Language for OCR, e.g. "eng", "ita", or "lat".</summary>
+    public string OcrLanguage { get; set; } = "ita";
 
     /// <summary>DPI used when rasterizing PDFs for OCR fallback.</summary>
     public int PdfRasterDpi { get; set; } = 300;

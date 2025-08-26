@@ -88,6 +88,7 @@ export default function MarkdownPage() {
             options={[
               { label: 'Italian', value: 'ita' },
               { label: 'English', value: 'eng' },
+              { label: 'Latin', value: 'lat' },
             ]}
           />
         </Form.Item>
