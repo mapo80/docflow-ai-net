@@ -7,11 +7,11 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DocflowAi.Net.Infrastructure\DocflowAi.Net.Infrastructure.csproj" />
-    <ProjectReference Include="..\DocflowAi.Net.Application\DocflowAi.Net.Application.csproj" />
-    <ProjectReference Include="..\DocflowAi.Net.Domain\DocflowAi.Net.Domain.csproj" />
-    <ProjectReference Include="..\..\markitdownnet\src\MarkItDownNet\MarkItDownNet.csproj" />
-    <ProjectReference Include="..\DocflowAi.Net.BBoxResolver\DocflowAi.Net.BBoxResolver.csproj" />
+    <ProjectReference Include="..\\DocflowAi.Net.Infrastructure\\DocflowAi.Net.Infrastructure.csproj" />
+    <ProjectReference Include="..\\DocflowAi.Net.Application\\DocflowAi.Net.Application.csproj" />
+    <ProjectReference Include="..\\DocflowAi.Net.Domain\\DocflowAi.Net.Domain.csproj" />
+    <ProjectReference Include="..\\..\\markitdownnet\\src\\MarkItDownNet\\MarkItDownNet.csproj" />
+    <ProjectReference Include="..\\DocflowAi.Net.BBoxResolver\\DocflowAi.Net.BBoxResolver.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\dataset\**\*">
+    <Content Include="..\\..\\dataset\\**\\*">
       <Link>dataset/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -53,13 +53,6 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\markitdownnet\src\RapidOcrNet\models\**\*">
-      <Link>models\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-  </ItemGroup>
   <PropertyGroup>
     <!-- Scegli UNA variante: noavx | avx | avx2 | avx512 -->
     <LlamaCpuVariant>avx2</LlamaCpuVariant>
@@ -70,16 +63,23 @@
   <!-- 1) SUBITO dopo ResolvePackageAssets: rimuovi le varianti non scelte -->
   <Target Name="FilterLlamaVariantsEarly" AfterTargets="ResolvePackageAssets">
     <ItemGroup>
-      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition=" '%(RuntimeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'&#xA;                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))&#xA;                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
-      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition=" '%(NativeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'&#xA;                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))&#xA;                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition=" '%(RuntimeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'
+                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))
+                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(RuntimeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition=" '%(NativeCopyLocalItems.PackageName)' == 'LLamaSharp.Backend.Cpu'
+                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '^runtimes/linux-x64/native/'))
+                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(NativeCopyLocalItems.PathInPackage)', '/$(LlamaCpuVariant)/'))) " />
     </ItemGroup>
   </Target>
 
   <!-- 2) Dopo la generazione della lista di publish: ulteriore pulizia -->
   <Target Name="FilterLlamaVariantsPublish" AfterTargets="ResolvePublishFiles">
     <ItemGroup>
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition=" '%(ResolvedFileToPublish.PackageId)' == 'LLamaSharp.Backend.Cpu'&#xA;                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '^runtimes/linux-x64/native/'))&#xA;                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '/$(LlamaCpuVariant)/'))) " />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition=" '%(ResolvedFileToPublish.PackageId)' == 'LLamaSharp.Backend.Cpu'
+                    And $([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '^runtimes/linux-x64/native/'))
+                    And Not($([System.Text.RegularExpressions.Regex]::IsMatch('%(ResolvedFileToPublish.RelativePath)', '/$(LlamaCpuVariant)/'))) " />
     </ItemGroup>
   </Target>
 
 </Project>
+
