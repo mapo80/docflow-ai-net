@@ -15,4 +15,10 @@
     <PackageReference Include="LLamaSharp" Version="0.24.0" />
     <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.24.0" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\markitdownnet\src\RapidOcrNet\models\**\*">
+      <Link>models\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

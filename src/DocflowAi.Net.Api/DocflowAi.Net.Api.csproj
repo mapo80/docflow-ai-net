@@ -53,6 +53,13 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\markitdownnet\src\RapidOcrNet\models\**\*">
+      <Link>models\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
     <!-- Scegli UNA variante: noavx | avx | avx2 | avx512 -->
     <LlamaCpuVariant>avx2</LlamaCpuVariant>
