@@ -112,12 +112,14 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     OCR_DATA_PATH=/app/models
 
 # Non-root user
-RUN useradd -ms /bin/bash appuser && chown -R appuser:appuser /app/models
+RUN useradd -ms /bin/bash appuser \
+    && mkdir -p /app/data \
+    && chown -R appuser:appuser /app
 USER appuser
 WORKDIR /app
 
 # Published app
-COPY --from=build /app/publish ./
+COPY --from=build --chown=appuser:appuser /app/publish ./
 
 # Models
 COPY --from=model --chown=appuser:appuser /models /home/appuser/models
