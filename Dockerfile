@@ -27,6 +27,8 @@ WORKDIR /src
 
 # Copy sources
 COPY . .
+# Apply RapidOCR patch
+COPY temp/RapidOcrNet/OcrUtils.cs markitdownnet/src/RapidOcrNet/RapidOcrNet/OcrUtils.cs
 COPY --from=frontend /src/frontend/dist ./src/DocflowAi.Net.Api/wwwroot
 
 # Restore with explicit RID (linux-x64)

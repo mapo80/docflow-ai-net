@@ -7,7 +7,9 @@ RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ./src ./src
+COPY . .
+# Apply RapidOCR patch
+COPY temp/RapidOcrNet/OcrUtils.cs markitdownnet/src/RapidOcrNet/RapidOcrNet/OcrUtils.cs
 COPY --from=frontend /app/frontend/dist ./src/DocflowAi.Net.Api/wwwroot
 RUN dotnet restore ./src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj
 RUN dotnet publish ./src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
