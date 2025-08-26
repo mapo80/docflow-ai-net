@@ -1,5 +1,0 @@
-<Project>
-  <Target Name="ApplyRapidOcrPatch" BeforeTargets="PrepareForBuild">
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)temp/RapidOcrNet/OcrUtils.cs" DestinationFiles="$(MSBuildThisFileDirectory)markitdownnet/src/RapidOcrNet/RapidOcrNet/OcrUtils.cs" Condition="Exists('$(MSBuildThisFileDirectory)temp/RapidOcrNet/OcrUtils.cs')" />
-  </Target>
-</Project>

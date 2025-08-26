@@ -3,6 +3,7 @@ using DocflowAi.Net.Application.Markdown;
 using MkdnConverter = MarkItDownNet.MarkIt\u0044ownConverter;
 using MkdnOptions = MarkItDownNet.MarkIt\u0044ownOptions;
 using MkdnOcrEngine = MarkItDownNet.OcrEngine;
+using RapidOcrNet;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
@@ -48,7 +49,7 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
             {
                 NormalizeMarkdown = opts.NormalizeMarkdown,
                 OcrDataPath = opts.OcrDataPath ?? Environment.GetEnvironmentVariable("OCR_DATA_PATH"),
-                OcrLanguage = opts.OcrLanguages,
+                OcrLanguage = ParseLanguage(opts.OcrLanguages),
                 PdfRasterDpi = opts.PdfRasterDpi,
                 MinimumNativeWordThreshold = opts.MinimumNativeWordThreshold,
                 OcrEngine = opts.Engine == OcrEngine.RapidOcr ? MkdnOcrEngine.RapidOcr : MkdnOcrEngine.Tesseract
@@ -87,6 +88,16 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
         {
             try { File.Delete(tmp); } catch { }
         }
+    }
+
+    private static OcrLanguage ParseLanguage(string? lang)
+    {
+        return lang switch
+        {
+            "ita" => OcrLanguage.Italian,
+            "eng" => OcrLanguage.English,
+            _ => OcrLanguage.English
+        };
     }
 
     private static void EnsureOcrLibraries()
