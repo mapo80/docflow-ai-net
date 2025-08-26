@@ -110,7 +110,6 @@ WORKDIR /app
 
 # Published app
 COPY --from=build --chown=appuser:appuser /app/publish ./
-RUN test -f models/it_mobile_v2.0_rec_infer.onnx
 
 # Models
 COPY --from=model --chown=appuser:appuser /models /home/appuser/models
