@@ -2,7 +2,6 @@ namespace DocflowAi.Net.Api.JobQueue.Data;
 
 using DocflowAi.Net.Api.Options;
 using DocflowAi.Net.Api.JobQueue.Models;
-using DocflowAi.Net.Application.Markdown;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -58,7 +57,6 @@ public static class DefaultJobSeeder
                     Model = modelName,
                     TemplateToken = templateToken,
                     Language = "eng",
-                    Engine = OcrEngine.Tesseract,
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = okDir,
@@ -88,7 +86,6 @@ public static class DefaultJobSeeder
                     Model = modelName,
                     TemplateToken = templateToken,
                     Language = "ita",
-                    Engine = OcrEngine.RapidOcr,
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = errDir,

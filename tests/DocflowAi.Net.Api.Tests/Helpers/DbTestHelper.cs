@@ -1,7 +1,6 @@
 using Bogus;
 using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.JobQueue.Models;
-using DocflowAi.Net.Application.Markdown;
 
 namespace DocflowAi.Net.Api.Tests.Helpers;
 
@@ -42,7 +41,6 @@ public static class DbTestHelper
             Model = "m",
             TemplateToken = "t",
             Language = "eng",
-            Engine = OcrEngine.Tesseract,
             Paths = new JobDocument.PathInfo
             {
                 Dir = string.Empty,

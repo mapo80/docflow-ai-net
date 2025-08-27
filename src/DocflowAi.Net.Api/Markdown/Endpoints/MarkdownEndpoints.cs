@@ -49,35 +49,18 @@ public static class MarkdownEndpoints
                 }
             }
 
-            var eng = op.Parameters?.FirstOrDefault(x => x.Name == "engine");
-            if (eng != null)
-            {
-                eng.Required = true;
-                if (eng.Schema != null)
-                {
-                    eng.Schema.Enum = new OpenApiArray
-                    {
-                        new OpenApiString("tesseract"),
-                        new OpenApiString("rapidocr"),
-                    };
-                }
-            }
             return op;
         });
 
         return builder;
     }
 
-    internal static async Task<IResult> ConvertFileAsync(IFormFile? file, string? language, string? engine, IMarkdownConverter conv, IOptions<MarkdownOptions> opts)
+    internal static async Task<IResult> ConvertFileAsync(IFormFile? file, string? language, IMarkdownConverter conv, IOptions<MarkdownOptions> opts)
     {
         if (file == null || file.Length == 0)
             return Results.Json(new ErrorResponse("bad_request", "file required"), statusCode: 400);
         if (string.IsNullOrWhiteSpace(language) || (language != "ita" && language != "eng" && language != "lat"))
             return Results.Json(new ErrorResponse("bad_request", "language must be 'ita', 'eng', or 'lat'"), statusCode: 400);
-        if (string.IsNullOrWhiteSpace(engine) || (engine != "tesseract" && engine != "rapidocr"))
-            return Results.Json(new ErrorResponse("bad_request", "engine must be 'tesseract' or 'rapidocr'"), statusCode: 400);
-        if (language == "lat" && engine == "tesseract")
-            return Results.Json(new ErrorResponse("unsupported_language", "Latin is not supported with Tesseract. Please select Italian or English."), statusCode: 422);
 
         await using var stream = file.OpenReadStream();
         try
@@ -86,12 +69,10 @@ public static class MarkdownEndpoints
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             var mdOpts = new MarkdownOptions
             {
-                OcrDataPath = opts.Value.OcrDataPath,
                 OcrLanguage = language,
                 PdfRasterDpi = opts.Value.PdfRasterDpi,
                 MinimumNativeWordThreshold = opts.Value.MinimumNativeWordThreshold,
-                NormalizeMarkdown = opts.Value.NormalizeMarkdown,
-                Engine = engine == "rapidocr" ? OcrEngine.RapidOcr : OcrEngine.Tesseract
+                NormalizeMarkdown = opts.Value.NormalizeMarkdown
             };
             if (ext == ".pdf")
                 result = await conv.ConvertPdfAsync(stream, mdOpts);

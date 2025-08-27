@@ -31,7 +31,7 @@ public class BackpressureE2ETests : IClassFixture<TempDirFixture>
         var dirsBefore = Directory.GetDirectories(factory.DataRootPath).Length;
         using (TestCorrelator.CreateContext())
         {
-            var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(new byte[10]), fileName = "c.pdf", model = "m", templateToken = "t", language = "eng", engine = "tesseract" });
+            var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(new byte[10]), fileName = "c.pdf", model = "m", templateToken = "t", language = "eng" });
             resp.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
             resp.Headers.Should().ContainKey("Retry-After");
             Directory.GetDirectories(factory.DataRootPath).Length.Should().Be(dirsBefore);

@@ -5,6 +5,7 @@ using DocflowAi.Net.Application.Configuration;
 using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Infrastructure.Llm;
 using DocflowAi.Net.Infrastructure.Markdown;
+using DocflowAi.Net.Infrastructure.Markdown.DoclingServe;
 using DocflowAi.Net.Infrastructure.Orchestration;
 using DocflowAi.Net.Infrastructure.Reasoning;
 using DocflowAi.Net.BBoxResolver;
@@ -74,6 +75,14 @@ builder.Services.PostConfigure<BBoxOptions>(o => builder.Configuration.GetSectio
 builder.Services.Configure<PointerOptions>(builder.Configuration.GetSection("Resolver:Pointer"));
 builder.Services.Configure<JobQueueOptions>(builder.Configuration.GetSection(JobQueueOptions.SectionName));
 builder.Services.Configure<MarkdownOptions>(builder.Configuration.GetSection("Markdown"));
+
+builder.Services.AddHttpClient("DoclingServe")
+    .AddTypedClient((http, sp) =>
+    {
+        var url = sp.GetRequiredService<IConfiguration>()["Markdown:DoclingServeUrl"]
+            ?? throw new InvalidOperationException("Markdown:DoclingServeUrl configuration is missing");
+        return new DoclingServeClient(url, http);
+    });
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});

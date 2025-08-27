@@ -1,5 +1,3 @@
-using DocflowAi.Net.Application.Markdown;
-
 namespace DocflowAi.Net.Api.JobQueue.Models;
 
 public class JobDocument
@@ -19,7 +17,6 @@ public class JobDocument
     public string Model { get; set; } = string.Empty;
     public string TemplateToken { get; set; } = string.Empty;
     public string Language { get; set; } = string.Empty;
-    public OcrEngine Engine { get; set; } = OcrEngine.Tesseract;
 
     public class MetricsInfo
     {

@@ -21,6 +21,5 @@ export type JobDetailResponse = {
     model?: string | null;
     templateToken?: string | null;
     language?: string | null;
-    engine?: string | null;
 };
 
