@@ -46,7 +46,7 @@ Example record with span:
 ## PNG
 - File: `dataset/sample_invoice.png`
 - Original LLM output: [`test-png/llm_response.json`](test-png/llm_response.json)
-- Resolver output (parsed from the existing MarkItDownNet JSON):
+- Resolver output:
   - [`test-png-boxsolver2/bitparallel.json`](test-png-boxsolver2/bitparallel.json)
   - [`test-png-boxsolver2/classiclevenshtein.json`](test-png-boxsolver2/classiclevenshtein.json)
 
@@ -126,4 +126,4 @@ Example record:
 The original outputs (`test-pdf` and `test-png`) contained only the fields extracted by the LLM without spatial information. The **TokenFirst** strategy provides bbox evidence for 6 fields in the PDF and 2 fields in the PNG, while **PointerStrategy** reaches 100% of fields (8/8 for the PDF and 4/4 for the PNG) with full confidence thanks to the LLM pointers.
 
 ## Notes
-- Timing includes TokenFirst indexing and resolution; PNG parsing uses the existing MarkItDownNet JSON because OCR dependencies are missing.
+- Timing includes TokenFirst indexing and resolution.

@@ -25,10 +25,6 @@ Prompts:
 - The API server must be running at `http://localhost:8080` and a model file must exist under `./models`.
 ## Workflow
 
-- Initialize submodules:
-  ```bash
-  git submodule update --init --recursive
-  ```
 - Install the .NET 9 SDK locally if needed:
   ```bash
   ./dotnet-install.sh --version 9.0.100 --install-dir "$HOME/dotnet"
@@ -45,14 +41,7 @@ Prompts:
   docker run --rm -p 8080:8080 docflow-api
   ```
 
-## MarkItDownNet
-- Adapter: `src/DocflowAi.Net.Infrastructure/Markdown/MarkdownNetConverter.cs`
-- Dependency Injection: `src/DocflowAi.Net.Api/Program.cs`
-- Tests: `tests/DocflowAi.Net.Tests.Integration/MarkdownNetConverterTests.cs`
-- Test endpoint: `POST /api/v1/markdown` accepts a file and returns its markdown
-
 ## Pre-PR checklist
-- `rg -n -i 'pytest|:8000|sidecar|MarkitdownException|MARKITDOWN_URL|PY_MARKITDOWN_ENABLED'` should return empty
 - `dotnet build -c Release`
 - `dotnet test -c Release`
 - `npm test -- --run`
@@ -80,11 +69,6 @@ Prompts:
 - Use clear icons to convey service health and other status information at a glance.
 - After creating a job, model, template, or any future entity in the frontend, display a green success notification with the message "<Entity> created successfully.".
 - Use the shared notification component to show a green success notification for create, update, or delete actions and a red notification on errors.
-
-# Operations
-The native libraries of Tesseract (libtesseract.so.5) and Leptonica (liblept.so.5) are already present in `src/MarkItDownNet/TesseractOCR/x64` and are copied automatically next to the binaries. Installing system packages or creating symbolic links is not required.
-
-To run OCR, provide the language tessdata files and set `OcrDataPath` accordingly.
 
 ## Testing guidelines
 - Integration tests in `tests/DocflowAi.Net.Tests.Integration` must be executed only when explicitly requested.
@@ -122,5 +106,3 @@ To run OCR, provide the language tessdata files and set `OcrDataPath` accordingl
 4. Commit the updates:
    Commit `frontend/swagger/v1/swagger.json` and the regenerated files in `frontend/src/generated`.
 
-## Note
-- `MarkItDownNet` is a git submodule; run `git submodule update --init --recursive` before the .NET build.

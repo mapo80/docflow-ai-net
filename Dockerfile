@@ -74,13 +74,10 @@ RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
-# Native dependencies for libllama and OCR on Ubuntu 24.04 (Noble)
+# Native dependencies for libllama on Ubuntu 24.04 (Noble)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 tesseract-ocr \
-  && lepto=$(find /usr/lib -name 'libleptonica.so*' | head -n 1) \
-  && [ -z "$lepto" ] || [ -f /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so ] || ln -s "$lepto" /usr/lib/x86_64-linux-gnu/libleptonica-1.82.0.so \
+      ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 \
   && mkdir -p /app/models \
-  && cp -r /usr/share/tesseract-ocr/5/tessdata/* /app/models/ \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 

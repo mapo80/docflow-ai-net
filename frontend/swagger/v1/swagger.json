@@ -57,8 +57,7 @@
                       "progress": 0,
                       "createdAt": "2024-01-01T00:00:00Z",
                       "updatedAt": "2024-01-01T00:00:00Z",
-                      "language": "eng",
-                      "engine": "tesseract"
+                      "language": "eng"
                     },
                     {
                       "id": "00000000-0000-0000-0000-000000000002",
@@ -67,8 +66,7 @@
                       "progress": 100,
                       "createdAt": "2024-01-01T00:00:00Z",
                       "updatedAt": "2024-01-01T00:01:00Z",
-                      "language": "ita",
-                      "engine": "rapidocr"
+                      "language": "ita"
                     },
                     {
                       "id": "00000000-0000-0000-0000-000000000003",
@@ -77,8 +75,7 @@
                       "progress": 0,
                       "createdAt": "2024-01-01T00:00:00Z",
                       "updatedAt": "2024-01-01T00:02:00Z",
-                      "language": "lat",
-                      "engine": "rapidocr"
+                      "language": "lat"
                     }
                   ]
                 }
@@ -292,8 +289,7 @@
                   },
                   "model": "model",
                   "templateToken": "template",
-                  "language": "eng",
-                  "engine": "tesseract"
+                  "language": "eng"
                 }
               }
             }
@@ -386,14 +382,6 @@
         "parameters": [
           {
             "name": "language",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "engine",
             "in": "query",
             "required": true,
             "schema": {
@@ -1343,10 +1331,6 @@
           "language": {
             "type": "string",
             "nullable": true
-          },
-          "engine": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -1392,10 +1376,6 @@
             "nullable": true
           },
           "language": {
-            "type": "string",
-            "nullable": true
-          },
-          "engine": {
             "type": "string",
             "nullable": true
           }

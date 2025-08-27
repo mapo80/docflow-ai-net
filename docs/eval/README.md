@@ -21,7 +21,7 @@ This document summarizes the results produced by the evaluation runner on the fi
 
 - **Source:** XFUND IT (*val*). The runner downloads and unzips `it.val.zip`, selects the first ten documents alphabetically, and builds a manifest per file using XFUND annotations: `question/key/header` nodes linked to `answer/value` determine expected labels and values.
 - **Coordinate normalization:** `expectedBoxes` are converted to `[x,y,w,h]` normalized in `[0..1]` for resolution-independent comparison.
-- **Words & BBox:** each image is processed with **MarkItDownNet** (in-process, .NET) to obtain words and normalized BBoxes, producing:
+- **Words & BBox:** each image is processed to obtain words and normalized BBoxes, producing:
   - **Index Map** (Pointer/WordIds) with annotations `[[W{page}_{idx}]]`
   - **Text View** (Pointer/Offsets) mapping offsets to word indices
 

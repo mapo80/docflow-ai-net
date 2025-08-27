@@ -1,5 +1,4 @@
 using DocflowAi.Net.Api.JobQueue.Models;
-using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
@@ -43,7 +42,6 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 Model = "m",
                 TemplateToken = "t",
                 Language = "eng",
-                Engine = OcrEngine.Tesseract,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
@@ -64,7 +62,6 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
         json.GetProperty("derivedStatus").GetString().Should().Be("Processing");
         json.GetProperty("progress").GetInt32().Should().Be(42);
         json.GetProperty("language").GetString().Should().Be("eng");
-        json.GetProperty("engine").GetString().Should().Be("tesseract");
         var paths = json.GetProperty("paths");
         paths.GetProperty("input").ValueKind.Should().Be(JsonValueKind.Null);
         paths.GetProperty("error").ValueKind.Should().Be(JsonValueKind.Null);
@@ -104,7 +101,6 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 CreatedAt = now2,
                 UpdatedAt = now2,
                 Language = "eng",
-                Engine = OcrEngine.Tesseract,
                 Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
@@ -146,7 +142,6 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 Model = "m",
                 TemplateToken = "t",
                 Language = "eng",
-                Engine = OcrEngine.Tesseract,
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,

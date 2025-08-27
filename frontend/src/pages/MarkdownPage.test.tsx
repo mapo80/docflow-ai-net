@@ -16,14 +16,13 @@ import { request as __request } from '../generated/core/request';
 test('convertFile', async () => {
   const file = new File(['a'], 'a.png');
   (__request as any).mockResolvedValueOnce({ markdown: 'ok', pages: [], boxes: [] });
-  const res = await convertFile(file, 'eng', 'tesseract');
+  const res = await convertFile(file, 'eng');
   expect(res).toMatchObject({ markdown: 'ok' });
   expect((__request as any).mock.calls[0][1].query.language).toBe('eng');
-  expect((__request as any).mock.calls[0][1].query.engine).toBe('tesseract');
   (__request as any).mockRejectedValueOnce(
     new ApiError({ method: 'POST', url: '/markdown' } as any, { url: '', status: 500, statusText: 'err', body: {} }, 'err')
   );
-  await expect(convertFile(file, 'eng', 'tesseract')).rejects.toBeInstanceOf(ApiError);
+  await expect(convertFile(file, 'eng')).rejects.toBeInstanceOf(ApiError);
 });
 
 test('renders markdown and json', async () => {

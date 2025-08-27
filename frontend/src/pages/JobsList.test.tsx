@@ -44,7 +44,7 @@ test('pagination and cancel', async () => {
     .spyOn(JobsService, 'jobsList')
     .mockResolvedValue({
       items: [
-        { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'eng', engine: 'tesseract' } as any,
+        { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'eng' } as any,
       ],
       page: 1,
       pageSize: 10,
@@ -71,7 +71,7 @@ test('displays latin language', async () => {
   vi.restoreAllMocks();
   vi.spyOn(JobsService, 'jobsList').mockResolvedValue({
     items: [
-      { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'lat', engine: 'rapidocr' } as any,
+      { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'lat' } as any,
     ],
     page: 1,
     pageSize: 10,

@@ -23,7 +23,7 @@ public class ProcessServiceTests
     public async Task Returns_error_when_template_missing()
     {
         var svc = new ProcessService(new StubRepo(null), new StubConverter(), new StubLlama(), new StubResolver(), new StubFs(), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
-        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), "nofile", Path.GetTempFileName(), Path.GetTempFileName(), "missing", "m", OcrEngine.Tesseract), CancellationToken.None);
+        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), "nofile", Path.GetTempFileName(), Path.GetTempFileName(), "missing", "m"), CancellationToken.None);
         res.Success.Should().BeFalse();
         res.ErrorMessage.Should().Be("template not found");
     }
@@ -37,7 +37,7 @@ public class ProcessServiceTests
         var svc = new ProcessService(repo, new StubConverter(), new StubLlama(), new StubResolver(), fs, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var tmp = Path.GetTempFileName();
         await File.WriteAllTextAsync(tmp, "data");
-        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), tmp, Path.Combine(Path.GetTempPath(), "md.md"), Path.Combine(Path.GetTempPath(), "pr.md"), "tok", "m", OcrEngine.Tesseract), CancellationToken.None);
+        var res = await svc.ExecuteAsync(new ProcessInput(Guid.NewGuid(), tmp, Path.Combine(Path.GetTempPath(), "md.md"), Path.Combine(Path.GetTempPath(), "pr.md"), "tok", "m"), CancellationToken.None);
         res.Success.Should().BeTrue();
         var json = JsonDocument.Parse(res.OutputJson);
         json.RootElement.GetProperty("fields")[0].GetProperty("key").GetString().Should().Be("f");

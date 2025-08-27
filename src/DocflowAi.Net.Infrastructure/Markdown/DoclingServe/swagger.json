@@ -1,0 +1,110 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Docling Serve API",
+    "version": "v1"
+  },
+  "paths": {
+    "/v1/convert/file": {
+      "post": {
+        "summary": "Convert document files to markdown",
+        "operationId": "ConvertFile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  },
+                  "target_type": {
+                    "type": "string",
+                    "enum": ["inbody", "zip"],
+                    "default": "inbody"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conversion result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConvertDocumentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ConvertDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/ExportDocumentResponse"
+          },
+          "status": {
+            "type": "string"
+          },
+          "processing_time": {
+            "type": "number"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorItem"
+            },
+            "default": []
+          },
+          "timings": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProfilingItem"
+            },
+            "default": {}
+          }
+        },
+        "required": ["document", "status", "processing_time"]
+      },
+      "ExportDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string" },
+          "md_content": { "type": "string" },
+          "html_content": { "type": "string" },
+          "json_content": { "type": "object" },
+          "text_content": { "type": "string" },
+          "doctags_content": { "type": "string" }
+        },
+        "required": ["filename"]
+      },
+      "ErrorItem": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+      "ProfilingItem": {
+        "type": "object",
+        "properties": {
+          "start": { "type": "number" },
+          "stop": { "type": "number" }
+        }
+      }
+    }
+  }
+}

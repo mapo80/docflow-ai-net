@@ -13,8 +13,7 @@ public record JobSummary(
     DateTimeOffset UpdatedAt,
     string Model,
     string TemplateToken,
-    string Language,
-    string Engine);
+    string Language);
 
 /// <summary>Paged list of jobs.</summary>
 public record PagedJobsResponse(int Page, int PageSize, int Total, IReadOnlyList<JobSummary> Items);
@@ -23,4 +22,4 @@ public record PagedJobsResponse(int Page, int PageSize, int Total, IReadOnlyList
 public record SubmitAcceptedResponse(Guid job_id, string status_url, string? dashboard_url);
 
 /// <summary>Detailed job information.</summary>
-public record JobDetailResponse(Guid Id, string Status, string DerivedStatus, int Progress, int Attempts, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, JobDocument.MetricsInfo Metrics, JobDocument.PathInfo Paths, string? ErrorMessage, string Model, string TemplateToken, string Language, string Engine);
+public record JobDetailResponse(Guid Id, string Status, string DerivedStatus, int Progress, int Attempts, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, JobDocument.MetricsInfo Metrics, JobDocument.PathInfo Paths, string? ErrorMessage, string Model, string TemplateToken, string Language);

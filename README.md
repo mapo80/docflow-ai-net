@@ -2,7 +2,6 @@
 
 End-to-end pipeline for extracting information from documents with **LLMs** and word-level **bounding boxes**. The project integrates:
 
-- **MarkItDownNet** (.NET submodule) to convert **PDF/images → Markdown** and normalized word-level BBoxes.
 - BBox anchoring strategies:
   - **Pointer / WordIds** (primary)
   - **Pointer / Offsets**
@@ -16,7 +15,6 @@ End-to-end pipeline for extracting information from documents with **LLMs** and 
 - **Use case:** field extraction from forms/invoices/free layout documents with spatial evidence (BBox).
 - **Recommended strategy:** **Pointer / WordIds** → fallback **TokenFirst** → optional **Legacy** for compatibility.
 - **Evaluation:** see `docs/eval/` and [XFUND IT Evaluation](docs/XFUND_IT_Eval.md).
-- **Busta paga dataset analysis:** [results](docs/busta-paga-results.md)
 - **Dataset CLI:** `dotnet run --project tools/DatasetCli -- --dataset <path> --output <file>`
 - **Docker:** single production-ready container (`9.0-noble`) with model downloaded using `HF_TOKEN`.
 
@@ -81,8 +79,8 @@ the requested model.
 Input (PDF/JPG/PNG)
       │
       ▼
- MarkItDownNet (PDF → text; OCR fallback; words + BBox normalized [0..1])
-      │            └─ Tesseract/Leptonica x64 included (no system packages)
+ Markdown conversion via Docling Serve (PDF → text; OCR fallback; words + BBox normalized [0..1])
+      │
       ▼
  Normalization & Indexing (token, bigram, Index Map / Text View)
       │
@@ -92,36 +90,14 @@ Input (PDF/JPG/PNG)
  Resolver (Pointer → direct mapping; TokenFirst/Legacy → retrieval + fuzzy + layout heuristics)
       │
       ▼
- Output JSON (value, evidence[], wordIndices[], bbox[x,y,w,h], confidence, optional metrics)
+Output JSON (value, evidence[], wordIndices[], bbox[x,y,w,h], confidence, optional metrics)
 ```
+
+Docling Serve provides the markdown conversion service. Configure its base URL with `Markdown:DoclingServeUrl` in `appsettings.json`.
 
 ## Requirements
 
 - **.NET SDK 9.0** (or use Docker)
-- Initialized **MarkItDownNet** submodule
-- Optional Tesseract tessdata for OCR languages
-
-## MarkItDownNet
-
-- Converts **PDF/images** to **Markdown** with positional metadata:
-  - **Word-level BBox:** `[x,y,w,h]` normalized `[0..1]`, origin top-left
-  - `FromOcr` per word for diagnostics
-- OCR fallback: PDF → image via **PDFtoImage** + **Tesseract** when native words are scarce
-- **Tesseract/Leptonica** (linux x64) included under `src/MarkItDownNet/TesseractOCR/x64`
-- Options: `OcrDataPath`, `OcrLanguage ("ita", "eng", "lat")`, `PdfRasterDpi`, `MinimumNativeWordThreshold`, `NormalizeMarkdown`
-
-### Build & Test (local SDK)
-
-```bash
-# install locally if needed
-chmod +x ./dotnet-install.sh
-./dotnet-install.sh --channel 9.0
-~/.dotnet/dotnet --version
-
-# build & test
-~/.dotnet/dotnet build
-~/.dotnet/dotnet test
-```
 
 ## Testing guidelines
 
@@ -202,8 +178,6 @@ MIT (see LICENSE). Some dependencies/assets may have different licenses (e.g., X
 - **Eval:** `docs/eval/` and [docs/XFUND_IT_Eval.md](docs/XFUND_IT_Eval.md)
 - **Docker (9.0-noble + LLamaSharp):** see Dockerfile and `start.sh` in root
 - **Config:** `appsettings.*.json` (`Resolver`, `LLM`)
-- **MarkItDownNet submodule:** docs under `src/MarkItDownNet/`
 - **Real API Test Plan:** [docs/real-api-test-plan.md](docs/real-api-test-plan.md)
-- **Test Report:** [docs/test-report.md](docs/test-report.md)
 
 — end —

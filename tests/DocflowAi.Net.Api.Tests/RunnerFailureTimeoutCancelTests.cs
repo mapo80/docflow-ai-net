@@ -1,6 +1,5 @@
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Models;
-using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.Tests.Fakes;
 using DocflowAi.Net.Api.Tests.Helpers;
@@ -32,8 +31,7 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
                 Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(dataRoot, id) },
                 Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(dataRoot, id) }
             },
-            Language = "eng",
-            Engine = OcrEngine.Tesseract
+            Language = "eng"
         };
 
     [Fact]

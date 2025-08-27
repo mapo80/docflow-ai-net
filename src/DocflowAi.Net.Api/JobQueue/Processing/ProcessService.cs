@@ -64,12 +64,10 @@ public class ProcessService : IProcessService
             var mdSw = Stopwatch.StartNew();
             var mdOpts = new MarkdownOptions
             {
-                OcrDataPath = _mdOptions.OcrDataPath,
                 OcrLanguage = _mdOptions.OcrLanguage,
                 PdfRasterDpi = _mdOptions.PdfRasterDpi,
                 MinimumNativeWordThreshold = _mdOptions.MinimumNativeWordThreshold,
-                NormalizeMarkdown = _mdOptions.NormalizeMarkdown,
-                Engine = input.Engine
+                NormalizeMarkdown = _mdOptions.NormalizeMarkdown
             };
             if (contentType == "application/pdf")
             {
