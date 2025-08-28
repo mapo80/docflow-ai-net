@@ -1,6 +1,6 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, cleanup } from '@testing-library/react';
 import FieldsTable from './FieldsTable';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 
 const fields = [
   { id: 'f1', name: 'buyer', value: 'Acme', page: 1, wordIds: ['w1'], conf: 0.9 },
@@ -8,6 +8,7 @@ const fields = [
 ];
 
 describe('FieldsTable', () => {
+  afterEach(() => cleanup());
   it('selects row on click', () => {
     const onSelect = vi.fn();
     const { getByText } = render(
@@ -26,5 +27,15 @@ describe('FieldsTable', () => {
     const table = tables[tables.length - 1];
     fireEvent.keyDown(table, { key: 'ArrowDown' });
     expect(onSelect).toHaveBeenCalledWith('f2');
+  });
+
+  it('sets horizontal scroll', () => {
+    const { container } = render(
+      <FieldsTable fields={fields} selectedFieldId="f1" onFieldSelect={() => {}} />,
+    );
+    const body = container.querySelector(
+      '.ant-table-content',
+    ) as HTMLElement;
+    expect(body.style.overflowX).toBe('auto');
   });
 });

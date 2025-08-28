@@ -38,9 +38,9 @@ export default function Shell() {
   const items = [
     { key: '/jobs', icon: <AppstoreOutlined />, label: 'Jobs' },
     { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
+    { key: '/markdown', icon: <FileMarkdownOutlined />, label: 'Markdown' },
     { key: '/models', icon: <ExperimentOutlined />, label: 'Models' },
     { key: '/templates', icon: <AppstoreOutlined />, label: 'Templates' },
-    { key: '/markdown', icon: <FileMarkdownOutlined />, label: 'Markdown' },
     { key: '/markdown-systems', icon: <SettingOutlined />, label: 'Markdown Systems' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
     {

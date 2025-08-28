@@ -171,6 +171,41 @@ test('shows reload and cancel only when running', async () => {
   expect(fetchSpy2).not.toHaveBeenCalled();
 });
 
+test('shows error message in dedicated row', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Failed',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    errorMessage: 'boom',
+    createdAt: '',
+    updatedAt: '',
+    paths: {},
+  } as any);
+  const { container } = render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() =>
+    expect(container.querySelector('.ant-descriptions-view table')).toBeTruthy(),
+  );
+  const table = container.querySelector('.ant-descriptions-view table')!;
+  const rows = within(table).getAllByRole('row');
+  const statusIdx = rows.findIndex((r) => within(r).queryByText('Status'));
+  const errorIdx = rows.findIndex((r) => within(r).queryByText('Error'));
+  expect(errorIdx).toBe(statusIdx + 1);
+  expect(within(rows[errorIdx]).getByText('boom')).toBeInTheDocument();
+});
+
 test('lists markdown file while running', async () => {
   getByIdSpy.mockReset();
   getByIdSpy.mockResolvedValueOnce({
@@ -233,9 +268,11 @@ test('lists all paths without extra requests', async () => {
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
   await waitFor(() => screen.getByText('Input'));
-  expect(screen.getByText('Error')).toBeInTheDocument();
-  expect(screen.getByText('Prompt')).toBeInTheDocument();
-  expect(screen.getByText('2024-01-01')).toBeInTheDocument();
+  const tables = screen.getAllByRole('table');
+  const filesTable = tables[tables.length - 1];
+  expect(within(filesTable).getByText('Error')).toBeInTheDocument();
+  expect(within(filesTable).getByText('Prompt')).toBeInTheDocument();
+  expect(within(filesTable).getByText('2024-01-01')).toBeInTheDocument();
   expect(fetchSpy).not.toHaveBeenCalled();
   expect(screen.getByText('boom')).toBeInTheDocument();
   });

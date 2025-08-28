@@ -108,8 +108,8 @@ export default function JobDetailPage({ jobId }: Props) {
   if (!model) return <Alert message="No data" type="warning" />;
 
   return (
-    <Row gutter={16}>
-      <Col span={16}>
+    <Row gutter={[16, 16]}>
+      <Col xs={24} lg={16}>
         <DocumentPreview
           docType={model.docType}
           srcUrl={model.srcUrl}
@@ -122,7 +122,7 @@ export default function JobDetailPage({ jobId }: Props) {
           onZoomChange={setZoom}
         />
       </Col>
-      <Col span={8}>
+      <Col xs={24} lg={8}>
         <FieldsTable
           fields={model.fields}
           selectedFieldId={selectedFieldId}

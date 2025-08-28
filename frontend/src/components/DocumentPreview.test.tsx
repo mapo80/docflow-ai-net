@@ -1,6 +1,6 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, cleanup } from '@testing-library/react';
 import DocumentPreview from './DocumentPreview';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 
 const sample = {
   docType: 'image' as const,
@@ -19,6 +19,7 @@ const sample = {
 };
 
 describe('DocumentPreview', () => {
+  afterEach(() => cleanup());
   it('renders bounding boxes and handles click', () => {
     const onWordClick = vi.fn();
     const { getByTestId } = render(
@@ -38,6 +39,26 @@ describe('DocumentPreview', () => {
     expect(rect.getAttribute('x')).toBe('10');
     fireEvent.click(rect);
     expect(onWordClick).toHaveBeenCalledWith('w1');
+  });
+
+  it('wraps preview in scroll container', () => {
+    const { container } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={1}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    const wrapper = container.querySelector(
+      '[data-testid="doc-preview"]',
+    ) as HTMLElement;
+    expect(wrapper.style.overflowX).toBe('auto');
   });
 
   // no filtering test since component always shows all words

@@ -333,13 +333,13 @@ export default function JobDetail() {
     <div>
       <Descriptions title={`Job ${job.id}`} bordered column={1} size="small">
         <Descriptions.Item label="Status">
-          <Space direction="vertical">
-            <JobStatusTag status={job.status!} derived={job.derivedStatus} />
-            {job.status === 'Failed' && job.errorMessage && (
-              <span style={{ color: '#ff4d4f' }}>{job.errorMessage}</span>
-            )}
-          </Space>
+          <JobStatusTag status={job.status!} derived={job.derivedStatus} />
         </Descriptions.Item>
+        {job.status === 'Failed' && job.errorMessage && (
+          <Descriptions.Item label="Error">
+            <span style={{ color: '#ff4d4f' }}>{job.errorMessage}</span>
+          </Descriptions.Item>
+        )}
         <Descriptions.Item label="Attempts">{job.attempts}</Descriptions.Item>
         <Descriptions.Item label="Model">
           {modelInfo?.name || job.model}

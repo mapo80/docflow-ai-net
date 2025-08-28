@@ -44,6 +44,7 @@ export default function FieldsTable({ fields, selectedFieldId, onFieldSelect }: 
           record.id === selectedFieldId ? 'selected-row' : ''
         }
         onRow={onRow as any}
+        scroll={{ x: true }}
       />
     </div>
   );

@@ -74,7 +74,7 @@ export default function DocumentPreview({
   const words = page.words;
 
   return (
-    <div data-testid="doc-preview">
+    <div data-testid="doc-preview" style={{ width: '100%', overflowX: 'auto' }}>
       <Space style={{ marginBottom: 8 }}>
         <Select
           value={currentPage}
@@ -93,9 +93,9 @@ export default function DocumentPreview({
       </Space>
       <div style={{ position: 'relative', display: 'inline-block' }}>
         {docType === 'pdf' ? (
-          <canvas ref={canvasRef} />
+          <canvas ref={canvasRef} style={{ display: 'block' }} />
         ) : (
-          <img ref={imgRef} src={srcUrl} alt="document" />
+          <img ref={imgRef} src={srcUrl} alt="document" style={{ display: 'block' }} />
         )}
         <svg
           width={rendered.width}
