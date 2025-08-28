@@ -41,40 +41,11 @@ RUN dotnet publish "$API_PROJECT" -c Release -r linux-x64 \
     -o /app/publish
 
 #############################
-# Model stage (download GGUF)
-#############################
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS model
-# Bring global ARGs into scope (no values = no duplication)
-ARG LLM_DEFAULT_MODEL_REPO
-ARG LLM_DEFAULT_MODEL_FILE
-ARG LLM_MODEL_REV
-ARG HF_TOKEN
-
-RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
-    set -eu; \
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && update-ca-certificates; \
-    mkdir -p /models; \
-    echo "[model] Downloading ${LLM_DEFAULT_MODEL_REPO}@${LLM_MODEL_REV}/${LLM_DEFAULT_MODEL_FILE}"; \
-    TOKEN=""; \
-    if [ -s /run/secrets/hf_token ]; then TOKEN="$(cat /run/secrets/hf_token || true)"; \
-    elif [ -n "$HF_TOKEN" ]; then TOKEN="$HF_TOKEN"; fi; \
-    URL="https://huggingface.co/${LLM_DEFAULT_MODEL_REPO}/resolve/${LLM_MODEL_REV}/${LLM_DEFAULT_MODEL_FILE}?download=true"; \
-    if [ -n "$TOKEN" ]; then \
-      curl -fSL -H "Authorization: Bearer ${TOKEN}" -o "/models/${LLM_DEFAULT_MODEL_FILE}.part" "$URL"; \
-    else \
-      echo "[model] No token provided: public download"; \
-      curl -fSL -o "/models/${LLM_DEFAULT_MODEL_FILE}.part" "$URL"; \
-    fi; \
-    mv "/models/${LLM_DEFAULT_MODEL_FILE}.part" "/models/${LLM_DEFAULT_MODEL_FILE}"; \
-    ls -lh /models; \
-    apt-get purge -y curl && rm -rf /var/lib/apt/lists/*
-
-#############################
 # Runtime stage (ASP.NET 9.0)
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
-# Native deps + Python per Docling Serve (minimo indispensabile)
+# Native deps + Python per Docling Serve (minimo indispensabile, NO Tesseract)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 \
       python3 python3-pip libglib2.0-0 libgl1 libmagic1 \
@@ -107,14 +78,14 @@ RUN useradd -ms /bin/bash appuser \
     && mkdir -p /app/data \
     && chown -R appuser:appuser /app
 
-# Wrapper: avvia Docling Serve e poi la tua app .NET
+# Wrapper: avvia Docling Serve e poi la tua app .NET (senza heredoc)
 RUN set -eux; \
-  cat >/usr/local/bin/start-all.sh <<'EOF'\n\
-#!/usr/bin/env bash\n\
-set -euo pipefail\n\
-( docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui} ) &\n\
-exec /usr/local/bin/start.sh\n\
-EOF\n\
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'set -euo pipefail' \
+    '( docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui} ) &' \
+    'exec /usr/local/bin/start.sh' \
+    > /usr/local/bin/start-all.sh; \
   chmod +x /usr/local/bin/start-all.sh
 
 USER appuser
