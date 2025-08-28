@@ -7,11 +7,13 @@ ARG LLM_DEFAULT_MODEL_REPO=unsloth/Qwen3-0.6B-GGUF
 ARG LLM_DEFAULT_MODEL_FILE=Qwen3-0.6B-Q4_0.gguf
 ARG LLM_MODEL_REV=main
 ARG HF_TOKEN=""
+# NEW: controlla installazione Docling a build-time (0=off default)
+ARG DOCLING_INSTALL=0
 
 #############################
 # Frontend stage (Node 20)
 #############################
-FROM --platform=linux/amd64 node:20 AS frontend
+FROM  node:20 AS frontend
 WORKDIR /src/frontend
 COPY frontend/package*.json ./
 RUN npm ci
@@ -21,7 +23,7 @@ RUN npm run build
 #############################
 # Build stage (SDK 9.0)
 #############################
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
+FROM  mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
 ARG API_PROJECT=src/DocflowAi.Net.Api/DocflowAi.Net.Api.csproj
 WORKDIR /src
 
@@ -43,8 +45,7 @@ RUN dotnet publish "$API_PROJECT" -c Release -r linux-x64 \
 #############################
 # Model stage (download GGUF)
 #############################
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS model
-# Bring global ARGs into scope (no values = no duplication)
+FROM  mcr.microsoft.com/dotnet/aspnet:9.0-noble AS model
 ARG LLM_DEFAULT_MODEL_REPO
 ARG LLM_DEFAULT_MODEL_FILE
 ARG LLM_MODEL_REV
@@ -72,13 +73,15 @@ RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
 #############################
 # Runtime stage (ASP.NET 9.0)
 #############################
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
+FROM  mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
-# Native deps + Python + OpenSSH per App Service (SSH su 2222)
+# Bring build-time flag into scope
+ARG DOCLING_INSTALL
+
+# Base deps + OpenSSH per App Service (SSH su 2222)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 \
-      python3 python3-pip python3-venv libglib2.0-0 libmagic1 \
-      openssh-server curl \
+      libglib2.0-0 libmagic1 openssh-server curl \
   && mkdir -p /app/models /var/run/sshd \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
@@ -90,34 +93,38 @@ RUN sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config \
  && echo 'root:Docker!' | chpasswd \
  && ssh-keygen -A
 
-# Virtualenv per evitare PEP 668 (pip su system-site)
-RUN python3 -m venv /opt/venv
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="/opt/venv/bin:${PATH}"
-
-# Torch CPU wheels, OpenCV headless, Docling Serve
-RUN python -m pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir \
-      --index-url https://download.pytorch.org/whl/cpu \
-      torch torchvision && \
-    pip install --no-cache-dir opencv-python-headless docling-serve
+# --- DOCLING (facoltativo) ---
+# Installa Python/venv + docling-serve SOLO se DOCLING_INSTALL=1
+RUN if [ "${DOCLING_INSTALL}" = "1" ]; then \
+      set -eux; \
+      apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-venv && \
+      python3 -m venv /opt/venv && \
+      /opt/venv/bin/python -m pip install --no-cache-dir --upgrade pip && \
+      /opt/venv/bin/pip install --no-cache-dir \
+        --index-url https://download.pytorch.org/whl/cpu \
+        torch torchvision && \
+      /opt/venv/bin/pip install --no-cache-dir opencv-python-headless docling-serve && \
+      rm -rf /var/lib/apt/lists/*; \
+    fi
 
 # Re-import ARGs so they can be promoted to ENV
 ARG LLM_DEFAULT_MODEL_REPO
 ARG LLM_DEFAULT_MODEL_FILE
 ARG LLM_MODEL_REV
 
-# Common ENV (aggiungo DOCLING_PORT)
+# Common ENV
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     LLM__Provider="LLamaSharp" \
-    DOCLING_PORT=5001 \
     LLAMASHARP__ContextSize=32768 \
     LLAMASHARP__Threads=0 \
     LLM__DefaultModelRepo=${LLM_DEFAULT_MODEL_REPO} \
     LLM__DefaultModelFile=${LLM_DEFAULT_MODEL_FILE} \
     LLM_MODEL_REV=${LLM_MODEL_REV} \
-    OCR_DATA_PATH=/app/models
+    OCR_DATA_PATH=/app/models \
+    DOCLING_PORT=5001 \
+    DOCLING_ENABLED=0
 
 # Utente non-root e cartelle dati
 RUN useradd -ms /bin/bash appuser \
@@ -128,30 +135,30 @@ RUN useradd -ms /bin/bash appuser \
 COPY --chown=appuser:appuser start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# Wrapper: avvia Docling Serve e poi la tua app .NET (attendendo readiness)
+# Wrapper: avvia Docling-Serve SOLO se DOCLING_ENABLED=1, poi la tua app .NET
 RUN set -eux; \
   printf '%s\n' \
     '#!/usr/bin/env bash' \
     'set -euo pipefail' \
     '' \
-    '# Log senza buffering' \
     'export PYTHONUNBUFFERED=1' \
     '' \
-    '# 1) Avvia Docling-Serve in background' \
-    '(/opt/venv/bin/docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui}) & ' \
-    '' \
-    '# 2) Attendi che risponda su /docs (max 120s)' \
-    'for i in {1..120}; do' \
-    '  if curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null; then' \
-    '    echo "[startup] Docling-Serve è UP su :${DOCLING_PORT:-5001}";' \
-    '    break;' \
+    'if [ "${DOCLING_ENABLED:-0}" = "1" ]; then' \
+    '  if [ ! -x /opt/venv/bin/docling-serve ]; then' \
+    '    echo "[startup] Docling abilitato ma non installato: ricostruisci con --build-arg DOCLING_INSTALL=1";' \
+    '    exit 1' \
     '  fi' \
-    '  echo "[startup] Attendo Docling-Serve... ($i/120)";' \
-    '  sleep 1;' \
-    'done' \
-    'curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null || { echo "[startup] ERRORE: Docling non è partito"; exit 1; }' \
+    '  ( /opt/venv/bin/docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui} ) & ' \
+    '  for i in $(seq 1 120); do' \
+    '    if curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null; then' \
+    '      echo "[startup] Docling-Serve è UP su :${DOCLING_PORT:-5001}"; break; fi' \
+    '    echo "[startup] Attendo Docling-Serve... ($i/120)"; sleep 1;' \
+    '  done' \
+    '  curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null || { echo "[startup] ERRORE: Docling non è partito"; exit 1; }' \
+    'else' \
+    '  echo "[startup] Docling disabilitato (DOCLING_ENABLED=0)";' \
+    'fi' \
     '' \
-    '# 3) Avvia la tua API .NET' \
     'exec /usr/local/bin/start.sh' \
     > /usr/local/bin/start-all.sh; \
   chmod +x /usr/local/bin/start-all.sh
