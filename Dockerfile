@@ -128,17 +128,31 @@ RUN useradd -ms /bin/bash appuser \
 COPY --chown=appuser:appuser start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# Wrapper: avvia SSHD + Docling Serve e poi la tua app .NET come appuser
+# Wrapper: avvia Docling Serve e poi la tua app .NET (attendendo readiness)
 RUN set -eux; \
   printf '%s\n' \
     '#!/usr/bin/env bash' \
     'set -euo pipefail' \
-    '# Avvia SSHD su 2222 (richiede root)' \
-    '/usr/sbin/sshd -D -p 2222 & ' \
-    '# Avvia Docling-Serve solo in localhost (interno al container)' \
-    '( docling-serve run --host 127.0.0.1 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui} ) & ' \
-    '# Avvia la tua API .NET come appuser' \
-    'exec runuser -u appuser -- /usr/local/bin/start.sh' \
+    '' \
+    '# Log senza buffering' \
+    'export PYTHONUNBUFFERED=1' \
+    '' \
+    '# 1) Avvia Docling-Serve in background' \
+    '(/opt/venv/bin/docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui}) & ' \
+    '' \
+    '# 2) Attendi che risponda su /docs (max 30s)' \
+    'for i in {1..30}; do' \
+    '  if curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null; then' \
+    '    echo "[startup] Docling-Serve è UP su :${DOCLING_PORT:-5001}";' \
+    '    break;' \
+    '  fi' \
+    '  echo "[startup] Attendo Docling-Serve... ($i/30)";' \
+    '  sleep 1;' \
+    'done' \
+    'curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null || { echo "[startup] ERRORE: Docling non è partito"; exit 1; }' \
+    '' \
+    '# 3) Avvia la tua API .NET' \
+    'exec /usr/local/bin/start.sh' \
     > /usr/local/bin/start-all.sh; \
   chmod +x /usr/local/bin/start-all.sh
 
