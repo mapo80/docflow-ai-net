@@ -452,4 +452,49 @@ test('renders extracted fields in fields tab', async () => {
   );
 });
 
+test('marks bounding box presence using spans', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    createdAt: '',
+    updatedAt: '',
+    paths: { input: { path: '/doc.pdf' }, output: { path: '/out.json' } },
+  } as any);
+  const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({
+      fields: [
+        {
+          key: 'name',
+          value: 'ACME',
+          spans: [{ page: 1, x: 0, y: 0, width: 0.1, height: 0.1 }],
+        },
+      ],
+    }),
+    headers: new Headers(),
+  } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const fieldsTab = screen.getAllByRole('tab', { name: 'Fields' })[0];
+  fireEvent.click(fieldsTab);
+  await waitFor(() => screen.getByText('name'));
+  const row = screen.getByText('name').closest('tr')!;
+  expect(within(row).getByText('✅')).toBeInTheDocument();
+  fetchSpy.mockRestore();
+});
+
 

@@ -136,14 +136,15 @@ export default function JobDetail() {
           });
         } else if (json.fields) {
           json.fields.forEach((f: any, i: number) => {
-            const span = f.evidence?.[0];
-            const box = span?.bbox ?? span;
+            const span =
+              (Array.isArray(f.spans) ? f.spans[0] : undefined) ||
+              (Array.isArray(f.evidence) ? f.evidence[0] : undefined);
             rows.push({
               key: f.key ?? `f${i}`,
               value: f.value ?? null,
               confidence: f.confidence,
               page: span?.page,
-              hasBbox: !!box,
+              hasBbox: !!span,
             });
           });
         }
