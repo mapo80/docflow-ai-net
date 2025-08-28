@@ -34,8 +34,9 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("22222222-2222-2222-2222-222222222222"));
 
         var ok = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/11111111-1111-1111-1111-111111111111");
-        ok.GetProperty("model").GetString().Should().NotBeNullOrWhiteSpace();
+        ok.GetProperty("model").GetString().Should().Be("qwen/qwen3-8b");
         ok.GetProperty("templateToken").GetString().Should().NotBeNullOrWhiteSpace();
+        ok.GetProperty("markdownSystem").GetString().Should().Be("azure-sample");
     }
 
     [Fact]
@@ -53,6 +54,10 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
             .Should().EndWith("/input.pdf");
         ok.GetProperty("paths").GetProperty("output").GetProperty("path").GetString()
             .Should().EndWith("/output.json");
+        ok.GetProperty("paths").GetProperty("prompt").GetProperty("path").GetString()
+            .Should().EndWith("/prompt.md");
+        ok.GetProperty("paths").GetProperty("markdown").GetProperty("path").GetString()
+            .Should().EndWith("/markdown.md");
         ok.GetProperty("paths").GetProperty("error").ValueKind
             .Should().Be(JsonValueKind.Null);
 
@@ -87,14 +92,26 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
             .Should().BeEquivalentTo(File.ReadAllBytes(Path.Combine(datasetRoot, "sample_invoice.pdf")));
         (await client.GetStringAsync(okOutput))
             .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "test-png-boxsolver-pointerstrategy", "result.json")));
+        var okPrompt = ok.GetProperty("paths").GetProperty("prompt").GetProperty("path").GetString()!;
+        var okMarkdown = ok.GetProperty("paths").GetProperty("markdown").GetProperty("path").GetString()!;
+        (await client.GetStringAsync(okPrompt))
+            .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "prompt.txt")));
+        (await client.GetStringAsync(okMarkdown))
+            .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "test-png-boxsolver-pointerstrategy", "markdown.md")));
 
         var err = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/22222222-2222-2222-2222-222222222222");
         var errInput = err.GetProperty("paths").GetProperty("input").GetProperty("path").GetString()!;
         var errError = err.GetProperty("paths").GetProperty("error").GetProperty("path").GetString()!;
+        var errPrompt = err.GetProperty("paths").GetProperty("prompt").GetProperty("path").GetString()!;
+        var errMarkdown = err.GetProperty("paths").GetProperty("markdown").GetProperty("path").GetString()!;
         (await client.GetByteArrayAsync(errInput))
             .Should().BeEquivalentTo(File.ReadAllBytes(Path.Combine(datasetRoot, "sample_invoice.png")));
         (await client.GetStringAsync(errError))
             .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "test-png", "llm_response.txt")));
+        (await client.GetStringAsync(errPrompt))
+            .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "prompt.txt")));
+        (await client.GetStringAsync(errMarkdown))
+            .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "test-png", "markitdown.txt")));
     }
 
     [Fact]
@@ -111,11 +128,15 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         var okPaths = ok.GetProperty("paths");
         await AssertBinaryFile(client, okPaths.GetProperty("input").GetProperty("path").GetString()!, new byte[] { 0x25, 0x50, 0x44, 0x46 });
         await AssertJsonFile(client, okPaths.GetProperty("output").GetProperty("path").GetString()!);
+        await AssertTextFile(client, okPaths.GetProperty("prompt").GetProperty("path").GetString()!);
+        await AssertTextFile(client, okPaths.GetProperty("markdown").GetProperty("path").GetString()!);
 
         var err = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/22222222-2222-2222-2222-222222222222");
         var errPaths = err.GetProperty("paths");
         await AssertBinaryFile(client, errPaths.GetProperty("input").GetProperty("path").GetString()!, new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
         await AssertTextFile(client, errPaths.GetProperty("error").GetProperty("path").GetString()!);
+        await AssertTextFile(client, errPaths.GetProperty("prompt").GetProperty("path").GetString()!);
+        await AssertTextFile(client, errPaths.GetProperty("markdown").GetProperty("path").GetString()!);
 
         static async Task AssertBinaryFile(HttpClient client, string path, byte[] signature)
         {
@@ -130,7 +151,7 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         {
             var resp = await client.GetAsync(path);
             resp.StatusCode.Should().Be(HttpStatusCode.OK);
-            resp.Content.Headers.ContentType!.MediaType.Should().Be("text/plain");
+            resp.Content.Headers.ContentType!.MediaType.Should().StartWith("text");
             var text = await resp.Content.ReadAsStringAsync();
             text.Should().NotBeNullOrWhiteSpace();
         }

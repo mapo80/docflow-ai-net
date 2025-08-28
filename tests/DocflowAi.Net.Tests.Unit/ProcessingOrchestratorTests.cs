@@ -20,7 +20,7 @@ public class ProcessingOrchestratorTests {
         var md = new MarkdownResult("# Title\n- Key: Value", new List<MarkdownPageInfo>(), new List<MarkdownBox>());
         var expected = new DocumentAnalysisResult("test", new List<ExtractedField>{ new("Key","Value",0.9, Array.Empty<SpanEvidence>())}, "en", null);
         var mdClient = new Mock<IMarkdownConverter>();
-        mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
+        mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
         var llama = new Mock<ILlamaExtractor>();
         llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>(), null)).ReturnsAsync(new LlamaExtractionResult(expected, "sys", "user"));
         var resolver = new Mock<IResolverOrchestrator>();
@@ -44,7 +44,7 @@ public class ProcessingOrchestratorTests {
         var md = new MarkdownResult("# Title\n- Key: Value", new List<MarkdownPageInfo>(), new List<MarkdownBox>());
         var expected = new DocumentAnalysisResult("test", new List<ExtractedField>{ new("Key","Value",0.9, Array.Empty<SpanEvidence>())}, "en", null);
         var mdClient = new Mock<IMarkdownConverter>();
-        mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
+        mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
         var llama = new Mock<ILlamaExtractor>();
         llama.Setup(x => x.ExtractAsync(md.Markdown, "tpl", "prompt", It.IsAny<IReadOnlyList<FieldSpec>>(), It.IsAny<CancellationToken>(), null)).ReturnsAsync(new LlamaExtractionResult(expected, "sys", "user"));
         var resolver = new Mock<IResolverOrchestrator>();

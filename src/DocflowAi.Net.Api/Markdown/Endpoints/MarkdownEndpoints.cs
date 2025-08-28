@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DocflowAi.Net.Api.Markdown.Endpoints;
 
@@ -49,18 +50,26 @@ public static class MarkdownEndpoints
                 }
             }
 
+            var sys = op.Parameters?.FirstOrDefault(x => x.Name == "markdownSystemId");
+            if (sys != null)
+            {
+                sys.Required = true;
+            }
+
             return op;
         });
 
         return builder;
     }
 
-    internal static async Task<IResult> ConvertFileAsync(IFormFile? file, string? language, IMarkdownConverter conv, IOptions<MarkdownOptions> opts)
+    internal static async Task<IResult> ConvertFileAsync(IFormFile? file, string? language, [FromQuery] Guid markdownSystemId, IMarkdownConverter conv, IOptions<MarkdownOptions> opts)
     {
         if (file == null || file.Length == 0)
             return Results.Json(new ErrorResponse("bad_request", "file required"), statusCode: 400);
         if (string.IsNullOrWhiteSpace(language) || (language != "ita" && language != "eng" && language != "lat"))
             return Results.Json(new ErrorResponse("bad_request", "language must be 'ita', 'eng', or 'lat'"), statusCode: 400);
+        if (markdownSystemId == Guid.Empty)
+            return Results.Json(new ErrorResponse("bad_request", "markdownSystemId required"), statusCode: 400);
 
         await using var stream = file.OpenReadStream();
         try
@@ -75,9 +84,9 @@ public static class MarkdownEndpoints
                 NormalizeMarkdown = opts.Value.NormalizeMarkdown
             };
             if (ext == ".pdf")
-                result = await conv.ConvertPdfAsync(stream, mdOpts);
+                result = await conv.ConvertPdfAsync(stream, mdOpts, markdownSystemId);
             else
-                result = await conv.ConvertImageAsync(stream, mdOpts);
+                result = await conv.ConvertImageAsync(stream, mdOpts, markdownSystemId);
 
             return Results.Json(result);
         }

@@ -60,7 +60,7 @@ public class JobRunner : IJobRunner
                 ProcessResult result;
                 try
                 {
-                    var input = new ProcessInput(jobId, job.Paths.Input!.Path, job.Paths.Markdown!.Path, job.Paths.Prompt!.Path, job.TemplateToken, job.Model);
+                    var input = new ProcessInput(jobId, job.Paths.Input!.Path, job.Paths.Markdown!.Path, job.Paths.Prompt!.Path, job.TemplateToken, job.Model, job.MarkdownSystemId);
                     result = await _process.ExecuteAsync(input, linkedCts.Token);
                     if (result.MarkdownCreatedAt.HasValue)
                         job.Paths.Markdown!.CreatedAt = result.MarkdownCreatedAt;

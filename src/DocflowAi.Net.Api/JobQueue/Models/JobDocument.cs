@@ -17,6 +17,8 @@ public class JobDocument
     public string Model { get; set; } = string.Empty;
     public string TemplateToken { get; set; } = string.Empty;
     public string Language { get; set; } = string.Empty;
+    public Guid MarkdownSystemId { get; set; }
+    public string MarkdownSystemName { get; set; } = string.Empty;
 
     public class MetricsInfo
     {

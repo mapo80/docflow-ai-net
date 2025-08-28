@@ -16,9 +16,9 @@ vi.mock('antd', () => ({
         <div key={row.id}>
           <span>{row.id}</span>
           <div>
-            {columns[4].title}: {columns[4].render(row.language, row)}
+            {columns[5].title}: {columns[5].render(row.language, row)}
           </div>
-          {columns[8].render(null, row)}
+          {columns[9].render(null, row)}
         </div>
       ))}
       <button onClick={() => pagination.onChange(2, pagination.pageSize)}>2</button>
@@ -44,7 +44,7 @@ test('pagination and cancel', async () => {
     .spyOn(JobsService, 'jobsList')
     .mockResolvedValue({
       items: [
-        { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'eng' } as any,
+        { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'eng', markdownSystem: 'ms' } as any,
       ],
       page: 1,
       pageSize: 10,
@@ -71,7 +71,7 @@ test('displays latin language', async () => {
   vi.restoreAllMocks();
   vi.spyOn(JobsService, 'jobsList').mockResolvedValue({
     items: [
-      { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'lat' } as any,
+      { id: '1', status: 'Running', createdAt: '', updatedAt: '', templateToken: 't', model: 'm', language: 'lat', markdownSystem: 'ms' } as any,
     ],
     page: 1,
     pageSize: 10,
