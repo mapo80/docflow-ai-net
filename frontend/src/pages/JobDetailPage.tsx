@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Row, Col, Switch } from 'antd';
 import { JobsService, OpenAPI } from '../generated';
-import { parseOutputToViewModel, type ExtractionViewModel } from '../adapters/extractionAdapter';
+import {
+  parseOutputToViewModel,
+  type ExtractionViewModel,
+} from '../adapters/extractionAdapter';
 import DocumentPreview from '../components/DocumentPreview';
 import FieldsTable from '../components/FieldsTable';
 import Loader from '../components/Loader';
@@ -27,7 +30,7 @@ export default function JobDetailPage() {
       setLoading(true);
       try {
         const job = await JobsService.jobsGetById({ id });
-        if (!job.paths?.output?.path) {
+        if (!job.paths?.output?.path || !job.paths?.markdown?.path) {
           setError('No output available');
           setModel(null);
           return;
@@ -48,7 +51,14 @@ export default function JobDetailPage() {
           outputJson = await res.json();
           break;
         }
-        const vm = parseOutputToViewModel(job, outputJson);
+        let mdUrl = job.paths.markdown.path.replace(/\.md$/i, '.json');
+        if (!mdUrl.startsWith('http')) mdUrl = `${OpenAPI.BASE}${mdUrl}`;
+        const mdRes = await fetch(mdUrl, {
+          headers: OpenAPI.HEADERS as Record<string, string> | undefined,
+        });
+        if (!mdRes.ok) throw new Error('Failed to fetch markdown');
+        const mdJson = await mdRes.json();
+        const vm = parseOutputToViewModel(job, outputJson, mdJson);
         if (!vm || vm.pages.length === 0) {
           setError('No bounding boxes available');
           setModel(null);

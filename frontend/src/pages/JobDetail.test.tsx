@@ -290,39 +290,41 @@ test('opens document preview modal', async () => {
     paths: {
       input: { path: '/file.png' },
       output: { path: '/out.json' },
+      markdown: { path: '/m.md' },
     },
   } as any);
-  vi.spyOn(global, 'fetch').mockResolvedValue({
-    ok: true,
-    json: async () => ({
-      pages: [
-        {
-          index: 1,
-          width: 100,
-          height: 100,
-          words: [
-            {
-              id: 'w1',
-              text: 'hi',
-              bbox: { x: 10, y: 10, width: 10, height: 10 },
-              conf: 0.9,
-            },
-          ],
-        },
-      ],
-      fields: [
-        {
-          id: 'f1',
-          name: 'name',
-          value: 'hi',
-          page: 1,
-          wordIds: ['w1'],
-          conf: 0.9,
-        },
-      ],
-    }),
-    headers: new Headers(),
-  } as any);
+  vi.spyOn(global, 'fetch')
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        fields: [
+          {
+            key: 'name',
+            value: 'hi',
+            confidence: 0.9,
+            spans: [{ page: 1, x: 0.1, y: 0.1, width: 0.1, height: 0.1 }],
+          },
+        ],
+      }),
+      headers: new Headers(),
+    } as any)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        pages: [{ number: 1, width: 100, height: 100 }],
+        boxes: [
+          {
+            page: 1,
+            xNorm: 0.1,
+            yNorm: 0.1,
+            widthNorm: 0.1,
+            heightNorm: 0.1,
+            text: 'hi',
+          },
+        ],
+      }),
+      headers: new Headers(),
+    } as any);
 
   render(
     <ApiErrorProvider>

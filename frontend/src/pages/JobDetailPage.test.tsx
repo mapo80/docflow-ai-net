@@ -10,6 +10,7 @@ const jobMock = {
   paths: {
     input: { path: '/doc.png' },
     output: { path: '/output.json' },
+    markdown: { path: '/md.md' },
   },
   markdownSystem: 'ms',
 } as any;
@@ -17,26 +18,40 @@ const jobMock = {
 vi.spyOn(JobsService, 'jobsGetById').mockResolvedValue(jobMock);
 
 const output = {
-  pages: [
+  fields: [
     {
-      index: 1,
-      width: 100,
-      height: 100,
-      words: [
-        { id: 'w1', text: 'Hi', bbox: { x: 10, y: 10, width: 20, height: 20 } },
-      ],
+      key: 'n',
+      value: 'v',
+      confidence: 0.9,
+      spans: [{ page: 1, x: 0.1, y: 0.1, width: 0.2, height: 0.2 }],
     },
   ],
-  fields: [
-    { id: 'f1', name: 'n', value: 'v', page: 1, wordIds: ['w1'], conf: 0.9 },
+};
+const md = {
+  pages: [{ number: 1, width: 100, height: 100 }],
+  boxes: [
+    {
+      page: 1,
+      xNorm: 0.1,
+      yNorm: 0.1,
+      widthNorm: 0.2,
+      heightNorm: 0.2,
+      text: 'Hi',
+    },
   ],
 };
 
-vi.spyOn(global, 'fetch').mockResolvedValue({
-  ok: true,
-  json: async () => output,
-  headers: new Headers(),
-} as any);
+vi.spyOn(global, 'fetch')
+  .mockResolvedValueOnce({
+    ok: true,
+    json: async () => output,
+    headers: new Headers(),
+  } as any)
+  .mockResolvedValueOnce({
+    ok: true,
+    json: async () => md,
+    headers: new Headers(),
+  } as any);
 
 describe('JobDetailPage', () => {
   it('selects field and bbox bidirectionally', async () => {
@@ -49,10 +64,10 @@ describe('JobDetailPage', () => {
         </MemoryRouter>
       </ApiErrorProvider>,
     );
-    await waitFor(() => screen.getByTestId('bbox-w1'));
-    const row = screen.getByTestId('row-f1');
+    await waitFor(() => screen.getByTestId('bbox-w0'));
+    const row = screen.getByTestId('row-n');
     fireEvent.click(row);
-    const rect = screen.getByTestId('bbox-w1');
+    const rect = screen.getByTestId('bbox-w0');
     expect(rect.getAttribute('fill')).toContain('0,123,255');
     fireEvent.click(rect);
     expect(row.className).toContain('selected-row');
