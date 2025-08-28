@@ -374,4 +374,45 @@ test('opens document preview modal', async () => {
   await waitFor(() => expect(getByIdSpy).toHaveBeenCalledTimes(2));
 });
 
+test('renders extracted fields in fields tab', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    createdAt: '',
+    updatedAt: '',
+    paths: { output: { path: '/out.json' } },
+  } as any);
+  const fetchSpy = vi
+    .spyOn(global, 'fetch')
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ fields: [{ key: 'name', value: 'value' }] }),
+      headers: new Headers(),
+    } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const fieldsTab = screen.getAllByRole('tab', { name: 'Fields' })[0];
+  fireEvent.click(fieldsTab);
+  await waitFor(() => screen.getByText('name'));
+  expect(screen.getByText('value')).toBeInTheDocument();
+  expect(fetchSpy).toHaveBeenCalledWith(
+    expect.stringContaining('/out.json'),
+    expect.anything(),
+  );
+});
+
 

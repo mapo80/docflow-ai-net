@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Row, Col, Switch } from 'antd';
+import { Alert, Row, Col } from 'antd';
 import { JobsService, OpenAPI } from '../generated';
 import {
   parseOutputToViewModel,
@@ -11,8 +11,13 @@ import FieldsTable from '../components/FieldsTable';
 import Loader from '../components/Loader';
 import { useApiError } from '../components/ApiErrorProvider';
 
-export default function JobDetailPage() {
-  const { id } = useParams();
+interface Props {
+  jobId?: string;
+}
+
+export default function JobDetailPage({ jobId }: Props) {
+  const params = useParams();
+  const id = jobId ?? params.id;
   const [model, setModel] = useState<ExtractionViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +27,6 @@ export default function JobDetailPage() {
   const [selectedWordIds, setSelectedWordIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(1);
-  const [showOnlySelected, setShowOnlySelected] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -112,12 +116,10 @@ export default function JobDetailPage() {
           pages={model.pages}
           currentPage={currentPage}
           zoom={zoom}
-          showOnlySelected={showOnlySelected}
           selectedWordIds={selectedWordIds}
           onWordClick={handleWordClick}
           onPageChange={setCurrentPage}
           onZoomChange={setZoom}
-          onToggleShowOnly={setShowOnlySelected}
         />
       </Col>
       <Col span={8}>
@@ -125,13 +127,6 @@ export default function JobDetailPage() {
           fields={model.fields}
           selectedFieldId={selectedFieldId}
           onFieldSelect={handleFieldSelect}
-        />
-        <Switch
-          checked={showOnlySelected}
-          onChange={setShowOnlySelected}
-          checkedChildren="Only selected"
-          unCheckedChildren="All"
-          style={{ marginTop: 8 }}
         />
       </Col>
     </Row>

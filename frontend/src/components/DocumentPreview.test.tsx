@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import DocumentPreview from './DocumentPreview';
 import { describe, it, expect, vi } from 'vitest';
 
@@ -28,12 +28,10 @@ describe('DocumentPreview', () => {
         pages={sample.pages}
         currentPage={1}
         zoom={1}
-        showOnlySelected={false}
         selectedWordIds={new Set(['w1'])}
         onWordClick={onWordClick}
         onPageChange={() => {}}
         onZoomChange={() => {}}
-        onToggleShowOnly={() => {}}
       />,
     );
     const rect = getByTestId('bbox-w1');
@@ -42,41 +40,5 @@ describe('DocumentPreview', () => {
     expect(onWordClick).toHaveBeenCalledWith('w1');
   });
 
-  it('filters boxes when showOnlySelected is true', async () => {
-    const { queryAllByTestId, rerender } = render(
-      <DocumentPreview
-        docType={sample.docType}
-        srcUrl={sample.srcUrl}
-        pages={sample.pages}
-        currentPage={1}
-        zoom={1}
-        showOnlySelected={false}
-        selectedWordIds={new Set(['w1'])}
-        onWordClick={() => {}}
-        onPageChange={() => {}}
-        onZoomChange={() => {}}
-        onToggleShowOnly={() => {}}
-      />,
-    );
-    const before = queryAllByTestId('bbox-w2').length;
-    expect(before).toBeGreaterThan(0);
-    rerender(
-      <DocumentPreview
-        docType={sample.docType}
-        srcUrl={sample.srcUrl}
-        pages={sample.pages}
-        currentPage={1}
-        zoom={1}
-        showOnlySelected
-        selectedWordIds={new Set(['w1'])}
-        onWordClick={() => {}}
-        onPageChange={() => {}}
-        onZoomChange={() => {}}
-        onToggleShowOnly={() => {}}
-      />,
-    );
-    await waitFor(() =>
-      expect(queryAllByTestId('bbox-w2').length).toBeLessThan(before),
-    );
-  });
+  // no filtering test since component always shows all words
 });

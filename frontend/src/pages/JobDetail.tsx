@@ -110,7 +110,7 @@ export default function JobDetail() {
       try {
         const outUrl = job.paths.output.path.startsWith('http')
           ? job.paths.output.path
-          : `${OpenAPI.BASE}${job.paths.output}`;
+          : `${OpenAPI.BASE}${job.paths.output.path}`;
         const res = await fetch(outUrl, {
           headers: OpenAPI.HEADERS as Record<string, string> | undefined,
         });
@@ -423,12 +423,13 @@ export default function JobDetail() {
       <Modal
         open={viewerOpen}
         footer={null}
+        title="Document preview"
         onCancel={() => setViewerOpen(false)}
         width="100%"
         style={{ top: 0 }}
         styles={{
           body: {
-            height: '100vh',
+            height: 'calc(100vh - 64px)',
             overflow: 'hidden',
             padding: 0,
             backgroundColor: '#fff',
@@ -438,7 +439,7 @@ export default function JobDetail() {
         destroyOnClose
         data-testid="viewer-modal"
       >
-        <JobDetailPage />
+        {job && <JobDetailPage jobId={job.id} />}
       </Modal>
       {preview && (
         <Modal

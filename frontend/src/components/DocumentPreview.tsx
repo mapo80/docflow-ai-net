@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { OcrWord } from '../adapters/extractionAdapter';
-import { Select, Slider, Switch, Space } from 'antd';
+import { Select, Slider, Space } from 'antd';
 
 interface PageInfo {
   index: number;
@@ -15,12 +15,10 @@ export interface DocumentPreviewProps {
   pages: PageInfo[];
   currentPage: number;
   zoom: number;
-  showOnlySelected: boolean;
   selectedWordIds: Set<string>;
   onWordClick: (id: string) => void;
   onPageChange: (p: number) => void;
   onZoomChange: (z: number) => void;
-  onToggleShowOnly: (v: boolean) => void;
 }
 
 export default function DocumentPreview({
@@ -29,12 +27,10 @@ export default function DocumentPreview({
   pages,
   currentPage,
   zoom,
-  showOnlySelected,
   selectedWordIds,
   onWordClick,
   onPageChange,
   onZoomChange,
-  onToggleShowOnly,
 }: DocumentPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -75,9 +71,7 @@ export default function DocumentPreview({
 
   const sx = rendered.width / page.width;
   const sy = rendered.height / page.height;
-  const words = showOnlySelected
-    ? page.words.filter((w) => selectedWordIds.has(w.id))
-    : page.words;
+  const words = page.words;
 
   return (
     <div data-testid="doc-preview">
@@ -95,12 +89,6 @@ export default function DocumentPreview({
           step={0.1}
           value={zoom}
           onChange={onZoomChange}
-        />
-        <Switch
-          checked={showOnlySelected}
-          onChange={onToggleShowOnly}
-          checkedChildren="Only selected"
-          unCheckedChildren="All"
         />
       </Space>
       <div style={{ position: 'relative', display: 'inline-block' }}>
