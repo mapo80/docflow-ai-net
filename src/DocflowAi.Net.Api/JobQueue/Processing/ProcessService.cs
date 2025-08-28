@@ -136,7 +136,22 @@ public class ProcessService : IProcessService
                 document_type = enriched.DocumentType,
                 language = enriched.Language,
                 notes = enriched.Notes,
-                fields = enriched.Fields.Select(f => new { key = f.Key, value = f.Value, confidence = f.Confidence }),
+                fields = enriched.Fields.Select(f => new
+                {
+                    key = f.Key,
+                    value = f.Value,
+                    confidence = f.Confidence,
+                    spans = f.Evidence != null
+                        ? f.Evidence.Select(e => (object)new
+                        {
+                            page = e.Page,
+                            x = e.BBox.X,
+                            y = e.BBox.Y,
+                            width = e.BBox.W,
+                            height = e.BBox.H
+                        })
+                        : Array.Empty<object>()
+                }),
                 metrics = new
                 {
                     markdown_ms = mdSw.Elapsed.TotalMilliseconds,

@@ -3,9 +3,61 @@
   "language": "it",
   "notes": "Grazie per il tuo acquisto!",
   "fields": [
-    {"key": "company_name", "value": "ACME S.p.A.", "confidence": 0.95},
-    {"key": "document_type", "value": "Fattura", "confidence": 0.95},
-    {"key": "invoice_number", "value": "INV-2025-001", "confidence": 0.95},
-    {"key": "invoice_date", "value": "2025-08-09", "confidence": 0.95}
+    {
+      "key": "company_name",
+      "value": "ACME S.p.A.",
+      "confidence": 0.95,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.40689021348953247,
+          "y": 0.05337054282426834,
+          "width": 0.18461020290851593,
+          "height": 0.022447476163506508
+        }
+      ]
+    },
+    {
+      "key": "document_type",
+      "value": "Fattura",
+      "confidence": 0.95,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.06984595954418182,
+          "y": 0.1147971823811531,
+          "width": 0.18176648020744324,
+          "height": 0.015821106731891632
+        }
+      ]
+    },
+    {
+      "key": "invoice_number",
+      "value": "INV-2025-001",
+      "confidence": 0.95,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.06979755312204361,
+          "y": 0.15586528182029724,
+          "width": 0.2316097617149353,
+          "height": 0.012978785671293736
+        }
+      ]
+    },
+    {
+      "key": "invoice_date",
+      "value": "2025-08-09",
+      "confidence": 0.95,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.0700758770108223,
+          "y": 0.17047925293445587,
+          "width": 0.1316932737827301,
+          "height": 0.011908630840480328
+        }
+      ]
+    }
   ]
 }

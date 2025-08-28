@@ -29,6 +29,8 @@ At startup the API can optionally seed two sample jobs and a sample template usi
 
 The template token is `template` and contains the invoice extraction prompt and field schema. It is referenced by the seeded jobs and can be reused when submitting new jobs by specifying `"template"` as the template token.
 
+The seeded job's `output.json` exposes bounding-box coordinates for each field under `fields[].spans` so the UI can highlight values directly on the document preview.
+
 ### Job submission parameters
 
 Each job must specify four values:
