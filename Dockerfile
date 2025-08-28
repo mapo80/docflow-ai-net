@@ -74,20 +74,28 @@ RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
-# Native deps + Python per Docling Serve (headless, NO Tesseract)
+# Native deps + Python + OpenSSH per App Service (SSH su 2222)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 \
       python3 python3-pip python3-venv libglib2.0-0 libmagic1 \
-  && mkdir -p /app/models \
+      openssh-server curl \
+  && mkdir -p /app/models /var/run/sshd \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+
+# Configura SSHD su 2222 (App Service) e abilita root login con password (solo per WebSSH)
+RUN sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config \
+ && sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication yes/' /etc/ssh/sshd_config \
+ && sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config \
+ && echo 'root:Docker!' | chpasswd \
+ && ssh-keygen -A
 
 # Virtualenv per evitare PEP 668 (pip su system-site)
 RUN python3 -m venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-# Torch CPU wheels, OpenCV headless, Docling Serve (EasyOCR di default)
+# Torch CPU wheels, OpenCV headless, Docling Serve
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
       --index-url https://download.pytorch.org/whl/cpu \
@@ -99,7 +107,7 @@ ARG LLM_DEFAULT_MODEL_REPO
 ARG LLM_DEFAULT_MODEL_FILE
 ARG LLM_MODEL_REV
 
-# Common ENV (aggiungo solo DOCLING_PORT)
+# Common ENV (aggiungo DOCLING_PORT)
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     LLM__Provider="LLamaSharp" \
@@ -116,17 +124,24 @@ RUN useradd -ms /bin/bash appuser \
     && mkdir -p /app/data \
     && chown -R appuser:appuser /app
 
-# Wrapper: avvia Docling Serve e poi la tua app .NET (senza heredoc)
+# Bootstrap originale (avvia l'app .NET)
+COPY --chown=appuser:appuser start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+# Wrapper: avvia SSHD + Docling Serve e poi la tua app .NET come appuser
 RUN set -eux; \
   printf '%s\n' \
     '#!/usr/bin/env bash' \
     'set -euo pipefail' \
-    '( docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui} ) &' \
-    'exec /usr/local/bin/start.sh' \
+    '# Avvia SSHD su 2222 (richiede root)' \
+    '/usr/sbin/sshd -D -p 2222 & ' \
+    '# Avvia Docling-Serve solo in localhost (interno al container)' \
+    '( docling-serve run --host 127.0.0.1 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui} ) & ' \
+    '# Avvia la tua API .NET come appuser' \
+    'exec runuser -u appuser -- /usr/local/bin/start.sh' \
     > /usr/local/bin/start-all.sh; \
   chmod +x /usr/local/bin/start-all.sh
 
-USER appuser
 WORKDIR /app
 
 # App pubblicata
@@ -139,11 +154,9 @@ ENV MODELS_DIR=/home/appuser/models
 # Dove NuGet mette libllama.so
 ENV LD_LIBRARY_PATH=/app/runtimes/linux-x64/native:$LD_LIBRARY_PATH
 
-# Bootstrap originale
-COPY --chown=appuser:appuser start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
-
 EXPOSE 8080
 EXPOSE 5001
+EXPOSE 2222
+
 ENTRYPOINT ["/usr/bin/tini","--"]
 CMD ["/usr/local/bin/start-all.sh"]
