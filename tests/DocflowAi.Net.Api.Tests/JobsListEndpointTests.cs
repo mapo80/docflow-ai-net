@@ -108,6 +108,6 @@ public class JobsListEndpointTests : IClassFixture<TempDirFixture>
     }
 
     private record JobListResponse(int page, int pageSize, int total, List<JobItem> items);
-    private record JobItem(Guid id, string status, string derivedStatus, int progress, int attempts, DateTimeOffset createdAt, DateTimeOffset updatedAt, string model, string templateToken, string language);
+    private record JobItem(Guid id, string status, string derivedStatus, int progress, int attempts, DateTimeOffset createdAt, DateTimeOffset updatedAt, string model, string templateToken, string language, string markdownSystem);
     private record ErrorResponse(string error, string? message);
 }

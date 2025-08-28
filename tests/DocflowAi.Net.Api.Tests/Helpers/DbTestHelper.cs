@@ -41,6 +41,8 @@ public static class DbTestHelper
             Model = "m",
             TemplateToken = "t",
             Language = "eng",
+            MarkdownSystemId = Guid.NewGuid(),
+            MarkdownSystemName = "docling",
             Paths = new JobDocument.PathInfo
             {
                 Dir = string.Empty,

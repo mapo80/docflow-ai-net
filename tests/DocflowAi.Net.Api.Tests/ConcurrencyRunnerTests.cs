@@ -33,7 +33,9 @@ public class ConcurrencyRunnerTests : IClassFixture<TempDirFixture>
             UpdatedAt = DateTimeOffset.UtcNow,
             Hash = "h",
             Metrics = new JobDocument.MetricsInfo(),
-            Language = "eng"
+            Language = "eng",
+            MarkdownSystemId = Guid.NewGuid(),
+            MarkdownSystemName = "docling"
         };
 
     [Fact]

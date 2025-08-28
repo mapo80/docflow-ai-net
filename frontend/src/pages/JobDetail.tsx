@@ -285,6 +285,7 @@ export default function JobDetail() {
         <Descriptions.Item label="Model">
           {modelInfo?.name || job.model}
         </Descriptions.Item>
+        <Descriptions.Item label="Markdown system">{job.markdownSystem}</Descriptions.Item>
         <Descriptions.Item label="Template">
           {templateInfo?.name || job.templateToken}
         </Descriptions.Item>

@@ -19,9 +19,9 @@ public sealed class ThrowingMarkdownConverter : IMarkdownConverter
         _exception = exception;
     }
 
-    public Task<MarkdownResult> ConvertPdfAsync(Stream pdf, MarkdownOptions opts, CancellationToken ct = default)
+    public Task<MarkdownResult> ConvertPdfAsync(Stream pdf, MarkdownOptions opts, Guid? systemId = null, CancellationToken ct = default)
         => Task.FromException<MarkdownResult>(_exception);
 
-    public Task<MarkdownResult> ConvertImageAsync(Stream image, MarkdownOptions opts, CancellationToken ct = default)
+    public Task<MarkdownResult> ConvertImageAsync(Stream image, MarkdownOptions opts, Guid? systemId = null, CancellationToken ct = default)
         => Task.FromException<MarkdownResult>(_exception);
 }

@@ -11,6 +11,7 @@ const jobMock = {
     input: { path: '/doc.png' },
     output: { path: '/output.json' },
   },
+  markdownSystem: 'ms',
 } as any;
 
 vi.spyOn(JobsService, 'jobsGetById').mockResolvedValue(jobMock);

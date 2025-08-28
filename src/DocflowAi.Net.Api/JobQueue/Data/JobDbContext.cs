@@ -1,6 +1,7 @@
 using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Model.Models;
 using DocflowAi.Net.Api.Templates.Models;
+using DocflowAi.Net.Api.MarkdownSystem.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -13,6 +14,7 @@ public class JobDbContext : DbContext
     public DbSet<JobDocument> Jobs => Set<JobDocument>();
     public DbSet<ModelDocument> Models => Set<ModelDocument>();
     public DbSet<TemplateDocument> Templates => Set<TemplateDocument>();
+    public DbSet<MarkdownSystemDocument> MarkdownSystems => Set<MarkdownSystemDocument>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +32,8 @@ public class JobDbContext : DbContext
         job.HasIndex(j => j.IdempotencyKey);
         job.HasIndex(j => j.Hash);
         job.HasIndex(j => j.Language);
+        job.HasIndex(j => j.MarkdownSystemId);
+        job.Property(j => j.MarkdownSystemName).IsRequired();
 
         job.Property(j => j.CreatedAt).HasConversion(converter);
         job.Property(j => j.UpdatedAt).HasConversion(converter);
@@ -67,5 +71,14 @@ public class JobDbContext : DbContext
         template.Property(t => t.FieldsJson).IsRequired();
         template.Property(t => t.CreatedAt).HasConversion(converter);
         template.Property(t => t.UpdatedAt).HasConversion(converter);
+
+        var ms = modelBuilder.Entity<MarkdownSystemDocument>();
+        ms.HasKey(m => m.Id);
+        ms.HasIndex(m => m.Name).IsUnique();
+        ms.Property(m => m.Name).HasMaxLength(200).IsRequired();
+        ms.Property(m => m.Provider).HasMaxLength(100).IsRequired();
+        ms.Property(m => m.Endpoint).IsRequired();
+        ms.Property(m => m.CreatedAt).HasConversion(converter);
+        ms.Property(m => m.UpdatedAt).HasConversion(converter);
     }
 }

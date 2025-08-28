@@ -48,6 +48,7 @@ public class ProcessService : IProcessService
 
     public async Task<ProcessResult> ExecuteAsync(ProcessInput input, CancellationToken ct)
     {
+        DateTimeOffset? mdCreated = null;
         try
         {
             var tpl = _templates.GetByToken(input.TemplateToken);
@@ -56,31 +57,52 @@ public class ProcessService : IProcessService
 
             var fields = JsonSerializer.Deserialize<List<FieldSpec>>(tpl.FieldsJson) ?? new();
 
-            await using var fs = File.OpenRead(input.InputPath);
-            var contentType = GetContentType(input.InputPath);
-
             var totalSw = Stopwatch.StartNew();
-            MarkdownResult md;
-            var mdSw = Stopwatch.StartNew();
-            var mdOpts = new MarkdownOptions
+            var mdJsonPath = Path.ChangeExtension(input.MarkdownPath, ".json");
+            MarkdownResult? md = null;
+            Stopwatch mdSw;
+            if (File.Exists(input.MarkdownPath) && new FileInfo(input.MarkdownPath).Length > 0 &&
+                File.Exists(mdJsonPath) && new FileInfo(mdJsonPath).Length > 0)
             {
-                OcrLanguage = _mdOptions.OcrLanguage,
-                PdfRasterDpi = _mdOptions.PdfRasterDpi,
-                MinimumNativeWordThreshold = _mdOptions.MinimumNativeWordThreshold,
-                NormalizeMarkdown = _mdOptions.NormalizeMarkdown
-            };
-            if (contentType == "application/pdf")
+                try
+                {
+                    var jsonText = await File.ReadAllTextAsync(mdJsonPath, ct);
+                    md = JsonSerializer.Deserialize<MarkdownResult>(jsonText);
+                    if (md != null)
+                        mdCreated = File.GetLastWriteTimeUtc(input.MarkdownPath);
+                }
+                catch
+                {
+                    md = null;
+                }
+            }
+
+            if (md != null)
             {
-                md = await _converter.ConvertPdfAsync(fs, mdOpts, ct);
+                mdSw = new Stopwatch();
             }
             else
             {
-                md = await _converter.ConvertImageAsync(fs, mdOpts, ct);
-            }
-            mdSw.Stop();
+                mdSw = Stopwatch.StartNew();
+                await using var fs = File.OpenRead(input.InputPath);
+                var contentType = GetContentType(input.InputPath);
+                var mdOpts = new MarkdownOptions
+                {
+                    OcrLanguage = _mdOptions.OcrLanguage,
+                    PdfRasterDpi = _mdOptions.PdfRasterDpi,
+                    MinimumNativeWordThreshold = _mdOptions.MinimumNativeWordThreshold,
+                    NormalizeMarkdown = _mdOptions.NormalizeMarkdown
+                };
+                if (contentType == "application/pdf")
+                    md = await _converter.ConvertPdfAsync(fs, mdOpts, input.MarkdownSystemId, ct);
+                else
+                    md = await _converter.ConvertImageAsync(fs, mdOpts, input.MarkdownSystemId, ct);
+                mdSw.Stop();
 
-            await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
-            var mdCreated = DateTimeOffset.UtcNow;
+                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
+                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(mdJsonPath), JsonSerializer.Serialize(md));
+                mdCreated = DateTimeOffset.UtcNow;
+            }
 
             DateTimeOffset? promptCreated = null;
             async Task SavePrompt(string system, string user)
@@ -123,12 +145,12 @@ public class ProcessService : IProcessService
                 }
             };
             var json = JsonSerializer.Serialize(output);
-            return new ProcessResult(true, json, md.Markdown, null, mdCreated, promptCreated);
+            return new ProcessResult(true, json, md!.Markdown, null, mdCreated, promptCreated);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "ProcessFailed {JobId}", input.JobId);
-            return new ProcessResult(false, string.Empty, null, ex.Message, null, null);
+            return new ProcessResult(false, string.Empty, null, ex.Message, mdCreated, null);
         }
     }
 

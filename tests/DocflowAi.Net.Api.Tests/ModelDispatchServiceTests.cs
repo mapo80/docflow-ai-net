@@ -14,32 +14,23 @@ namespace DocflowAi.Net.Api.Tests;
 
 public class ModelDispatchServiceTests
 {
-    private sealed class TestService : ModelDispatchService
+    private sealed class StubProvider : IHostedModelProvider
     {
-        private readonly Queue<Func<Task<string>>> _openAi;
-        private readonly Queue<Func<Task<string>>> _azure;
-        public int OpenAiCalls { get; private set; }
-        public int AzureCalls { get; private set; }
+        private readonly Queue<Func<Task<string>>> _behaviors;
+        public int Calls { get; private set; }
 
-        public TestService(IModelRepository repo, ISecretProtector protector,
-            IEnumerable<Func<Task<string>>> openAiBehaviors,
-            IEnumerable<Func<Task<string>>> azureBehaviors)
-            : base(repo, protector)
+        public StubProvider(string name, IEnumerable<Func<Task<string>>> behaviors)
         {
-            _openAi = new Queue<Func<Task<string>>>(openAiBehaviors);
-            _azure = new Queue<Func<Task<string>>>(azureBehaviors);
+            Name = name;
+            _behaviors = new Queue<Func<Task<string>>>(behaviors);
         }
 
-        protected override Task<string> InvokeOpenAiAsync(ModelDocument model, string payload, CancellationToken ct)
-        {
-            OpenAiCalls++;
-            return _openAi.Dequeue()();
-        }
+        public string Name { get; }
 
-        protected override Task<string> InvokeAzureAsync(ModelDocument model, string payload, CancellationToken ct)
+        public Task<string> InvokeAsync(string model, string endpoint, string? apiKey, string payload, CancellationToken ct)
         {
-            AzureCalls++;
-            return _azure.Dequeue()();
+            Calls++;
+            return _behaviors.Dequeue()();
         }
     }
 
@@ -49,7 +40,7 @@ public class ModelDispatchServiceTests
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("local").Returns(new ModelDocument { Name = "local", Type = "local" });
         var protector = Substitute.For<ISecretProtector>();
-        var svc = new ModelDispatchService(repo, protector);
+        var svc = new ModelDispatchService(repo, protector, Array.Empty<IHostedModelProvider>());
 
         var payload = "{\"ping\":true}";
         var result = await svc.InvokeAsync("local", payload, CancellationToken.None);
@@ -60,7 +51,7 @@ public class ModelDispatchServiceTests
     [Fact]
     public async Task OpenAiModel_RetriesAndReturnsResult()
     {
-        var model = new ModelDocument { Name = "gpt", Type = "hosted-llm", Provider = "openai" };
+        var model = new ModelDocument { Name = "gpt", Type = "hosted-llm", Provider = "openai", BaseUrl = "http://x" };
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("gpt").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
@@ -71,18 +62,19 @@ public class ModelDispatchServiceTests
             () => throw new Exception(),
             () => Task.FromResult("ok")
         };
-        var svc = new TestService(repo, protector, behaviors, Array.Empty<Func<Task<string>>>());
+        var provider = new StubProvider("openai", behaviors);
+        var svc = new ModelDispatchService(repo, protector, new[] { provider });
 
         var result = await svc.InvokeAsync("gpt", "{}", CancellationToken.None);
 
         result.Should().Be("ok");
-        svc.OpenAiCalls.Should().Be(3);
+        provider.Calls.Should().Be(3);
     }
 
     [Fact]
     public async Task AzureModel_RetriesAndReturnsResult()
     {
-        var model = new ModelDocument { Name = "az", Type = "hosted-llm", Provider = "azure" };
+        var model = new ModelDocument { Name = "az", Type = "hosted-llm", Provider = "azure", BaseUrl = "http://y" };
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("az").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
@@ -92,12 +84,13 @@ public class ModelDispatchServiceTests
             () => throw new Exception(),
             () => Task.FromResult("ok")
         };
-        var svc = new TestService(repo, protector, Array.Empty<Func<Task<string>>>(), behaviors);
+        var provider = new StubProvider("azure", behaviors);
+        var svc = new ModelDispatchService(repo, protector, new[] { provider });
 
         var result = await svc.InvokeAsync("az", "{}", CancellationToken.None);
 
         result.Should().Be("ok");
-        svc.AzureCalls.Should().Be(2);
+        provider.Calls.Should().Be(2);
     }
 
     [Fact]
@@ -107,7 +100,7 @@ public class ModelDispatchServiceTests
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("bad").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
-        var svc = new ModelDispatchService(repo, protector);
+        var svc = new ModelDispatchService(repo, protector, Array.Empty<IHostedModelProvider>());
 
         var act = () => svc.InvokeAsync("bad", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<NotSupportedException>();
@@ -120,7 +113,7 @@ public class ModelDispatchServiceTests
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("mystery").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
-        var svc = new ModelDispatchService(repo, protector);
+        var svc = new ModelDispatchService(repo, protector, Array.Empty<IHostedModelProvider>());
 
         var act = () => svc.InvokeAsync("mystery", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<NotSupportedException>();
@@ -132,7 +125,7 @@ public class ModelDispatchServiceTests
         var repo = Substitute.For<IModelRepository>();
         repo.GetByName("missing").Returns((ModelDocument?)null);
         var protector = Substitute.For<ISecretProtector>();
-        var svc = new ModelDispatchService(repo, protector);
+        var svc = new ModelDispatchService(repo, protector, Array.Empty<IHostedModelProvider>());
 
         var act = () => svc.InvokeAsync("missing", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<InvalidOperationException>();
@@ -146,7 +139,8 @@ public class ModelDispatchServiceTests
         repo.GetByName("noUrl").Returns(model);
         var protector = Substitute.For<ISecretProtector>();
         protector.Unprotect("enc").Returns("key");
-        var svc = new ModelDispatchService(repo, protector);
+        var provider = new StubProvider("openai", Array.Empty<Func<Task<string>>>());
+        var svc = new ModelDispatchService(repo, protector, new[] { provider });
 
         var act = () => svc.InvokeAsync("noUrl", "{}", CancellationToken.None);
         await act.Should().ThrowAsync<InvalidOperationException>();

@@ -57,7 +57,8 @@
                       "progress": 0,
                       "createdAt": "2024-01-01T00:00:00Z",
                       "updatedAt": "2024-01-01T00:00:00Z",
-                      "language": "eng"
+                      "language": "eng",
+                      "markdownSystem": "docling"
                     },
                     {
                       "id": "00000000-0000-0000-0000-000000000002",
@@ -66,7 +67,8 @@
                       "progress": 100,
                       "createdAt": "2024-01-01T00:00:00Z",
                       "updatedAt": "2024-01-01T00:01:00Z",
-                      "language": "ita"
+                      "language": "ita",
+                      "markdownSystem": "docling"
                     },
                     {
                       "id": "00000000-0000-0000-0000-000000000003",
@@ -75,7 +77,8 @@
                       "progress": 0,
                       "createdAt": "2024-01-01T00:00:00Z",
                       "updatedAt": "2024-01-01T00:02:00Z",
-                      "language": "lat"
+                      "language": "lat",
+                      "markdownSystem": "docling"
                     }
                   ]
                 }
@@ -289,7 +292,8 @@
                   },
                   "model": "model",
                   "templateToken": "template",
-                  "language": "eng"
+                  "language": "eng",
+                  "markdownSystem": "docling"
                 }
               }
             }
@@ -387,6 +391,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "markdownSystemId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "requestBody": {
@@ -449,6 +462,177 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/markdown-systems": {
+      "get": {
+        "tags": [
+          "MarkdownSystems"
+        ],
+        "summary": "List markdown systems",
+        "operationId": "MarkdownSystems_List",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MarkdownSystemDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MarkdownSystems"
+        ],
+        "summary": "Create markdown system",
+        "operationId": "MarkdownSystems_Create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMarkdownSystemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkdownSystemDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/markdown-systems/{id}": {
+      "get": {
+        "tags": [
+          "MarkdownSystems"
+        ],
+        "summary": "Markdown system details",
+        "operationId": "MarkdownSystems_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkdownSystemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "MarkdownSystems"
+        ],
+        "summary": "Update markdown system",
+        "operationId": "MarkdownSystems_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMarkdownSystemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkdownSystemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "MarkdownSystems"
+        ],
+        "summary": "Delete markdown system",
+        "operationId": "MarkdownSystems_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
           }
         }
       }
@@ -1161,6 +1345,28 @@
         },
         "additionalProperties": false
       },
+      "CreateMarkdownSystemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "endpoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateModelRequest": {
         "type": "object",
         "properties": {
@@ -1331,6 +1537,10 @@
           "language": {
             "type": "string",
             "nullable": true
+          },
+          "markdownSystem": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -1378,6 +1588,10 @@
           "language": {
             "type": "string",
             "nullable": true
+          },
+          "markdownSystem": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -1403,6 +1617,39 @@
               "$ref": "#/components/schemas/Box"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarkdownSystemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "endpoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasApiKey": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -1715,6 +1962,33 @@
           "total": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateMarkdownSystemRequest": {
+        "required": [
+          "endpoint",
+          "name",
+          "provider"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "endpoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
