@@ -86,10 +86,12 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 ENV PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
 
 # Docling Serve (CPU) - default EasyOCR (senza Tesseract) + forza OpenCV headless
-RUN python3 -m pip install --no-cache-dir --upgrade pip \
-  && pip3 install --no-cache-dir docling-serve \
-  && pip3 uninstall -y opencv-python opencv-contrib-python || true \
-  && pip3 install --no-cache-dir opencv-python-headless
+# Assicura i wheel CPU di Torch e OpenCV headless prima di docling-serve
+RUN python3 -m pip install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir \
+      --index-url https://download.pytorch.org/whl/cpu \
+      "torch==2.4.*+cpu" "torchvision==0.19.*+cpu" && \
+    pip3 install --no-cache-dir opencv-python-headless docling-serve
 
 # Re-import ARGs so they can be promoted to ENV
 ARG LLM_DEFAULT_MODEL_REPO
