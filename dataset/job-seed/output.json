@@ -1,49 +1,11 @@
 {
-  "document_type": "invoice",
-  "language": "ita",
-  "notes": null,
+  "document_type": "Fattura",
+  "language": "it",
+  "notes": "Grazie per il tuo acquisto!",
   "fields": [
-    {
-      "key": "invoice_number",
-      "value": "INV-2025-001",
-      "confidence": 0.99,
-      "evidence": [{ "page": 1, "bbox": { "x": 0.0697975531, "y": 0.1558652818, "w": 0.2316097617, "h": 0.0129787857 } }]
-    },
-    {
-      "key": "invoice_date",
-      "value": "2025-08-09",
-      "confidence": 0.99,
-      "evidence": [{ "page": 1, "bbox": { "x": 0.0700758770, "y": 0.1704792529, "w": 0.1316932738, "h": 0.0119086308 } }]
-    },
-    {
-      "key": "descrizione",
-      "value": "Prodotto A",
-      "confidence": 0.99,
-      "evidence": [{ "page": 1, "bbox": { "x": 0.0721209124, "y": 0.2310583293, "w": 0.0818499774, "h": 0.0119257662 } }]
-    },
-    {
-      "key": "prezzo",
-      "value": "€ 10,00",
-      "confidence": 0.99,
-      "evidence": [{ "page": 1, "bbox": { "x": 0.7008797526, "y": 0.2312466949, "w": 0.0584833100, "h": 0.0118658179 } }]
-    },
-    {
-      "key": "descrizione",
-      "value": "Prodotto B",
-      "confidence": 0.99,
-      "evidence": [{ "page": 1, "bbox": { "x": 0.0721935183, "y": 0.2524099648, "w": 0.0808940083, "h": 0.0120541751 } }]
-    },
-    {
-      "key": "prezzo",
-      "value": "€ 15,00",
-      "confidence": 0.99,
-      "evidence": [{ "page": 1, "bbox": { "x": 0.7008555532, "y": 0.2526240051, "w": 0.0586163700, "h": 0.0119685689 } }]
-    },
-    {
-      "key": "totale",
-      "value": "€ 35,00",
-      "confidence": 0.99,
-      "evidence": [{ "page": 1, "bbox": { "x": 0.8692263961, "y": 0.2735304534, "w": 0.0581323691, "h": 0.0121654794 } }]
-    }
+    {"key": "company_name", "value": "ACME S.p.A.", "confidence": 0.95},
+    {"key": "document_type", "value": "Fattura", "confidence": 0.95},
+    {"key": "invoice_number", "value": "INV-2025-001", "confidence": 0.95},
+    {"key": "invoice_date", "value": "2025-08-09", "confidence": 0.95}
   ]
 }
