@@ -42,12 +42,14 @@ export default function DocumentPreview({
 
   useEffect(() => {
     if (!page) return;
+    let cancelled = false;
     if (docType === 'pdf') {
       (async () => {
         const pdfjs = await import('pdfjs-dist');
-        const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs');
-        pdfjs.GlobalWorkerOptions.workerSrc = worker;
+        const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
+        pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
         const pdf = await pdfjs.getDocument(srcUrl).promise;
+        if (cancelled) return;
         const pdfPage = await pdf.getPage(currentPage);
         const viewport = pdfPage.getViewport({ scale: zoom });
         const canvas = canvasRef.current!;
@@ -55,7 +57,9 @@ export default function DocumentPreview({
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         await pdfPage.render({ canvasContext: ctx, viewport }).promise;
-        setRendered({ width: viewport.width, height: viewport.height });
+        if (!cancelled) {
+          setRendered({ width: viewport.width, height: viewport.height });
+        }
       })();
     } else if (docType === 'image') {
       const img = imgRef.current;
@@ -65,6 +69,9 @@ export default function DocumentPreview({
         setRendered({ width: img.width, height: img.height });
       }
     }
+    return () => {
+      cancelled = true;
+    };
   }, [docType, srcUrl, currentPage, zoom, page]);
 
   if (!page) return null;
@@ -93,9 +100,19 @@ export default function DocumentPreview({
       </Space>
       <div style={{ position: 'relative', display: 'inline-block' }}>
         {docType === 'pdf' ? (
-          <canvas ref={canvasRef} style={{ display: 'block' }} />
+          <canvas
+            data-testid="pdf-canvas"
+            ref={canvasRef}
+            style={{ display: 'block' }}
+          />
         ) : (
-          <img ref={imgRef} src={srcUrl} alt="document" style={{ display: 'block' }} />
+          <img
+            ref={imgRef}
+            data-testid="img-preview"
+            src={srcUrl}
+            alt="document"
+            style={{ display: 'block' }}
+          />
         )}
         <svg
           width={rendered.width}
