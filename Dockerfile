@@ -74,23 +74,25 @@ RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
-# Native deps + Python per Docling Serve (minimo indispensabile, headless: NO libgl1)
+# Native deps + Python per Docling Serve (headless, NO Tesseract)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 \
-      python3 python3-pip libglib2.0-0 libmagic1 \
+      python3 python3-pip python3-venv libglib2.0-0 libmagic1 \
   && mkdir -p /app/models \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# (opzionale, utile per wheel CPU di torch) – riduce sorprese con PyTorch
-ENV PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
+# Virtualenv per evitare PEP 668 (pip su system-site)
+RUN python3 -m venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
 
-# Docling Serve (CPU) - default EasyOCR (senza Tesseract) + forza OpenCV headless
-# Assicura i wheel CPU di Torch e OpenCV headless prima di docling-serve
-RUN python3 -m pip install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
-        "torch==2.4.*+cpu" "torchvision==0.19.*+cpu" && \
-    pip3 install --no-cache-dir opencv-python-headless docling-serve    
+# Torch CPU wheels, OpenCV headless, Docling Serve (EasyOCR di default)
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+      --index-url https://download.pytorch.org/whl/cpu \
+      "torch==2.4.*+cpu" "torchvision==0.19.*+cpu" && \
+    pip install --no-cache-dir opencv-python-headless docling-serve
 
 # Re-import ARGs so they can be promoted to ENV
 ARG LLM_DEFAULT_MODEL_REPO
