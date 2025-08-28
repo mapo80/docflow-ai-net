@@ -140,13 +140,13 @@ RUN set -eux; \
     '# 1) Avvia Docling-Serve in background' \
     '(/opt/venv/bin/docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui}) & ' \
     '' \
-    '# 2) Attendi che risponda su /docs (max 30s)' \
-    'for i in {1..30}; do' \
+    '# 2) Attendi che risponda su /docs (max 120s)' \
+    'for i in {1..120}; do' \
     '  if curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null; then' \
     '    echo "[startup] Docling-Serve è UP su :${DOCLING_PORT:-5001}";' \
     '    break;' \
     '  fi' \
-    '  echo "[startup] Attendo Docling-Serve... ($i/30)";' \
+    '  echo "[startup] Attendo Docling-Serve... ($i/120)";' \
     '  sleep 1;' \
     'done' \
     'curl -fsS "http://127.0.0.1:${DOCLING_PORT:-5001}/docs" >/dev/null || { echo "[startup] ERRORE: Docling non è partito"; exit 1; }' \
