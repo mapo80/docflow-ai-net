@@ -51,7 +51,7 @@ test('shows error when job is missing', async () => {
 test('does not show success notification when navigating to detail', async () => {
   mockNotify.mockClear();
   getByIdSpy.mockReset();
-  getByIdSpy.mockResolvedValueOnce({
+  getByIdSpy.mockResolvedValue({
     id: '1',
     status: 'Succeeded',
     attempts: 1,
@@ -269,6 +269,69 @@ test('previews markdown file', async () => {
   fireEvent.click(previewBtn);
   await waitFor(() => screen.getByText('hi'));
   expect(fetchSpy).toHaveBeenCalledTimes(1);
+});
+
+test('opens document preview modal', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    createdAt: '',
+    updatedAt: '',
+    paths: {
+      input: { path: '/file.png' },
+      output: { path: '/out.json' },
+    },
+  } as any);
+  vi.spyOn(global, 'fetch').mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      pages: [
+        {
+          index: 1,
+          width: 100,
+          height: 100,
+          words: [
+            {
+              id: 'w1',
+              text: 'hi',
+              bbox: { x: 10, y: 10, width: 10, height: 10 },
+              conf: 0.9,
+            },
+          ],
+        },
+      ],
+      fields: [
+        {
+          id: 'f1',
+          name: 'name',
+          value: 'hi',
+          page: 1,
+          wordIds: ['w1'],
+          conf: 0.9,
+        },
+      ],
+    }),
+    headers: new Headers(),
+  } as any);
+
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+
+  await waitFor(() => screen.getByText('Attempts'));
+  fireEvent.click(screen.getByTestId('open-preview'));
+  await waitFor(() => expect(getByIdSpy).toHaveBeenCalledTimes(2));
 });
 
 
