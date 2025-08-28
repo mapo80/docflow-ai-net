@@ -288,6 +288,10 @@
                     "markdown": {
                       "path": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md",
                       "createdAt": "2024-01-01T00:00:00Z"
+                    },
+                    "markdownJson": {
+                      "path": "/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.json",
+                      "createdAt": "2024-01-01T00:00:00Z"
                     }
                   },
                   "model": "model",
@@ -1841,6 +1845,9 @@
             "$ref": "#/components/schemas/DocumentInfo"
           },
           "markdown": {
+            "$ref": "#/components/schemas/DocumentInfo"
+          },
+          "markdownJson": {
             "$ref": "#/components/schemas/DocumentInfo"
           }
         },

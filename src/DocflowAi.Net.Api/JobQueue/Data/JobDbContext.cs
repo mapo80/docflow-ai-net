@@ -52,6 +52,7 @@ public class JobDbContext : DbContext
             pi.OwnsOne(p => p.Output, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
             pi.OwnsOne(p => p.Error, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
             pi.OwnsOne(p => p.Markdown, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
+            pi.OwnsOne(p => p.MarkdownJson, d => d.Property(x => x.CreatedAt).HasConversion(nullableConverter));
         });
 
         var model = modelBuilder.Entity<ModelDocument>();

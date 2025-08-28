@@ -74,7 +74,8 @@ public static class DefaultJobSeeder
                         Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "prompt.md"), CreatedAt = now },
                         Output = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "output.json"), CreatedAt = now },
                         Error = new JobDocument.DocumentInfo { Path = string.Empty },
-                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "markdown.md"), CreatedAt = now }
+                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "markdown.md"), CreatedAt = now },
+                        MarkdownJson = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "markdown.json"), CreatedAt = now }
                     }
                 };
 

@@ -32,6 +32,7 @@ public class FakeProcessService : IProcessService
         }
 
         await File.WriteAllTextAsync(input.MarkdownPath, "# md", ct);
+        await File.WriteAllTextAsync(Path.ChangeExtension(input.MarkdownPath, ".json"), "{\"markdown\":\"md\"}", ct);
         await File.WriteAllTextAsync(input.PromptPath, "prompt", ct);
         var ts = DateTimeOffset.UtcNow;
 
