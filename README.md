@@ -121,6 +121,12 @@ Output JSON (value, evidence[], wordIndices[], bbox[x,y,w,h], confidence, option
 
 Markdown conversion uses pluggable systems. A Docling instance at `http://127.0.0.1:5001` is seeded by default, and additional systems such as Azure Document Intelligence can be configured under the `Seed` section in `appsettings.json`.
 
+## Bounding box computation
+
+When Azure Document Intelligence processes a document with the `prebuilt-layout` model it returns a polygon for every **word**. The converter translates each polygon into a rectangle `(x, y, width, height)` and also stores a normalized version in the range `[0,1]` by dividing by the page width and height (origin at top‑left).
+
+During job processing these word boxes are indexed. The resolver matches the LLM output against the indexed words: if a field spans several words, their boxes are merged by taking the minimum/maximum edges to form a single bounding box. The normalized union is emitted under `fields[].spans` in the job output so the frontend can highlight the exact text. If token matching fails but the exact word exists, the pipeline falls back to that word’s box to avoid empty spans.
+
 ## Requirements
 
 - **.NET SDK 9.0** (or use Docker)

@@ -42,9 +42,9 @@ public sealed class AzureDocumentIntelligenceMarkdownConverter : IMarkdownConver
         {
             var width = page.Width ?? 0;
             var height = page.Height ?? 0;
-            foreach (var line in page.Lines)
+            foreach (var word in page.Words)
             {
-                var poly = line.Polygon;
+                var poly = word.Polygon;
                 var xs = new[] { poly[0], poly[2], poly[4], poly[6] };
                 var ys = new[] { poly[1], poly[3], poly[5], poly[7] };
                 var x = xs.Min();
@@ -55,7 +55,7 @@ public sealed class AzureDocumentIntelligenceMarkdownConverter : IMarkdownConver
                 var yNorm = height > 0 ? y / height : 0;
                 var wNorm = width > 0 ? w / width : 0;
                 var hNorm = height > 0 ? h / height : 0;
-                boxes.Add(new Box(page.PageNumber, x, y, w, h, xNorm, yNorm, wNorm, hNorm, line.Content));
+                boxes.Add(new Box(page.PageNumber, x, y, w, h, xNorm, yNorm, wNorm, hNorm, word.Content));
             }
         }
 
