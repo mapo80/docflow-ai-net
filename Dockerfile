@@ -74,23 +74,27 @@ RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
-# Native dependencies for libllama on Ubuntu 24.04 (Noble)
+# Native deps + Python per Docling Serve (minimo indispensabile)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 \
+      python3 python3-pip libglib2.0-0 libgl1 libmagic1 \
   && mkdir -p /app/models \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
+# Docling Serve (CPU) - default EasyOCR (no Tesseract)
+RUN pip3 install --no-cache-dir docling-serve
 
 # Re-import ARGs so they can be promoted to ENV
 ARG LLM_DEFAULT_MODEL_REPO
 ARG LLM_DEFAULT_MODEL_FILE
 ARG LLM_MODEL_REV
 
-# Common ENV (derived from ARGs) — no default duplication
+# Common ENV (aggiungo solo DOCLING_PORT)
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     LLM__Provider="LLamaSharp" \
+    DOCLING_PORT=5001 \
     LLAMASHARP__ContextSize=32768 \
     LLAMASHARP__Threads=0 \
     LLM__DefaultModelRepo=${LLM_DEFAULT_MODEL_REPO} \
@@ -98,29 +102,39 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
     LLM_MODEL_REV=${LLM_MODEL_REV} \
     OCR_DATA_PATH=/app/models
 
-# Non-root user
+# Utente non-root e cartelle dati
 RUN useradd -ms /bin/bash appuser \
     && mkdir -p /app/data \
     && chown -R appuser:appuser /app
+
+# Wrapper: avvia Docling Serve e poi la tua app .NET
+RUN set -eux; \
+  cat >/usr/local/bin/start-all.sh <<'EOF'\n\
+#!/usr/bin/env bash\n\
+set -euo pipefail\n\
+( docling-serve run --host 0.0.0.0 --port "${DOCLING_PORT:-5001}" ${DOCLING_SERVE_ENABLE_UI:+--enable-ui} ) &\n\
+exec /usr/local/bin/start.sh\n\
+EOF\n\
+  chmod +x /usr/local/bin/start-all.sh
+
 USER appuser
 WORKDIR /app
 
-# Published app
+# App pubblicata
 COPY --from=build --chown=appuser:appuser /app/publish ./
 
-# Models
+# Modelli (GGUF ecc.)
 COPY --from=model --chown=appuser:appuser /models /home/appuser/models
-
-# directory where models are stored
 ENV MODELS_DIR=/home/appuser/models
 
-# Where NuGet places libllama.so
+# Dove NuGet mette libllama.so
 ENV LD_LIBRARY_PATH=/app/runtimes/linux-x64/native:$LD_LIBRARY_PATH
 
-# Bootstrap
+# Bootstrap originale
 COPY --chown=appuser:appuser start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 8080
+EXPOSE 5001
 ENTRYPOINT ["/usr/bin/tini","--"]
-CMD ["/usr/local/bin/start.sh"]
+CMD ["/usr/local/bin/start-all.sh"]
