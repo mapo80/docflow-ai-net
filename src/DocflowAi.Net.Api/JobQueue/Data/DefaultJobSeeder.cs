@@ -43,6 +43,7 @@ public static class DefaultJobSeeder
                 var msId = ms?.Id ?? Guid.Empty;
                 var msName = ms?.Name ?? "markdown";
 
+                // succeeded job
                 var jobId = Guid.Parse("33333333-3333-3333-3333-333333333333");
                 var jobDir = Path.Combine(cfg.DataRoot, jobId.ToString());
                 Directory.CreateDirectory(jobDir);
@@ -80,6 +81,47 @@ public static class DefaultJobSeeder
                 };
 
                 db.Jobs.Add(job);
+
+                // failed job
+                var errJobId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+                var errDir = Path.Combine(cfg.DataRoot, errJobId.ToString());
+                Directory.CreateDirectory(errDir);
+                var errSeedDir = Path.Combine(datasetRoot, "job-error");
+                File.Copy(Path.Combine(errSeedDir, "input.pdf"), Path.Combine(errDir, "input.pdf"), true);
+                File.Copy(Path.Combine(errSeedDir, "prompt.md"), Path.Combine(errDir, "prompt.md"), true);
+                File.Copy(Path.Combine(errSeedDir, "markdown.md"), Path.Combine(errDir, "markdown.md"), true);
+                File.Copy(Path.Combine(errSeedDir, "markdown.json"), Path.Combine(errDir, "markdown.json"), true);
+                File.Copy(Path.Combine(errSeedDir, "error.txt"), Path.Combine(errDir, "error.txt"), true);
+
+                var errJob = new JobDocument
+                {
+                    Id = errJobId,
+                    Status = "Failed",
+                    Progress = 100,
+                    Attempts = 1,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    ErrorMessage = "Mock extraction error",
+                    Metrics = new JobDocument.MetricsInfo { StartedAt = now, EndedAt = now, DurationMs = 0 },
+                    Model = modelName,
+                    TemplateToken = templateToken,
+                    Language = "ita",
+                    MarkdownSystemId = msId,
+                    MarkdownSystemName = msName,
+                    Paths = new JobDocument.PathInfo
+                    {
+                        Dir = errDir,
+                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "input.pdf"), CreatedAt = now },
+                        Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "prompt.md"), CreatedAt = now },
+                        Output = new JobDocument.DocumentInfo { Path = string.Empty },
+                        Error = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "error.txt"), CreatedAt = now },
+                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "markdown.md"), CreatedAt = now },
+                        MarkdownJson = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "markdown.json"), CreatedAt = now }
+                    }
+                };
+
+                db.Jobs.Add(errJob);
+
                 db.SaveChanges();
                 logger.LogInformation("SeededDefaultJobs");
             }

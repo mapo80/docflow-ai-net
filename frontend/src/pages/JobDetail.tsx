@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Descriptions, Button, Space, Modal, Tabs, Table, Alert } from 'antd';
+import { Descriptions, Button, Space, Modal, Tabs, Table, Alert, Popover } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
+import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
 import JobDetailPage from './JobDetailPage';
 import JobStatusTag from '../components/JobStatusTag';
 import notify from '../components/notification';
@@ -30,7 +32,13 @@ export default function JobDetail() {
     { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
   >([]);
   const [files, setFiles] = useState<
-    { key: string; label: string; path: string; createdAt?: string | null }[]
+    {
+      key: string;
+      label: string;
+      path: string;
+      createdAt?: string | null;
+      info: string;
+    }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
   const { showError } = useApiError();
@@ -149,16 +157,44 @@ export default function JobDetail() {
 
   useEffect(() => {
     if (!job) return;
+    const mapping: Record<string, { label: string; info: string }> = {
+      input: {
+        label: 'Input',
+        info: 'File submitted with the job request',
+      },
+      prompt: {
+        label: 'Prompt',
+        info: 'Prompt sent to the LLM for extraction',
+      },
+      markdown: {
+        label: 'Markdown',
+        info: 'Markdown content extracted from the input file',
+      },
+      markdownJson: {
+        label: 'Layout',
+        info: 'JSON response from the markdown conversion service',
+      },
+      output: { label: 'Output', info: 'LLM response' },
+      error: {
+        label: 'Error',
+        info: 'Error message produced during job processing',
+      },
+    };
+    const order = ['input', 'prompt', 'markdown', 'markdownJson', 'output', 'error'];
     const entries = Object.entries(job.paths || {}).filter(([k, v]: any) => {
       if (!v || !v.path) return false;
       if (k === 'error' && job.status === 'Succeeded') return false;
-      if (k === 'output' && job.status === 'Running') return false;
+      if (k === 'output' && job.status !== 'Succeeded') return false;
       return true;
     });
+    const sorted = order
+      .map((k) => entries.find((e) => e[0] === k))
+      .filter(Boolean) as any[];
     setFiles(
-      entries.map(([k, v]: any) => ({
+      sorted.map(([k, v]: any) => ({
         key: k,
-        label: k,
+        label: mapping[k].label,
+        info: mapping[k].info,
         path: v.path as string,
         createdAt: v.createdAt as string | null,
       })),
@@ -250,13 +286,31 @@ export default function JobDetail() {
   ];
 
   const fileColumns = [
-    { title: 'Name', dataIndex: 'label' },
+    {
+      title: 'Name',
+      dataIndex: 'label',
+      render: (_: any, record: any) => (
+        <Space>
+          <Popover content={record.info} trigger="click">
+            <InfoCircleOutlined aria-label="Info" />
+          </Popover>
+          {record.label}
+        </Space>
+      ),
+    },
     { title: 'Created', dataIndex: 'createdAt' },
     {
       title: 'Actions',
-      render: (_: any, record: { label: string; path: string }) => (
+      render: (_: any, record: { key: string; label: string; path: string }) => (
         <Space>
-          {record.label !== 'input' && (
+          {record.key === 'input' ? (
+            <Button
+              onClick={() => setViewerOpen(true)}
+              icon={<EyeOutlined />}
+              aria-label="Document preview"
+              title="Document preview"
+            />
+          ) : (
             <Button
               onClick={() => showPreview(record.label, record.path)}
               icon={<FileSearchOutlined />}
@@ -279,7 +333,12 @@ export default function JobDetail() {
     <div>
       <Descriptions title={`Job ${job.id}`} bordered column={1} size="small">
         <Descriptions.Item label="Status">
-          <JobStatusTag status={job.status!} derived={job.derivedStatus} />
+          <Space direction="vertical">
+            <JobStatusTag status={job.status!} derived={job.derivedStatus} />
+            {job.status === 'Failed' && job.errorMessage && (
+              <span style={{ color: '#ff4d4f' }}>{job.errorMessage}</span>
+            )}
+          </Space>
         </Descriptions.Item>
         <Descriptions.Item label="Attempts">{job.attempts}</Descriptions.Item>
         <Descriptions.Item label="Model">

@@ -19,7 +19,7 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
     }
 
     [Fact]
-    public async Task Seeds_Default_Job()
+    public async Task Seeds_Default_Jobs()
     {
         var extra = new Dictionary<string, string?>
         {
@@ -29,8 +29,9 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         var resp = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs");
 
-        resp!.total.Should().Be(1);
+        resp!.total.Should().Be(2);
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("33333333-3333-3333-3333-333333333333"));
+        resp.items.Select(j => j.id).Should().Contain(Guid.Parse("44444444-4444-4444-4444-444444444444"));
 
         var ok = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/33333333-3333-3333-3333-333333333333");
         ok.GetProperty("model").GetString().Should().NotBeNullOrWhiteSpace();
@@ -61,6 +62,28 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         fileResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var mdResp = await client.GetAsync(ok.GetProperty("paths").GetProperty("markdownJson").GetProperty("path").GetString());
         mdResp.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Seeded_Error_Job_Exposes_Error()
+    {
+        var extra = new Dictionary<string, string?>
+        {
+            ["JobQueue:SeedDefaults"] = "true"
+        };
+        using var factory = new TestWebAppFactory(_fixture.RootPath, extra: extra);
+        var client = factory.CreateClient();
+
+        var fail = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/44444444-4444-4444-4444-444444444444");
+        fail.GetProperty("status").GetString().Should().Be("Failed");
+        fail.GetProperty("errorMessage").GetString().Should().Be("Mock extraction error");
+        var paths = fail.GetProperty("paths");
+        paths.GetProperty("error").GetProperty("path").GetString()
+            .Should().EndWith("/error.txt");
+        paths.GetProperty("output").ValueKind.Should().Be(JsonValueKind.Null);
+        var errResp = await client.GetAsync(paths.GetProperty("error").GetProperty("path").GetString());
+        errResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await errResp.Content.ReadAsStringAsync()).Should().Contain("Mock extraction error");
     }
 
     [Fact]

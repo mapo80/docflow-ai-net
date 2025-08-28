@@ -133,7 +133,7 @@ test('shows reload and cancel only when running', async () => {
   expect(screen.getByText('Cancel')).toBeInTheDocument();
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('input'));
+  await waitFor(() => screen.getByText('Input'));
   expect(fetchSpy).not.toHaveBeenCalled();
   fetchSpy.mockRestore();
 
@@ -201,7 +201,7 @@ test('lists markdown file while running', async () => {
   await waitFor(() => screen.getByText('Reload'));
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('markdown'));
+  await waitFor(() => screen.getByText('Markdown'));
   expect(fetchSpy).not.toHaveBeenCalled();
 });
 
@@ -214,6 +214,7 @@ test('lists all paths without extra requests', async () => {
     model: 'm',
     templateToken: 't',
     language: 'eng',
+    errorMessage: 'boom',
     createdAt: '',
     updatedAt: '',
     paths: { input: { path: '/input.pdf' }, error: { path: '/error.txt' }, prompt: { path: '/prompt.md', createdAt: '2024-01-01' } },
@@ -231,12 +232,13 @@ test('lists all paths without extra requests', async () => {
   await waitFor(() => screen.getByText('Attempts'));
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('input'));
-  expect(screen.getByText('error')).toBeInTheDocument();
-  expect(screen.getByText('prompt')).toBeInTheDocument();
+  await waitFor(() => screen.getByText('Input'));
+  expect(screen.getByText('Error')).toBeInTheDocument();
+  expect(screen.getByText('Prompt')).toBeInTheDocument();
   expect(screen.getByText('2024-01-01')).toBeInTheDocument();
   expect(fetchSpy).not.toHaveBeenCalled();
-});
+  expect(screen.getByText('boom')).toBeInTheDocument();
+  });
 
 test('previews markdown file', async () => {
   getByIdSpy.mockReset();
@@ -268,12 +270,43 @@ test('previews markdown file', async () => {
   await waitFor(() => screen.getByText('Attempts'));
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('markdown'));
-  const row = screen.getByText('markdown').closest('tr')!;
+  await waitFor(() => screen.getByText('Markdown'));
+  const row = screen.getByText('Markdown').closest('tr')!;
   const previewBtn = within(row).getByLabelText('Preview');
   fireEvent.click(previewBtn);
   await waitFor(() => screen.getByText('hi'));
   expect(fetchSpy).toHaveBeenCalledTimes(1);
+});
+
+test('shows document preview button for input', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    createdAt: '',
+    updatedAt: '',
+    paths: { input: { path: '/input.pdf' } },
+  } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
+  fireEvent.click(filesTab);
+  await waitFor(() => screen.getByText('Input'));
+  const row = screen.getByText('Input').closest('tr')!;
+  expect(within(row).getByLabelText('Document preview')).toBeInTheDocument();
 });
 
 test('opens document preview modal', async () => {
