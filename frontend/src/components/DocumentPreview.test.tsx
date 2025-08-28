@@ -67,6 +67,28 @@ describe('DocumentPreview', () => {
     expect(wrapper.style.overflowX).toBe('auto');
   });
 
+  it('invokes zoom controls', () => {
+    const onZoom = vi.fn();
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={1}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={onZoom}
+      />,
+    );
+    fireEvent.click(getByTestId('zoom-in'));
+    expect(onZoom).toHaveBeenCalled();
+    fireEvent.click(getByTestId('zoom-out'));
+    fireEvent.click(getByTestId('zoom-reset'));
+    expect(onZoom).toHaveBeenCalledTimes(3);
+  });
+
   it('renders PDF pages via pdf.js', async () => {
     const pdfjs: any = await import('pdfjs-dist');
     const getPage = vi.fn(async () => ({
@@ -97,6 +119,4 @@ describe('DocumentPreview', () => {
     });
     HTMLCanvasElement.prototype.getContext = orig;
   });
-
-  // no filtering test since component always shows all words
 });

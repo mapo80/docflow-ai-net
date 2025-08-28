@@ -41,4 +41,29 @@ describe('parseOutputToViewModel', () => {
     const res = parseOutputToViewModel(job, {}, {});
     expect(res).toBeNull();
   });
+
+  it('normalizes pages and filters words not linked to fields', () => {
+    const job = {
+      paths: { input: { path: '/doc.pdf' } },
+    } as unknown as JobDetailResponse;
+    const output = {
+      fields: [
+        {
+          key: 'name',
+          value: 'Hi',
+          spans: [{ page: 0, x: 0, y: 0, width: 0.5, height: 0.5 }],
+        },
+      ],
+    };
+    const md = {
+      pages: [{ width: 100, height: 100 }],
+      boxes: [
+        { page: 0, xNorm: 0, yNorm: 0, widthNorm: 0.5, heightNorm: 0.5, text: 'Hi' },
+        { page: 0, xNorm: 0.6, yNorm: 0.6, widthNorm: 0.3, heightNorm: 0.3, text: 'extra' },
+      ],
+    };
+    const res = parseOutputToViewModel(job, output, md)!;
+    expect(res.fields[0].page).toBe(1);
+    expect(res.pages[0].words).toHaveLength(1);
+  });
 });

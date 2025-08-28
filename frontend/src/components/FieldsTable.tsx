@@ -14,6 +14,7 @@ export default function FieldsTable({ docType, fields, selectedFieldId, onFieldS
     (record: ExtractedField) => ({
       onClick: () => onFieldSelect(record.id),
       'data-testid': `row-${record.id}`,
+      style: { cursor: 'pointer' },
     }),
     [onFieldSelect],
   );

@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { OcrWord } from '../adapters/extractionAdapter';
-import { Select, Slider, Space } from 'antd';
+import { Select, Space, Button } from 'antd';
+import {
+  ZoomInOutlined,
+  ZoomOutOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
 
 interface PageInfo {
   index: number;
@@ -82,22 +87,43 @@ export default function DocumentPreview({
 
   return (
     <div data-testid="doc-preview" style={{ width: '100%', overflowX: 'auto' }}>
-      <Space style={{ marginBottom: 8 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: 8,
+        }}
+      >
         <Select
           value={currentPage}
           onChange={onPageChange}
           options={pages.map((p) => ({ value: p.index, label: `Page ${p.index}` }))}
           style={{ width: 120 }}
         />
-        <Slider
-          style={{ width: 150 }}
-          min={0.5}
-          max={3}
-          step={0.1}
-          value={zoom}
-          onChange={onZoomChange}
-        />
-      </Space>
+        <Space>
+          <Button
+            icon={<ZoomInOutlined />}
+            onClick={() => onZoomChange(Math.min(zoom * 1.25, 3))}
+            aria-label="zoom in"
+            data-testid="zoom-in"
+            type="text"
+          />
+          <Button
+            icon={<ZoomOutOutlined />}
+            onClick={() => onZoomChange(Math.max(zoom / 1.25, 0.5))}
+            aria-label="zoom out"
+            data-testid="zoom-out"
+            type="text"
+          />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => onZoomChange(1)}
+            aria-label="reset zoom"
+            data-testid="zoom-reset"
+            type="text"
+          />
+        </Space>
+      </div>
       <div style={{ position: 'relative', display: 'inline-block' }}>
         {docType === 'pdf' ? (
           <canvas

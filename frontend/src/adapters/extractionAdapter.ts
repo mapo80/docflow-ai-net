@@ -40,15 +40,19 @@ export function parseOutputToViewModel(
   const docType = srcUrl.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image';
   const boxes = Array.isArray(mdJson?.boxes) ? mdJson.boxes : [];
   const pagesMeta = Array.isArray(mdJson?.pages) ? mdJson.pages : [];
+  function normalizePage(p: any): number {
+    const n = Number(p ?? 1);
+    return n < 1 ? n + 1 : n;
+  }
   const pageDims = new Map<number, { width: number; height: number }>();
   pagesMeta.forEach((p: any, idx: number) => {
-    const num = p.number ?? idx + 1;
+    const num = normalizePage(idx + 1);
     pageDims.set(num, { width: Number(p.width ?? 0), height: Number(p.height ?? 0) });
   });
 
   const wordsByPage = new Map<number, OcrWord[]>();
   boxes.forEach((b: any, idx: number) => {
-    const page = b.page ?? 1;
+    const page = normalizePage(b.page);
     const dims = pageDims.get(page) || { width: 0, height: 0 };
     const x = Number(b.xNorm ?? b.x ?? 0) * dims.width;
     const y = Number(b.yNorm ?? b.y ?? 0) * dims.height;
@@ -65,15 +69,17 @@ export function parseOutputToViewModel(
     wordsByPage.get(page)!.push(word);
   });
 
-  const pages = pagesMeta.map((p: any, idx: number) => {
-    const num = p.number ?? idx + 1;
-    return {
-      index: num,
-      width: Number(p.width ?? 0),
-      height: Number(p.height ?? 0),
-      words: wordsByPage.get(num) ?? [],
-    };
-  });
+  const pages: { index: number; width: number; height: number; words: OcrWord[] }[] = pagesMeta.map(
+    (p: any, idx: number) => {
+      const num = normalizePage(idx + 1);
+      return {
+        index: num,
+        width: Number(p.width ?? 0),
+        height: Number(p.height ?? 0),
+        words: wordsByPage.get(num) ?? [],
+      };
+    },
+  );
 
   const fieldsJson = Array.isArray(outputJson?.fields) ? outputJson.fields : [];
 
@@ -90,10 +96,11 @@ export function parseOutputToViewModel(
     const id = f.key ?? f.id ?? `f${fi}`;
     const name = f.key ?? f.name ?? id;
     const spans = Array.isArray(f.spans) ? f.spans : [];
-    const page = spans[0]?.page ?? 1;
+    const page = normalizePage(spans[0]?.page);
     const wordIds: string[] = [];
     spans.forEach((s: any) => {
-      const words = wordsByPage.get(s.page ?? page) ?? [];
+      const sPage = normalizePage(s.page);
+      const words = wordsByPage.get(sPage) ?? [];
       words.forEach((w) => {
         const dims = pageDims.get(w.page)!;
         const norm = {
@@ -123,6 +130,14 @@ export function parseOutputToViewModel(
       hasBbox: spans.length > 0,
       conf: f.confidence ?? f.conf,
     } as ExtractedField;
+  });
+
+  const fieldWordIds = new Set<string>();
+  fields.forEach((f: ExtractedField) =>
+    f.wordIds.forEach((id: string) => fieldWordIds.add(id)),
+  );
+  pages.forEach((p) => {
+    p.words = p.words.filter((w: OcrWord) => fieldWordIds.has(w.id));
   });
 
   return { docType, srcUrl, pages, fields };
