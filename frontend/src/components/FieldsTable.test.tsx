@@ -55,7 +55,7 @@ describe('FieldsTable', () => {
     expect(onSelect).toHaveBeenCalledWith('f2');
   });
 
-  it('sets horizontal scroll', () => {
+  it('sets scroll styles', () => {
     const { container } = render(
       <FieldsTable
         docType="pdf"
@@ -64,9 +64,11 @@ describe('FieldsTable', () => {
         onFieldSelect={() => {}}
       />,
     );
-    const body = container.querySelector(
-      '.ant-table-content',
+    const wrapper = container.querySelector(
+      '[data-testid="fields-table"]',
     ) as HTMLElement;
+    expect(wrapper.style.overflowY).toBe('auto');
+    const body = container.querySelector('.ant-table-content') as HTMLElement;
     expect(body.style.overflowX).toBe('auto');
   });
 

@@ -83,9 +83,14 @@ export default function JobDetailPage({ jobId }: Props) {
 
   const handleFieldSelect = (fieldId: string) => {
     if (!model) return;
-    setSelectedFieldId(fieldId);
+    if (selectedFieldId === fieldId) {
+      setSelectedFieldId(undefined);
+      setSelectedWordIds(new Set());
+      return;
+    }
     const field = model.fields.find((f) => f.id === fieldId);
     const wordSet = new Set(field?.wordIds || []);
+    setSelectedFieldId(fieldId);
     setSelectedWordIds(wordSet);
     if (field?.page && field.page !== currentPage) {
       setCurrentPage(field.page);
@@ -98,8 +103,9 @@ export default function JobDetailPage({ jobId }: Props) {
     if (field) {
       handleFieldSelect(field.id);
     } else {
+      const already = selectedWordIds.has(wordId) && selectedWordIds.size === 1 && !selectedFieldId;
       setSelectedFieldId(undefined);
-      setSelectedWordIds(new Set([wordId]));
+      setSelectedWordIds(already ? new Set() : new Set([wordId]));
     }
   };
 

@@ -30,7 +30,12 @@ export default function FieldsTable({ docType, fields, selectedFieldId, onFieldS
   };
 
   return (
-    <div data-testid="fields-table" onKeyDown={handleKey} tabIndex={0}>
+    <div
+      data-testid="fields-table"
+      onKeyDown={handleKey}
+      tabIndex={0}
+      style={{ maxHeight: '60vh', overflowX: 'auto', overflowY: 'auto' }}
+    >
       <Table
         dataSource={fields}
         rowKey={(f) => f.id as Key}

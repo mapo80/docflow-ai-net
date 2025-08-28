@@ -1,11 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { OcrWord } from '../adapters/extractionAdapter';
 import { Select, Space, Button } from 'antd';
-import {
-  ZoomInOutlined,
-  ZoomOutOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import { ZoomInOutlined, ZoomOutOutlined, ReloadOutlined } from '@ant-design/icons';
 
 interface PageInfo {
   index: number;
@@ -39,54 +35,45 @@ export default function DocumentPreview({
 }: DocumentPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const [rendered, setRendered] = useState<{ width: number; height: number }>({
-    width: 0,
-    height: 0,
-  });
   const page = pages.find((p) => p.index === currentPage) || pages[0];
 
   useEffect(() => {
-    if (!page) return;
+    if (!page || docType !== 'pdf') return;
     let cancelled = false;
-    if (docType === 'pdf') {
-      (async () => {
-        const pdfjs = await import('pdfjs-dist');
-        const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
-        pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-        const pdf = await pdfjs.getDocument(srcUrl).promise;
-        if (cancelled) return;
-        const pdfPage = await pdf.getPage(currentPage);
-        const viewport = pdfPage.getViewport({ scale: zoom });
-        const canvas = canvasRef.current!;
-        const ctx = canvas.getContext('2d')!;
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await pdfPage.render({ canvasContext: ctx, viewport }).promise;
-        if (!cancelled) {
-          setRendered({ width: viewport.width, height: viewport.height });
-        }
-      })();
-    } else if (docType === 'image') {
-      const img = imgRef.current;
-      if (img) {
-        img.width = page.width * zoom;
-        img.height = page.height * zoom;
-        setRendered({ width: img.width, height: img.height });
-      }
-    }
+    (async () => {
+      const pdfjs = await import('pdfjs-dist');
+      const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
+      pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+      const pdf = await pdfjs.getDocument(srcUrl).promise;
+      if (cancelled) return;
+      const pdfPage = await pdf.getPage(currentPage);
+      const viewport = pdfPage.getViewport({ scale: 1 });
+      const canvas = canvasRef.current!;
+      const ctx = canvas.getContext('2d')!;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await pdfPage.render({ canvasContext: ctx, viewport }).promise;
+    })();
     return () => {
       cancelled = true;
     };
-  }, [docType, srcUrl, currentPage, zoom, page]);
+  }, [docType, srcUrl, currentPage, page]);
+
+  useEffect(() => {
+    if (docType !== 'image') return;
+    const img = imgRef.current;
+    if (img && page) {
+      img.width = page.width;
+      img.height = page.height;
+    }
+  }, [docType, page]);
 
   if (!page) return null;
 
-  const sx = rendered.width / page.width;
-  const sy = rendered.height / page.height;
   const words = page.words;
 
   return (
-    <div data-testid="doc-preview" style={{ width: '100%', overflowX: 'auto' }}>
+    <div data-testid="doc-preview" style={{ width: '100%' }}>
       <div
         style={{
           display: 'flex',
@@ -124,43 +111,60 @@ export default function DocumentPreview({
           />
         </Space>
       </div>
-      <div style={{ position: 'relative', display: 'inline-block' }}>
-        {docType === 'pdf' ? (
-          <canvas
-            data-testid="pdf-canvas"
-            ref={canvasRef}
-            style={{ display: 'block' }}
-          />
-        ) : (
-          <img
-            ref={imgRef}
-            data-testid="img-preview"
-            src={srcUrl}
-            alt="document"
-            style={{ display: 'block' }}
-          />
-        )}
-        <svg
-          width={rendered.width}
-          height={rendered.height}
-          style={{ position: 'absolute', top: 0, left: 0 }}
+      <div
+        style={{
+          overflow: 'auto',
+          position: 'relative',
+          width: '100%',
+          maxHeight: '80vh',
+        }}
+      >
+        <div
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top left',
+            width: page.width,
+            height: page.height,
+            position: 'relative',
+          }}
         >
-          {words.map((w) => (
-            <rect
-              key={w.id}
-              data-testid={`bbox-${w.id}`}
-              data-word-id={w.id}
-              x={w.bbox.x * sx}
-              y={w.bbox.y * sy}
-              width={w.bbox.width * sx}
-              height={w.bbox.height * sy}
-              fill={selectedWordIds.has(w.id) ? 'rgba(0,123,255,0.3)' : 'transparent'}
-              stroke={selectedWordIds.has(w.id) ? '#1890ff' : 'rgba(0,0,0,0.2)'}
-              strokeWidth={selectedWordIds.has(w.id) ? 2 : 1}
-              onClick={() => onWordClick(w.id)}
+          {docType === 'pdf' ? (
+            <canvas
+              data-testid="pdf-canvas"
+              ref={canvasRef}
+              style={{ display: 'block' }}
             />
-          ))}
-        </svg>
+          ) : (
+            <img
+              ref={imgRef}
+              data-testid="img-preview"
+              src={srcUrl}
+              alt="document"
+              style={{ display: 'block', width: page.width, height: page.height }}
+            />
+          )}
+          <svg
+            width={page.width}
+            height={page.height}
+            style={{ position: 'absolute', top: 0, left: 0 }}
+          >
+            {words.map((w) => (
+              <rect
+                key={w.id}
+                data-testid={`bbox-${w.id}`}
+                data-word-id={w.id}
+                x={w.bbox.x}
+                y={w.bbox.y}
+                width={w.bbox.width}
+                height={w.bbox.height}
+                fill={selectedWordIds.has(w.id) ? 'rgba(0,123,255,0.3)' : 'transparent'}
+                stroke={selectedWordIds.has(w.id) ? '#1890ff' : 'rgba(0,0,0,0.2)'}
+                strokeWidth={selectedWordIds.has(w.id) ? 2 : 1}
+                onClick={() => onWordClick(w.id)}
+              />
+            ))}
+          </svg>
+        </div>
       </div>
     </div>
   );

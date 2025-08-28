@@ -54,7 +54,7 @@ vi.spyOn(global, 'fetch')
   } as any);
 
 describe('JobDetailPage', () => {
-  it('selects field and bbox bidirectionally', async () => {
+  it('toggles selection bidirectionally', async () => {
     render(
       <ApiErrorProvider>
         <MemoryRouter initialEntries={[{ pathname: '/jobs/1' }]}>
@@ -66,10 +66,18 @@ describe('JobDetailPage', () => {
     );
     await waitFor(() => screen.getByTestId('bbox-w0'));
     const row = screen.getByTestId('row-n');
-    fireEvent.click(row);
     const rect = screen.getByTestId('bbox-w0');
-    expect(rect.getAttribute('fill')).toContain('0,123,255');
+    fireEvent.click(row);
+    await waitFor(() =>
+      expect(rect.getAttribute('fill')).toContain('0,123,255'),
+    );
+    fireEvent.click(row);
+    await waitFor(() => expect(rect.getAttribute('fill')).toBe('transparent'));
     fireEvent.click(rect);
-    expect(row.className).toContain('selected-row');
+    await waitFor(() => expect(row.className).toContain('selected-row'));
+    fireEvent.click(rect);
+    await waitFor(() =>
+      expect(row.className).not.toContain('selected-row'),
+    );
   });
 });

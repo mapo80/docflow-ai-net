@@ -62,9 +62,9 @@ describe('DocumentPreview', () => {
       />,
     );
     const wrapper = container.querySelector(
-      '[data-testid="doc-preview"]',
+      '[data-testid="doc-preview"] div[style*="overflow: auto"]',
     ) as HTMLElement;
-    expect(wrapper.style.overflowX).toBe('auto');
+    expect(wrapper).not.toBeNull();
   });
 
   it('invokes zoom controls', () => {
