@@ -74,16 +74,22 @@ RUN --mount=type=secret,id=hf_token,target=/run/secrets/hf_token \
 #############################
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0-noble AS runtime
 
-# Native deps + Python per Docling Serve (minimo indispensabile, NO Tesseract)
+# Native deps + Python per Docling Serve (minimo indispensabile, headless: NO libgl1)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates tini libgomp1 libstdc++6 libc6 libicu74 \
-      python3 python3-pip libglib2.0-0 libgl1 libmagic1 \
+      python3 python3-pip libglib2.0-0 libmagic1 \
   && mkdir -p /app/models \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# Docling Serve (CPU) - default EasyOCR (no Tesseract)
-RUN pip3 install --no-cache-dir docling-serve
+# (opzionale, utile per wheel CPU di torch) – riduce sorprese con PyTorch
+ENV PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
+
+# Docling Serve (CPU) - default EasyOCR (senza Tesseract) + forza OpenCV headless
+RUN python3 -m pip install --no-cache-dir --upgrade pip \
+  && pip3 install --no-cache-dir docling-serve \
+  && pip3 uninstall -y opencv-python opencv-contrib-python || true \
+  && pip3 install --no-cache-dir opencv-python-headless
 
 # Re-import ARGs so they can be promoted to ENV
 ARG LLM_DEFAULT_MODEL_REPO
