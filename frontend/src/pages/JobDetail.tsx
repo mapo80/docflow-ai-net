@@ -6,6 +6,7 @@ import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
+import JobDetailPage from './JobDetailPage';
 import JobStatusTag from '../components/JobStatusTag';
 import notify from '../components/notification';
 import MarkdownPreview from '@uiw/react-markdown-preview';
@@ -33,6 +34,7 @@ export default function JobDetail() {
   >([]);
   const [error, setError] = useState<string | null>(null);
   const { showError } = useApiError();
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -294,26 +296,37 @@ export default function JobDetail() {
           </Descriptions.Item>
         )}
       </Descriptions>
-      {job.status === 'Running' && (
-        <Space style={{ marginTop: 16 }}>
-          <Button
-            onClick={load}
-            icon={<ReloadOutlined />}
-            aria-label="Reload"
-            title="Reload"
-          >
-            Reload
-          </Button>
-          <Button
-            onClick={handleCancel}
-            icon={<StopOutlined />}
-            aria-label="Cancel job"
-            title="Cancel job"
-          >
-            Cancel
-          </Button>
-        </Space>
-      )}
+      <Space style={{ marginTop: 16 }}>
+        <Button
+          onClick={() => setViewerOpen(true)}
+          icon={<FileSearchOutlined />}
+          aria-label="Document preview"
+          title="Document preview"
+          data-testid="open-preview"
+        >
+          Document preview
+        </Button>
+        {job.status === 'Running' && (
+          <>
+            <Button
+              onClick={load}
+              icon={<ReloadOutlined />}
+              aria-label="Reload"
+              title="Reload"
+            >
+              Reload
+            </Button>
+            <Button
+              onClick={handleCancel}
+              icon={<StopOutlined />}
+              aria-label="Cancel job"
+              title="Cancel job"
+            >
+              Cancel
+            </Button>
+          </>
+        )}
+      </Space>
       <Tabs
         style={{ marginTop: 16 }}
         items={[
@@ -347,6 +360,26 @@ export default function JobDetail() {
           },
         ]}
       />
+      <Modal
+        open={viewerOpen}
+        footer={null}
+        onCancel={() => setViewerOpen(false)}
+        width="100%"
+        style={{ top: 0 }}
+        styles={{
+          body: {
+            height: '100vh',
+            overflow: 'hidden',
+            padding: 0,
+            backgroundColor: '#fff',
+          },
+        }}
+        rootClassName="fullscreen-modal"
+        destroyOnClose
+        data-testid="viewer-modal"
+      >
+        <JobDetailPage />
+      </Modal>
       {preview && (
         <Modal
           open
