@@ -91,7 +91,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
       --index-url https://download.pytorch.org/whl/cpu \
-      "torch==2.4.*+cpu" "torchvision==0.19.*+cpu" && \
+      torch torchvision && \
     pip install --no-cache-dir opencv-python-headless docling-serve
 
 # Re-import ARGs so they can be promoted to ENV
