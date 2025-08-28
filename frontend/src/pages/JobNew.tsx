@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Form, Input, Upload, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
-import { ApiError, OpenAPI, ModelsService, TemplatesService } from '../generated';
+import { ApiError, OpenAPI, ModelsService, TemplatesService, MarkdownSystemsService } from '../generated';
 import { request as __request } from '../generated/core/request';
 import { useNavigate } from 'react-router-dom';
 import { useApiError } from '../components/ApiErrorProvider';
@@ -35,6 +35,7 @@ export async function buildPayload(
   model: string,
   templateToken: string,
   language: string,
+  markdownSystemId: string,
 ) {
   return {
     fileBase64: await fileToBase64(file),
@@ -42,6 +43,7 @@ export async function buildPayload(
     model,
     templateToken,
     language,
+    markdownSystemId,
   };
 }
 
@@ -66,6 +68,8 @@ export default function JobNew() {
   const [model, setModel] = useState('');
   const [templateToken, setTemplateToken] = useState('');
   const [language, setLanguage] = useState('');
+  const [markdownSystems, setMarkdownSystems] = useState<any[]>([]);
+  const [markdownSystemId, setMarkdownSystemId] = useState('');
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -85,6 +89,12 @@ export default function JobNew() {
       } catch {
         /* ignore */
       }
+      try {
+        const ms = await MarkdownSystemsService.markdownSystemsList();
+        setMarkdownSystems(ms);
+      } catch {
+        /* ignore */
+      }
     })();
   }, []);
 
@@ -98,11 +108,11 @@ export default function JobNew() {
       showError(err);
       return;
     }
-    if (!model || !templateToken || !language) {
-      showError('Model, template and language are required');
+    if (!model || !templateToken || !language || !markdownSystemId) {
+      showError('Model, template, language and markdown system are required');
       return;
     }
-    const payload = await buildPayload(file, model, templateToken, language);
+    const payload = await buildPayload(file, model, templateToken, language, markdownSystemId);
     setLoading(true);
     try {
       const data = await submitPayload(payload, idempotencyKey || undefined);
@@ -178,6 +188,15 @@ export default function JobNew() {
             ]}
             value={language || undefined}
             onChange={(v) => setLanguage(v)}
+          />
+        </Form.Item>
+        <Form.Item label="Markdown system" required>
+          <Select
+            showSearch
+            placeholder="Select markdown system"
+            options={markdownSystems.map((m) => ({ value: m.id, label: m.name }))}
+            value={markdownSystemId || undefined}
+            onChange={(v) => setMarkdownSystemId(v)}
           />
         </Form.Item>
         <Form.Item label="Idempotency Key">

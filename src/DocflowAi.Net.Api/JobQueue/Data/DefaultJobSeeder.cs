@@ -37,14 +37,21 @@ public static class DefaultJobSeeder
             if (datasetRoot != null)
             {
                 var now = DateTimeOffset.UtcNow;
-                var modelName = db.Models.Select(m => m.Name).FirstOrDefault() ?? "model";
+                var modelName = db.Models.FirstOrDefault(m => m.Provider == "openai")?.Name
+                    ?? db.Models.Select(m => m.Name).FirstOrDefault() ?? "model";
                 var templateToken = db.Templates.Select(t => t.Token).FirstOrDefault() ?? "template";
+                var system = db.MarkdownSystems.FirstOrDefault(s => s.Provider == "azure-di")
+                    ?? db.MarkdownSystems.FirstOrDefault();
+                var markdownSystemId = system?.Id ?? Guid.NewGuid();
+                var markdownSystemName = system?.Name ?? "markdown";
 
                 var okId = Guid.Parse("11111111-1111-1111-1111-111111111111");
                 var okDir = Path.Combine(cfg.DataRoot, okId.ToString());
                 Directory.CreateDirectory(okDir);
                 File.Copy(Path.Combine(datasetRoot, "sample_invoice.pdf"), Path.Combine(okDir, "input.pdf"), true);
+                File.Copy(Path.Combine(datasetRoot, "prompt.txt"), Path.Combine(okDir, "prompt.md"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-png-boxsolver-pointerstrategy", "result.json"), Path.Combine(okDir, "output.json"), true);
+                File.Copy(Path.Combine(datasetRoot, "test-png-boxsolver-pointerstrategy", "markdown.md"), Path.Combine(okDir, "markdown.md"), true);
                 var okJob = new JobDocument
                 {
                     Id = okId,
@@ -57,6 +64,8 @@ public static class DefaultJobSeeder
                     Model = modelName,
                     TemplateToken = templateToken,
                     Language = "eng",
+                    MarkdownSystemId = markdownSystemId,
+                    MarkdownSystemName = markdownSystemName,
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = okDir,
@@ -72,7 +81,9 @@ public static class DefaultJobSeeder
                 var errDir = Path.Combine(cfg.DataRoot, errId.ToString());
                 Directory.CreateDirectory(errDir);
                 File.Copy(Path.Combine(datasetRoot, "sample_invoice.png"), Path.Combine(errDir, "input.png"), true);
+                File.Copy(Path.Combine(datasetRoot, "prompt.txt"), Path.Combine(errDir, "prompt.md"), true);
                 File.Copy(Path.Combine(datasetRoot, "test-png", "llm_response.txt"), Path.Combine(errDir, "error.txt"), true);
+                File.Copy(Path.Combine(datasetRoot, "test-png", "markitdown.txt"), Path.Combine(errDir, "markdown.md"), true);
                 var errJob = new JobDocument
                 {
                     Id = errId,
@@ -86,6 +97,8 @@ public static class DefaultJobSeeder
                     Model = modelName,
                     TemplateToken = templateToken,
                     Language = "ita",
+                    MarkdownSystemId = markdownSystemId,
+                    MarkdownSystemName = markdownSystemName,
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = errDir,

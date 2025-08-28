@@ -35,7 +35,9 @@ public class RunnerTests : IClassFixture<TempDirFixture>
                 Error = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "error.txt") },
                 Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(dir, "markdown.md") }
             },
-            Language = "eng"
+            Language = "eng",
+            MarkdownSystemId = Guid.NewGuid(),
+            MarkdownSystemName = "docling"
         };
 
     [Fact]

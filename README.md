@@ -31,12 +31,36 @@ The template token is `template` and contains the invoice extraction prompt and 
 
 ### Job submission parameters
 
-Each job must reference two tokens:
+Each job must specify four values:
 
 - `model` — the model token to execute (see `/api/models` for available models).
 - `templateToken` — the template token describing the prompt and fields (see `/api/templates`).
+- `language` — language code used for OCR and downstream processing.
+- `markdownSystemId` — identifier of the markdown conversion system (see `/api/markdown-systems`).
 
-Clients should send these tokens to `POST /api/v1/jobs` and they are persisted on the job record. The job detail endpoint returns the tokens so that consumers can look up full model or template information later.
+Clients send these fields to `POST /api/v1/jobs` and they are persisted on the job record. The job detail endpoint returns them so that consumers can later inspect model, template, language, and markdown system information.
+
+## Models and Markdown systems
+
+Both models and markdown conversion systems are stored in the database and managed through dedicated REST endpoints:
+
+- `/api/models` — CRUD for LLM models (local or hosted).
+- `/api/markdown-systems` — CRUD for markdown conversion systems (Docling Serve or Azure Document Intelligence).
+
+Startup seeding reads initial entries from the `Seed` section in `appsettings.json`:
+
+```json
+"Seed": {
+  "Models": [
+    { "Name": "qwen3-0.6b", "Type": "local", "HfRepo": "unsloth/Qwen3-0.6B-GGUF", "ModelFile": "Qwen3-0.6B-Q4_0.gguf" }
+  ],
+  "MarkdownSystems": [
+    { "Name": "docling-local", "Provider": "docling", "Endpoint": "http://127.0.0.1:5001" }
+  ]
+}
+```
+
+The Docling example above is seeded automatically. Additional systems can include an `ApiKey` when required (e.g., Azure Document Intelligence).
 
 ### Database Providers
 
@@ -79,7 +103,7 @@ the requested model.
 Input (PDF/JPG/PNG)
       │
       ▼
- Markdown conversion via Docling Serve (PDF → text; OCR fallback; words + BBox normalized [0..1])
+ Markdown conversion via selected system (Docling Serve or Azure Document Intelligence "prebuilt-layout"; OCR fallback; words + BBox normalized [0..1])
       │
       ▼
  Normalization & Indexing (token, bigram, Index Map / Text View)
@@ -93,7 +117,7 @@ Input (PDF/JPG/PNG)
 Output JSON (value, evidence[], wordIndices[], bbox[x,y,w,h], confidence, optional metrics)
 ```
 
-Docling Serve provides the markdown conversion service. Configure its base URL with `Markdown:DoclingServeUrl` in `appsettings.json`.
+Markdown conversion uses pluggable systems. A Docling instance at `http://127.0.0.1:5001` is seeded by default, and additional systems such as Azure Document Intelligence can be configured under the `Seed` section in `appsettings.json`.
 
 ## Requirements
 
