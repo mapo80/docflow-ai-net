@@ -33,6 +33,7 @@ describe('parseOutputToViewModel', () => {
     const res = parseOutputToViewModel(job, output, md)!;
     expect(res.pages[0].words[0].bbox.x).toBeCloseTo(10);
     expect(res.fields[0].wordIds).toEqual(['w0']);
+    expect(res.fields[0].hasBbox).toBe(true);
   });
 
   it('returns null when input path is missing', () => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Descriptions, Button, Space, Modal, Tabs, Table, Alert, Popover } from 'antd';
+import { Descriptions, Button, Space, Modal, Tabs, Table, Alert, Popover, Tooltip } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
@@ -29,7 +29,7 @@ export default function JobDetail() {
     | null
   >(null);
   const [fields, setFields] = useState<
-    { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
+    { key: string; value: string | null; confidence?: number; page?: number; hasBbox: boolean }[]
   >([]);
   const [files, setFiles] = useState<
     {
@@ -120,7 +120,7 @@ export default function JobDetail() {
           value: string | null;
           confidence?: number;
           page?: number;
-          bbox?: string;
+          hasBbox: boolean;
         }[] = [];
         if (Array.isArray(json)) {
           json.forEach((f: any, i: number) => {
@@ -131,19 +131,19 @@ export default function JobDetail() {
               value: f.Value ?? null,
               confidence: f.Confidence,
               page: span?.Page,
-              bbox: box ? `${box.X},${box.Y},${box.W},${box.H}` : undefined,
+              hasBbox: !!box,
             });
           });
         } else if (json.fields) {
           json.fields.forEach((f: any, i: number) => {
             const span = f.evidence?.[0];
-            const box = span?.bbox;
+            const box = span?.bbox ?? span;
             rows.push({
               key: f.key ?? `f${i}`,
               value: f.value ?? null,
               confidence: f.confidence,
               page: span?.page,
-              bbox: box ? `${box.x},${box.y},${box.w},${box.h}` : undefined,
+              hasBbox: !!box,
             });
           });
         }
@@ -277,11 +277,26 @@ export default function JobDetail() {
     return error ? <Alert type="error" message={error} /> : <Loader />;
   }
 
+  const docType = job.paths?.input?.path?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image';
+
   const fieldColumns = [
     { title: 'Key', dataIndex: 'key' },
     { title: 'Value', dataIndex: 'value' },
-    { title: 'Page', dataIndex: 'page' },
-    { title: 'BBox', dataIndex: 'bbox' },
+    {
+      title: 'Page',
+      dataIndex: 'page',
+      render: (value: number | undefined) =>
+        docType === 'pdf' ? value ?? '-' : '-',
+    },
+    {
+      title: 'BBox',
+      dataIndex: 'hasBbox',
+      render: (v: boolean) => (
+        <Tooltip title={v ? 'Bounding box available' : 'Bounding box unavailable'}>
+          {v ? '✅' : '❌'}
+        </Tooltip>
+      ),
+    },
     { title: 'Confidence', dataIndex: 'confidence' },
   ];
 

@@ -15,6 +15,7 @@ export interface ExtractedField {
   value: string;
   page: number;
   wordIds: string[];
+  hasBbox: boolean;
   conf?: number;
 }
 export interface ExtractionViewModel {
@@ -119,6 +120,7 @@ export function parseOutputToViewModel(
       value: f.value ?? '',
       page,
       wordIds,
+      hasBbox: spans.length > 0,
       conf: f.confidence ?? f.conf,
     } as ExtractedField;
   });

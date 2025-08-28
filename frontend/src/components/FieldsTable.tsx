@@ -1,14 +1,15 @@
-import { Table } from 'antd';
+import { Table, Tooltip } from 'antd';
 import type { ExtractedField } from '../adapters/extractionAdapter';
 import { useCallback, type Key } from 'react';
 
 interface Props {
+  docType: 'pdf' | 'image';
   fields: ExtractedField[];
   selectedFieldId?: string;
   onFieldSelect: (id: string) => void;
 }
 
-export default function FieldsTable({ fields, selectedFieldId, onFieldSelect }: Props) {
+export default function FieldsTable({ docType, fields, selectedFieldId, onFieldSelect }: Props) {
   const onRow = useCallback(
     (record: ExtractedField) => ({
       onClick: () => onFieldSelect(record.id),
@@ -36,7 +37,20 @@ export default function FieldsTable({ fields, selectedFieldId, onFieldSelect }: 
           { title: 'Name', dataIndex: 'name' },
           { title: 'Value', dataIndex: 'value' },
           { title: 'Confidence', dataIndex: 'conf' },
-          { title: 'Page', dataIndex: 'page' },
+          {
+            title: 'Page',
+            dataIndex: 'page',
+            render: (value: number) => (docType === 'pdf' ? value : '-'),
+          },
+          {
+            title: 'BBox',
+            dataIndex: 'hasBbox',
+            render: (v: boolean) => (
+              <Tooltip title={v ? 'Bounding box available' : 'Bounding box unavailable'}>
+                {v ? '✅' : '❌'}
+              </Tooltip>
+            ),
+          },
         ]}
         pagination={false}
         size="small"

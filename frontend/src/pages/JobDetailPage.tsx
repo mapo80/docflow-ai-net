@@ -124,6 +124,7 @@ export default function JobDetailPage({ jobId }: Props) {
       </Col>
       <Col xs={24} lg={8}>
         <FieldsTable
+          docType={model.docType}
           fields={model.fields}
           selectedFieldId={selectedFieldId}
           onFieldSelect={handleFieldSelect}
