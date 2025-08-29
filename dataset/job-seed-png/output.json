@@ -1,0 +1,63 @@
+{
+  "document_type": "Fattura / Invoice",
+  "language": "it",
+  "notes": "",
+  "fields": [
+    {
+      "key": "company_name",
+      "value": "ACME S.p.A.",
+      "confidence": 1.0,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.04838709677419355,
+          "y": 0.03876852907639681,
+          "width": 0.264516129032258,
+          "height": 0.02622576966932725
+        }
+      ]
+    },
+    {
+      "key": "document_type",
+      "value": "Fattura / Invoice",
+      "confidence": 1.0,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.04758064516129032,
+          "y": 0.0815279361459521,
+          "width": 0.08064516129032259,
+          "height": 0.015963511972633987
+        }
+      ]
+    },
+    {
+      "key": "invoice_number",
+      "value": "INV-2025-001",
+      "confidence": 1.0,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.23790322580645162,
+          "y": 0.11516533637400228,
+          "width": 0.157258064516129,
+          "height": 0.015963511972633987
+        }
+      ]
+    },
+    {
+      "key": "invoice_date",
+      "value": "2025-08-09",
+      "confidence": 1.0,
+      "spans": [
+        {
+          "page": 1,
+          "x": 0.11451612903225807,
+          "y": 0.1379703534777651,
+          "width": 0.13225806451612904,
+          "height": 0.015963511972633987
+        }
+      ]
+    }
+  ]
+}

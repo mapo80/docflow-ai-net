@@ -29,9 +29,10 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         var resp = await client.GetFromJsonAsync<JobListResponse>("/api/v1/jobs");
 
-        resp!.total.Should().Be(2);
+        resp!.total.Should().Be(3);
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("33333333-3333-3333-3333-333333333333"));
         resp.items.Select(j => j.id).Should().Contain(Guid.Parse("44444444-4444-4444-4444-444444444444"));
+        resp.items.Select(j => j.id).Should().Contain(Guid.Parse("55555555-5555-5555-5555-555555555555"));
 
         var ok = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/33333333-3333-3333-3333-333333333333");
         ok.GetProperty("model").GetString().Should().NotBeNullOrWhiteSpace();
@@ -66,6 +67,25 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         mdResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var loResp = await client.GetAsync(ok.GetProperty("paths").GetProperty("layoutOutput").GetProperty("path").GetString());
         loResp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var img = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/55555555-5555-5555-5555-555555555555");
+        img.GetProperty("paths").GetProperty("input").GetProperty("path").GetString()
+            .Should().EndWith("/input.png");
+        img.GetProperty("paths").GetProperty("output").GetProperty("path").GetString()
+            .Should().EndWith("/output.json");
+        img.GetProperty("paths").GetProperty("layout").GetProperty("path").GetString()
+            .Should().EndWith("/layout.json");
+        img.GetProperty("paths").GetProperty("layoutOutput").GetProperty("path").GetString()
+            .Should().EndWith("/output-layout.json");
+        img.GetProperty("paths").GetProperty("error").ValueKind
+            .Should().Be(JsonValueKind.Null);
+
+        var imgFileResp = await client.GetAsync(img.GetProperty("paths").GetProperty("input").GetProperty("path").GetString());
+        imgFileResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var imgMdResp = await client.GetAsync(img.GetProperty("paths").GetProperty("layout").GetProperty("path").GetString());
+        imgMdResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var imgLoResp = await client.GetAsync(img.GetProperty("paths").GetProperty("layoutOutput").GetProperty("path").GetString());
+        imgLoResp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -115,6 +135,20 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
             .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "job-seed", "layout.json")));
         (await client.GetStringAsync(okLayoutOutput))
             .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "job-seed", "output-layout.json")));
+
+        var img = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/55555555-5555-5555-5555-555555555555");
+        var imgInput = img.GetProperty("paths").GetProperty("input").GetProperty("path").GetString()!;
+        var imgOutput = img.GetProperty("paths").GetProperty("output").GetProperty("path").GetString()!;
+        var imgLayout = img.GetProperty("paths").GetProperty("layout").GetProperty("path").GetString()!;
+        var imgLayoutOutput = img.GetProperty("paths").GetProperty("layoutOutput").GetProperty("path").GetString()!;
+        (await client.GetByteArrayAsync(imgInput))
+            .Should().BeEquivalentTo(File.ReadAllBytes(Path.Combine(datasetRoot, "job-seed-png", "input.png")));
+        (await client.GetStringAsync(imgOutput))
+            .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "job-seed-png", "output.json")));
+        (await client.GetStringAsync(imgLayout))
+            .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "job-seed-png", "layout.json")));
+        (await client.GetStringAsync(imgLayoutOutput))
+            .Should().Be(File.ReadAllText(Path.Combine(datasetRoot, "job-seed-png", "output-layout.json")));
     }
 
     [Fact]
@@ -134,6 +168,14 @@ public class DefaultJobSeederTests : IClassFixture<TempDirFixture>
         await AssertTextFile(client, okPaths.GetProperty("markdown").GetProperty("path").GetString()!, "text/markdown");
         await AssertJsonFile(client, okPaths.GetProperty("layout").GetProperty("path").GetString()!);
         await AssertJsonFile(client, okPaths.GetProperty("layoutOutput").GetProperty("path").GetString()!);
+
+        var img = await client.GetFromJsonAsync<JsonElement>("/api/v1/jobs/55555555-5555-5555-5555-555555555555");
+        var imgPaths = img.GetProperty("paths");
+        await AssertBinaryFile(client, imgPaths.GetProperty("input").GetProperty("path").GetString()!, new byte[] { 0x89, 0x50, 0x4E, 0x47 });
+        await AssertJsonFile(client, imgPaths.GetProperty("output").GetProperty("path").GetString()!);
+        await AssertTextFile(client, imgPaths.GetProperty("markdown").GetProperty("path").GetString()!, "text/markdown");
+        await AssertJsonFile(client, imgPaths.GetProperty("layout").GetProperty("path").GetString()!);
+        await AssertJsonFile(client, imgPaths.GetProperty("layoutOutput").GetProperty("path").GetString()!);
 
         static async Task AssertBinaryFile(HttpClient client, string path, byte[] signature)
         {

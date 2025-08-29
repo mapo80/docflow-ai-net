@@ -84,6 +84,47 @@ public static class DefaultJobSeeder
 
                 db.Jobs.Add(job);
 
+                // succeeded image job
+                var imgJobId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+                var imgDir = Path.Combine(cfg.DataRoot, imgJobId.ToString());
+                Directory.CreateDirectory(imgDir);
+                var imgSeedDir = Path.Combine(datasetRoot, "job-seed-png");
+                File.Copy(Path.Combine(imgSeedDir, "input.png"), Path.Combine(imgDir, "input.png"), true);
+                File.Copy(Path.Combine(imgSeedDir, "prompt.md"), Path.Combine(imgDir, "prompt.md"), true);
+                File.Copy(Path.Combine(imgSeedDir, "output.json"), Path.Combine(imgDir, "output.json"), true);
+                File.Copy(Path.Combine(imgSeedDir, "markdown.md"), Path.Combine(imgDir, "markdown.md"), true);
+                File.Copy(Path.Combine(imgSeedDir, "layout.json"), Path.Combine(imgDir, "layout.json"), true);
+                File.Copy(Path.Combine(imgSeedDir, "output-layout.json"), Path.Combine(imgDir, "output-layout.json"), true);
+
+                var imgJob = new JobDocument
+                {
+                    Id = imgJobId,
+                    Status = "Succeeded",
+                    Progress = 100,
+                    Attempts = 1,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                    Metrics = new JobDocument.MetricsInfo { StartedAt = now, EndedAt = now, DurationMs = 0 },
+                    Model = modelName,
+                    TemplateToken = templateToken,
+                    Language = "ita",
+                    MarkdownSystemId = msId,
+                    MarkdownSystemName = msName,
+                    Paths = new JobDocument.PathInfo
+                    {
+                        Dir = imgDir,
+                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(imgDir, "input.png"), CreatedAt = now },
+                        Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(imgDir, "prompt.md"), CreatedAt = now },
+                        Output = new JobDocument.DocumentInfo { Path = Path.Combine(imgDir, "output.json"), CreatedAt = now },
+                        Error = new JobDocument.DocumentInfo { Path = string.Empty },
+                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(imgDir, "markdown.md"), CreatedAt = now },
+                        Layout = new JobDocument.DocumentInfo { Path = Path.Combine(imgDir, "layout.json"), CreatedAt = now },
+                        LayoutOutput = new JobDocument.DocumentInfo { Path = Path.Combine(imgDir, "output-layout.json"), CreatedAt = now }
+                    }
+                };
+
+                db.Jobs.Add(imgJob);
+
                 // failed job
                 var errJobId = Guid.Parse("44444444-4444-4444-4444-444444444444");
                 var errDir = Path.Combine(cfg.DataRoot, errJobId.ToString());
