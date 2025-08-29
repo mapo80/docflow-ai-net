@@ -48,6 +48,7 @@ public class ProcessService : IProcessService
 
     public async Task<ProcessResult> ExecuteAsync(ProcessInput input, CancellationToken ct)
     {
+        DateTimeOffset? mdCreated = null;
         try
         {
             var tpl = _templates.GetByToken(input.TemplateToken);
@@ -56,31 +57,57 @@ public class ProcessService : IProcessService
 
             var fields = JsonSerializer.Deserialize<List<FieldSpec>>(tpl.FieldsJson) ?? new();
 
-            await using var fs = File.OpenRead(input.InputPath);
-            var contentType = GetContentType(input.InputPath);
-
             var totalSw = Stopwatch.StartNew();
-            MarkdownResult md;
-            var mdSw = Stopwatch.StartNew();
-            var mdOpts = new MarkdownOptions
+            var dir = Path.GetDirectoryName(input.MarkdownPath)!;
+            var layoutPath = Path.Combine(dir, "layout.json");
+            var layoutOutputPath = Path.Combine(dir, "output-layout.json");
+            MarkdownResult? md = null;
+            Stopwatch mdSw;
+            if (File.Exists(input.MarkdownPath) && new FileInfo(input.MarkdownPath).Length > 0 &&
+                File.Exists(layoutPath) && new FileInfo(layoutPath).Length > 0 &&
+                File.Exists(layoutOutputPath) && new FileInfo(layoutOutputPath).Length > 0)
             {
-                OcrLanguage = _mdOptions.OcrLanguage,
-                PdfRasterDpi = _mdOptions.PdfRasterDpi,
-                MinimumNativeWordThreshold = _mdOptions.MinimumNativeWordThreshold,
-                NormalizeMarkdown = _mdOptions.NormalizeMarkdown
-            };
-            if (contentType == "application/pdf")
+                try
+                {
+                    var jsonText = await File.ReadAllTextAsync(layoutPath, ct);
+                    md = JsonSerializer.Deserialize<MarkdownResult>(jsonText);
+                    if (md != null)
+                        mdCreated = File.GetLastWriteTimeUtc(input.MarkdownPath);
+                }
+                catch
+                {
+                    md = null;
+                }
+            }
+
+            if (md != null)
             {
-                md = await _converter.ConvertPdfAsync(fs, mdOpts, ct);
+                mdSw = new Stopwatch();
             }
             else
             {
-                md = await _converter.ConvertImageAsync(fs, mdOpts, ct);
-            }
-            mdSw.Stop();
+                mdSw = Stopwatch.StartNew();
+                await using var fs = File.OpenRead(input.InputPath);
+                var contentType = GetContentType(input.InputPath);
+                var mdOpts = new MarkdownOptions
+                {
+                    OcrLanguage = _mdOptions.OcrLanguage,
+                    PdfRasterDpi = _mdOptions.PdfRasterDpi,
+                    MinimumNativeWordThreshold = _mdOptions.MinimumNativeWordThreshold,
+                    NormalizeMarkdown = _mdOptions.NormalizeMarkdown
+                };
+                if (contentType == "application/pdf")
+                    md = await _converter.ConvertPdfAsync(fs, mdOpts, input.MarkdownSystemId, ct);
+                else
+                    md = await _converter.ConvertImageAsync(fs, mdOpts, input.MarkdownSystemId, ct);
+                mdSw.Stop();
 
-            await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
-            var mdCreated = DateTimeOffset.UtcNow;
+                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
+                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(layoutPath), JsonSerializer.Serialize(md));
+                if (!string.IsNullOrEmpty(md.RawJson))
+                    await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(layoutOutputPath), md.RawJson);
+                mdCreated = DateTimeOffset.UtcNow;
+            }
 
             DateTimeOffset? promptCreated = null;
             async Task SavePrompt(string system, string user)
@@ -114,7 +141,22 @@ public class ProcessService : IProcessService
                 document_type = enriched.DocumentType,
                 language = enriched.Language,
                 notes = enriched.Notes,
-                fields = enriched.Fields.Select(f => new { key = f.Key, value = f.Value, confidence = f.Confidence }),
+                fields = enriched.Fields.Select(f => new
+                {
+                    key = f.Key,
+                    value = f.Value,
+                    confidence = f.Confidence,
+                    spans = f.Evidence != null
+                        ? f.Evidence.Select(e => (object)new
+                        {
+                            page = e.Page,
+                            x = e.BBox.X,
+                            y = e.BBox.Y,
+                            width = e.BBox.W,
+                            height = e.BBox.H
+                        })
+                        : Array.Empty<object>()
+                }),
                 metrics = new
                 {
                     markdown_ms = mdSw.Elapsed.TotalMilliseconds,
@@ -123,12 +165,12 @@ public class ProcessService : IProcessService
                 }
             };
             var json = JsonSerializer.Serialize(output);
-            return new ProcessResult(true, json, md.Markdown, null, mdCreated, promptCreated);
+            return new ProcessResult(true, json, md!.Markdown, null, mdCreated, promptCreated);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "ProcessFailed {JobId}", input.JobId);
-            return new ProcessResult(false, string.Empty, null, ex.Message, null, null);
+            return new ProcessResult(false, string.Empty, null, ex.Message, mdCreated, null);
         }
     }
 

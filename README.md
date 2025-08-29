@@ -29,14 +29,40 @@ At startup the API can optionally seed two sample jobs and a sample template usi
 
 The template token is `template` and contains the invoice extraction prompt and field schema. It is referenced by the seeded jobs and can be reused when submitting new jobs by specifying `"template"` as the template token.
 
+The seeded job's `output.json` exposes bounding-box coordinates for each field under `fields[].spans` so the UI can highlight values directly on the document preview. Each job directory also stores `layout.json` (parsed layout with bounding boxes) and `output-layout.json` (raw JSON response from the markdown conversion system).
+
 ### Job submission parameters
 
-Each job must reference two tokens:
+Each job must specify four values:
 
 - `model` — the model token to execute (see `/api/models` for available models).
 - `templateToken` — the template token describing the prompt and fields (see `/api/templates`).
+- `language` — language code used for OCR and downstream processing.
+- `markdownSystemId` — identifier of the markdown conversion system (see `/api/markdown-systems`).
 
-Clients should send these tokens to `POST /api/v1/jobs` and they are persisted on the job record. The job detail endpoint returns the tokens so that consumers can look up full model or template information later.
+Clients send these fields to `POST /api/v1/jobs` and they are persisted on the job record. The job detail endpoint returns them so that consumers can later inspect model, template, language, and markdown system information.
+
+## Models and Markdown systems
+
+Both models and markdown conversion systems are stored in the database and managed through dedicated REST endpoints:
+
+- `/api/models` — CRUD for LLM models (local or hosted).
+- `/api/markdown-systems` — CRUD for markdown conversion systems (Docling Serve or Azure Document Intelligence).
+
+Startup seeding reads initial entries from the `Seed` section in `appsettings.json`:
+
+```json
+"Seed": {
+  "Models": [
+    { "Name": "qwen3-0.6b", "Type": "local", "HfRepo": "unsloth/Qwen3-0.6B-GGUF", "ModelFile": "Qwen3-0.6B-Q4_0.gguf" }
+  ],
+  "MarkdownSystems": [
+    { "Name": "docling-local", "Provider": "docling", "Endpoint": "http://127.0.0.1:5001" }
+  ]
+}
+```
+
+The Docling example above is seeded automatically. Additional systems can include an `ApiKey` when required (e.g., Azure Document Intelligence).
 
 ### Database Providers
 
@@ -79,7 +105,7 @@ the requested model.
 Input (PDF/JPG/PNG)
       │
       ▼
- Markdown conversion via Docling Serve (PDF → text; OCR fallback; words + BBox normalized [0..1])
+ Markdown conversion via selected system (Docling Serve or Azure Document Intelligence "prebuilt-layout"; OCR fallback; words + BBox normalized [0..1])
       │
       ▼
  Normalization & Indexing (token, bigram, Index Map / Text View)
@@ -93,7 +119,13 @@ Input (PDF/JPG/PNG)
 Output JSON (value, evidence[], wordIndices[], bbox[x,y,w,h], confidence, optional metrics)
 ```
 
-Docling Serve provides the markdown conversion service. Configure its base URL with `Markdown:DoclingServeUrl` in `appsettings.json`.
+Markdown conversion uses pluggable systems. A Docling instance at `http://127.0.0.1:5001` is seeded by default, and additional systems such as Azure Document Intelligence can be configured under the `Seed` section in `appsettings.json`.
+
+## Bounding box computation
+
+When Azure Document Intelligence processes a document with the `prebuilt-layout` model it returns a polygon for every **word**. The converter translates each polygon into a rectangle `(x, y, width, height)` and also stores a normalized version in the range `[0,1]` by dividing by the page width and height (origin at top‑left).
+
+During job processing these word boxes are indexed. The resolver matches the LLM output against the indexed words: if a field spans several words, their boxes are merged by taking the minimum/maximum edges to form a single bounding box. The normalized union is emitted under `fields[].spans` in the job output so the frontend can highlight the exact text. If token matching fails but the exact word exists, the pipeline falls back to that word’s box to avoid empty spans.
 
 ## Requirements
 

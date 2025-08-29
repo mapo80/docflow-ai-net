@@ -22,6 +22,10 @@ body {
   overflow-x: hidden;
 }
 
+.selected-row {
+  background: #e6f4ff !important;
+}
+
 .ant-layout-header {
   padding: 0;
 }

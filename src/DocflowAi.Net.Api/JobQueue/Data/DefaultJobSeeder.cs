@@ -39,15 +39,25 @@ public static class DefaultJobSeeder
                 var now = DateTimeOffset.UtcNow;
                 var modelName = db.Models.Select(m => m.Name).FirstOrDefault() ?? "model";
                 var templateToken = db.Templates.Select(t => t.Token).FirstOrDefault() ?? "template";
+                var ms = db.MarkdownSystems.FirstOrDefault();
+                var msId = ms?.Id ?? Guid.Empty;
+                var msName = ms?.Name ?? "markdown";
 
-                var okId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-                var okDir = Path.Combine(cfg.DataRoot, okId.ToString());
-                Directory.CreateDirectory(okDir);
-                File.Copy(Path.Combine(datasetRoot, "sample_invoice.pdf"), Path.Combine(okDir, "input.pdf"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-png-boxsolver-pointerstrategy", "result.json"), Path.Combine(okDir, "output.json"), true);
-                var okJob = new JobDocument
+                // succeeded job
+                var jobId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+                var jobDir = Path.Combine(cfg.DataRoot, jobId.ToString());
+                Directory.CreateDirectory(jobDir);
+                var seedDir = Path.Combine(datasetRoot, "job-seed");
+                File.Copy(Path.Combine(seedDir, "input.pdf"), Path.Combine(jobDir, "input.pdf"), true);
+                File.Copy(Path.Combine(seedDir, "prompt.md"), Path.Combine(jobDir, "prompt.md"), true);
+                File.Copy(Path.Combine(seedDir, "output.json"), Path.Combine(jobDir, "output.json"), true);
+                File.Copy(Path.Combine(seedDir, "markdown.md"), Path.Combine(jobDir, "markdown.md"), true);
+                File.Copy(Path.Combine(seedDir, "layout.json"), Path.Combine(jobDir, "layout.json"), true);
+                File.Copy(Path.Combine(seedDir, "output-layout.json"), Path.Combine(jobDir, "output-layout.json"), true);
+
+                var job = new JobDocument
                 {
-                    Id = okId,
+                    Id = jobId,
                     Status = "Succeeded",
                     Progress = 100,
                     Attempts = 1,
@@ -56,48 +66,66 @@ public static class DefaultJobSeeder
                     Metrics = new JobDocument.MetricsInfo { StartedAt = now, EndedAt = now, DurationMs = 0 },
                     Model = modelName,
                     TemplateToken = templateToken,
-                    Language = "eng",
+                    Language = "ita",
+                    MarkdownSystemId = msId,
+                    MarkdownSystemName = msName,
                     Paths = new JobDocument.PathInfo
                     {
-                        Dir = okDir,
-                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "input.pdf"), CreatedAt = now },
-                        Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "prompt.md"), CreatedAt = now },
-                        Output = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "output.json"), CreatedAt = now },
+                        Dir = jobDir,
+                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "input.pdf"), CreatedAt = now },
+                        Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "prompt.md"), CreatedAt = now },
+                        Output = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "output.json"), CreatedAt = now },
                         Error = new JobDocument.DocumentInfo { Path = string.Empty },
-                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(okDir, "markdown.md"), CreatedAt = now }
+                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "markdown.md"), CreatedAt = now },
+                        Layout = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "layout.json"), CreatedAt = now },
+                        LayoutOutput = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "output-layout.json"), CreatedAt = now }
                     }
                 };
 
-                var errId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-                var errDir = Path.Combine(cfg.DataRoot, errId.ToString());
+                db.Jobs.Add(job);
+
+                // failed job
+                var errJobId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+                var errDir = Path.Combine(cfg.DataRoot, errJobId.ToString());
                 Directory.CreateDirectory(errDir);
-                File.Copy(Path.Combine(datasetRoot, "sample_invoice.png"), Path.Combine(errDir, "input.png"), true);
-                File.Copy(Path.Combine(datasetRoot, "test-png", "llm_response.txt"), Path.Combine(errDir, "error.txt"), true);
+                var errSeedDir = Path.Combine(datasetRoot, "job-error");
+                File.Copy(Path.Combine(errSeedDir, "input.pdf"), Path.Combine(errDir, "input.pdf"), true);
+                File.Copy(Path.Combine(errSeedDir, "prompt.md"), Path.Combine(errDir, "prompt.md"), true);
+                File.Copy(Path.Combine(errSeedDir, "markdown.md"), Path.Combine(errDir, "markdown.md"), true);
+                File.Copy(Path.Combine(errSeedDir, "layout.json"), Path.Combine(errDir, "layout.json"), true);
+                File.Copy(Path.Combine(errSeedDir, "output-layout.json"), Path.Combine(errDir, "output-layout.json"), true);
+                File.Copy(Path.Combine(errSeedDir, "error.txt"), Path.Combine(errDir, "error.txt"), true);
+
                 var errJob = new JobDocument
                 {
-                    Id = errId,
+                    Id = errJobId,
                     Status = "Failed",
-                    Progress = 0,
+                    Progress = 100,
                     Attempts = 1,
                     CreatedAt = now,
                     UpdatedAt = now,
-                    ErrorMessage = "Processing failed",
-                    Metrics = new JobDocument.MetricsInfo(),
+                    ErrorMessage = "Mock extraction error",
+                    Metrics = new JobDocument.MetricsInfo { StartedAt = now, EndedAt = now, DurationMs = 0 },
                     Model = modelName,
                     TemplateToken = templateToken,
                     Language = "ita",
+                    MarkdownSystemId = msId,
+                    MarkdownSystemName = msName,
                     Paths = new JobDocument.PathInfo
                     {
                         Dir = errDir,
-                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "input.png"), CreatedAt = now },
+                        Input = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "input.pdf"), CreatedAt = now },
                         Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "prompt.md"), CreatedAt = now },
                         Output = new JobDocument.DocumentInfo { Path = string.Empty },
                         Error = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "error.txt"), CreatedAt = now },
-                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "markdown.md"), CreatedAt = now }
+                        Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "markdown.md"), CreatedAt = now },
+                        Layout = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "layout.json"), CreatedAt = now },
+                        LayoutOutput = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "output-layout.json"), CreatedAt = now }
                     }
                 };
 
-                db.Jobs.AddRange(okJob, errJob);
+                db.Jobs.Add(errJob);
+
                 db.SaveChanges();
                 logger.LogInformation("SeededDefaultJobs");
             }

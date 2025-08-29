@@ -16,5 +16,6 @@ export type JobSummary = {
     model?: string | null;
     templateToken?: string | null;
     language?: string | null;
+    markdownSystem?: string | null;
 };
 

@@ -2,6 +2,7 @@ using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Tests.Fixtures;
 using DocflowAi.Net.Api.Tests.Helpers;
 using DocflowAi.Net.Api.JobQueue.Data;
+using DocflowAi.Net.Api.MarkdownSystem.Models;
 using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using System.Net;
@@ -25,7 +26,20 @@ public class SubmitEndpointTests : IClassFixture<TempDirFixture>
         new Random(1).NextBytes(bytes);
         var base64 = Convert.ToBase64String(bytes);
 
-        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", model = "m", templateToken = "t", language = "eng" });
+        Guid msId;
+        using (var scope0 = factory.Services.CreateScope())
+        {
+            var db0 = scope0.ServiceProvider.GetRequiredService<JobDbContext>();
+            var ms = db0.MarkdownSystems.FirstOrDefault();
+            if (ms == null)
+            {
+                ms = new MarkdownSystemDocument { Id = Guid.NewGuid(), Name = "d", Provider = "docling", Endpoint = "http://localhost", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow };
+                db0.MarkdownSystems.Add(ms);
+                db0.SaveChanges();
+            }
+            msId = ms.Id;
+        }
+        var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = base64, fileName = "input.pdf", model = "m", templateToken = "t", language = "eng", markdownSystemId = msId });
         resp.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
         var id = json.GetProperty("job_id").GetGuid();

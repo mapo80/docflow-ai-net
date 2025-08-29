@@ -31,7 +31,9 @@ public class RunnerFailureTimeoutCancelTests : IClassFixture<TempDirFixture>
                 Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(dataRoot, id) },
                 Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(dataRoot, id) }
             },
-            Language = "eng"
+            Language = "eng",
+            MarkdownSystemId = Guid.NewGuid(),
+            MarkdownSystemName = "docling"
         };
 
     [Fact]

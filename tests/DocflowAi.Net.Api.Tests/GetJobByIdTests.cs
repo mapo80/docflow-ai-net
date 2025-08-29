@@ -42,6 +42,8 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 Model = "m",
                 TemplateToken = "t",
                 Language = "eng",
+                MarkdownSystemId = Guid.NewGuid(),
+                MarkdownSystemName = "docling",
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
@@ -101,6 +103,8 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 CreatedAt = now2,
                 UpdatedAt = now2,
                 Language = "eng",
+                MarkdownSystemId = Guid.NewGuid(),
+                MarkdownSystemName = "docling",
                 Paths = new JobDocument.PathInfo
             {
                 Dir = dir,
@@ -142,6 +146,8 @@ public class GetJobByIdTests : IClassFixture<TempDirFixture>
                 Model = "m",
                 TemplateToken = "t",
                 Language = "eng",
+                MarkdownSystemId = Guid.NewGuid(),
+                MarkdownSystemName = "docling",
             Paths = new JobDocument.PathInfo
             {
                 Dir = dir,

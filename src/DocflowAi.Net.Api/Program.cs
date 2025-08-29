@@ -5,7 +5,8 @@ using DocflowAi.Net.Application.Configuration;
 using DocflowAi.Net.Application.Markdown;
 using DocflowAi.Net.Infrastructure.Llm;
 using DocflowAi.Net.Infrastructure.Markdown;
-using DocflowAi.Net.Infrastructure.Markdown.DoclingServe;
+using DocflowAi.Net.Infrastructure.Markdown.Providers;
+using DocflowAi.Net.Infrastructure.Llm.Providers;
 using DocflowAi.Net.Infrastructure.Orchestration;
 using DocflowAi.Net.Infrastructure.Reasoning;
 using DocflowAi.Net.BBoxResolver;
@@ -20,6 +21,12 @@ using DocflowAi.Net.Api.Contracts;
 using DocflowAi.Net.Api.Model.Abstractions;
 using DocflowAi.Net.Api.Model.Repositories;
 using DocflowAi.Net.Api.Model.Services;
+using DocflowAi.Net.Api.MarkdownSystem.Abstractions;
+using DocflowAi.Net.Api.MarkdownSystem.Repositories;
+using DocflowAi.Net.Api.MarkdownSystem.Services;
+using DocflowAi.Net.Api.MarkdownSystem.Endpoints;
+using DocflowAi.Net.Api.Markdown.Services;
+using DocflowAi.Net.Api.Data;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Common;
@@ -39,7 +46,6 @@ using DocflowAi.Net.Api.Health;
 using Microsoft.OpenApi.Models;
 using DocflowAi.Net.Api.JobQueue.Data;
 using DocflowAi.Net.Api.JobQueue.Repositories;
-using DocflowAi.Net.Api.Model.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -75,14 +81,6 @@ builder.Services.PostConfigure<BBoxOptions>(o => builder.Configuration.GetSectio
 builder.Services.Configure<PointerOptions>(builder.Configuration.GetSection("Resolver:Pointer"));
 builder.Services.Configure<JobQueueOptions>(builder.Configuration.GetSection(JobQueueOptions.SectionName));
 builder.Services.Configure<MarkdownOptions>(builder.Configuration.GetSection("Markdown"));
-
-builder.Services.AddHttpClient("DoclingServe")
-    .AddTypedClient((http, sp) =>
-    {
-        var url = sp.GetRequiredService<IConfiguration>()["Markdown:DoclingServeUrl"]
-            ?? throw new InvalidOperationException("Markdown:DoclingServeUrl configuration is missing");
-        return new DoclingServeClient(url, http);
-    });
 
 builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
@@ -137,6 +135,12 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<ISecretProtector, SecretProtector>();
 builder.Services.AddScoped<IModelRepository, ModelRepository>();
 builder.Services.AddScoped<IModelService, ModelService>();
+builder.Services.AddScoped<IMarkdownSystemRepository, MarkdownSystemRepository>();
+builder.Services.AddScoped<IMarkdownSystemService, MarkdownSystemService>();
+builder.Services.AddSingleton<IMarkdownSystemProvider, DoclingMarkdownSystemProvider>();
+builder.Services.AddSingleton<IMarkdownSystemProvider, AzureDocumentIntelligenceMarkdownSystemProvider>();
+builder.Services.AddSingleton<IHostedModelProvider, OpenAiModelProvider>();
+builder.Services.AddSingleton<IHostedModelProvider, AzureOpenAiModelProvider>();
 builder.Services.AddScoped<DocflowAi.Net.Api.Templates.Abstractions.ITemplateRepository, DocflowAi.Net.Api.Templates.Repositories.TemplateRepository>();
 builder.Services.AddScoped<ITemplateService, DocflowAi.Net.Api.Templates.Services.TemplateService>();
 builder.Services.Configure<ModelDownloadOptions>(builder.Configuration.GetSection(ModelDownloadOptions.SectionName));
@@ -222,7 +226,7 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-builder.Services.AddSingleton<IMarkdownConverter, MarkdownNetConverter>();
+builder.Services.AddScoped<IMarkdownConverter, MarkdownSystemConverter>();
 builder.Services.AddScoped<IReasoningModeAccessor, ReasoningModeAccessor>();
 builder.Services.AddScoped<ILlamaExtractor, LlamaExtractor>();
 builder.Services.AddScoped<IProcessingOrchestrator, ProcessingOrchestrator>();
@@ -265,7 +269,7 @@ using (var scope = app.Services.CreateScope())
             new RecurringJobOptions { QueueName = "maintenance" });
     }
 }
-DefaultModelSeeder.Build(app);
+AppSettingsSeeder.Build(app);
 DefaultTemplateSeeder.Build(app);
 DefaultJobSeeder.Build(app);
 
@@ -342,6 +346,7 @@ app.MapHealthChecks(
 app.MapMarkdownEndpoints();
 app.MapModelEndpoints();
 app.MapModelManagementEndpoints();
+app.MapMarkdownSystemEndpoints();
 app.MapJobEndpoints();
 app.MapTemplateEndpoints();
 app.MapFallbackToFile("index.html");

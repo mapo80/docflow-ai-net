@@ -1,30 +1,109 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, cleanup } from '@testing-library/react';
 import FieldsTable from './FieldsTable';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 
 const fields = [
-  { id: 'f1', name: 'buyer', value: 'Acme', page: 1, wordIds: ['w1'], conf: 0.9 },
-  { id: 'f2', name: 'total', value: '10', page: 1, wordIds: ['w2'], conf: 0.8 },
+  {
+    id: 'f1',
+    name: 'buyer',
+    value: 'Acme',
+    page: 1,
+    wordIds: ['w1'],
+    hasBbox: true,
+    conf: 0.9,
+  },
+  {
+    id: 'f2',
+    name: 'total',
+    value: '10',
+    page: 1,
+    wordIds: [],
+    hasBbox: false,
+    conf: 0.8,
+  },
 ];
 
 describe('FieldsTable', () => {
+  afterEach(() => cleanup());
   it('selects row on click', () => {
     const onSelect = vi.fn();
     const { getByText } = render(
-      <FieldsTable fields={fields} selectedFieldId="f1" onFieldSelect={onSelect} />,
+      <FieldsTable
+        docType="pdf"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={onSelect}
+      />,
     );
     fireEvent.click(getByText('total'));
     expect(onSelect).toHaveBeenCalledWith('f2');
   });
 
+  it('shows search icon column', () => {
+    const { container } = render(
+      <FieldsTable
+        docType="pdf"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={() => {}}
+      />,
+    );
+    const icons = container.querySelectorAll('.anticon-search');
+    expect(icons.length).toBe(fields.length);
+  });
+
   it('navigates with keyboard', () => {
     const onSelect = vi.fn();
     const { getAllByTestId } = render(
-      <FieldsTable fields={fields} selectedFieldId="f1" onFieldSelect={onSelect} />,
+      <FieldsTable
+        docType="pdf"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={onSelect}
+      />,
     );
     const tables = getAllByTestId('fields-table');
     const table = tables[tables.length - 1];
     fireEvent.keyDown(table, { key: 'ArrowDown' });
     expect(onSelect).toHaveBeenCalledWith('f2');
+  });
+
+  it('sets horizontal scroll only on mobile', () => {
+    const { container: mobile } = render(
+      <FieldsTable
+        docType="pdf"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={() => {}}
+        isMobile
+      />,
+    );
+    const bodyMobile = mobile.querySelector('.ant-table-content') as HTMLElement;
+    expect(bodyMobile.style.overflowX).toBe('auto');
+
+    const { container: desktop } = render(
+      <FieldsTable
+        docType="pdf"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={() => {}}
+      />,
+    );
+    const bodyDesktop = desktop.querySelector('.ant-table-content') as HTMLElement;
+    expect(bodyDesktop.style.overflowX).toBe('');
+  });
+
+  it('shows page dash and bbox icons for images', () => {
+    const { getAllByText } = render(
+      <FieldsTable
+        docType="image"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={() => {}}
+      />,
+    );
+    expect(getAllByText('-').length).toBeGreaterThan(0);
+    expect(getAllByText('✅').length).toBeGreaterThan(0);
+    expect(getAllByText('❌').length).toBeGreaterThan(0);
   });
 });

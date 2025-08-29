@@ -44,9 +44,13 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
                 Prompt = new JobDocument.DocumentInfo { Path = PathHelpers.PromptPath(factory.DataRootPath, id) },
                 Output = new JobDocument.DocumentInfo { Path = PathHelpers.OutputPath(factory.DataRootPath, id) },
                 Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(factory.DataRootPath, id) },
-                Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(factory.DataRootPath, id) }
+                Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(factory.DataRootPath, id) },
+                Layout = new JobDocument.DocumentInfo { Path = PathHelpers.LayoutPath(factory.DataRootPath, id) },
+                LayoutOutput = new JobDocument.DocumentInfo { Path = PathHelpers.LayoutOutputPath(factory.DataRootPath, id) }
             },
-            Language = "eng"
+            Language = "eng",
+            MarkdownSystemId = Guid.NewGuid(),
+            MarkdownSystemName = "docling"
         };
         store.Create(doc);
         uow.SaveChanges();
@@ -61,9 +65,13 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
         job.Metrics.EndedAt.Should().NotBeNull();
         File.Exists(PathHelpers.OutputPath(factory.DataRootPath, id)).Should().BeTrue();
         File.ReadAllText(PathHelpers.MarkdownPath(factory.DataRootPath, id)).Should().Contain("md");
+        File.Exists(PathHelpers.LayoutPath(factory.DataRootPath, id)).Should().BeTrue();
+        File.Exists(PathHelpers.LayoutOutputPath(factory.DataRootPath, id)).Should().BeTrue();
         File.Exists(PathHelpers.ErrorPath(factory.DataRootPath, id)).Should().BeFalse();
         job.Paths.Output!.CreatedAt.Should().NotBeNull();
         job.Paths.Markdown!.CreatedAt.Should().NotBeNull();
+        job.Paths.Layout!.CreatedAt.Should().NotBeNull();
+        job.Paths.LayoutOutput!.CreatedAt.Should().NotBeNull();
         job.Paths.Prompt!.CreatedAt.Should().NotBeNull();
     }
 }

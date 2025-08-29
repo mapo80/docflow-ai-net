@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { JobsService, type JobDetailResponse, OpenAPI, ApiError, ModelsService, TemplatesService } from '../generated';
-import { Descriptions, Button, Space, Modal, Tabs, Table, Alert } from 'antd';
+import { Descriptions, Button, Space, Modal, Tabs, Table, Alert, Popover, Tooltip } from 'antd';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import StopOutlined from '@ant-design/icons/StopOutlined';
 import FileSearchOutlined from '@ant-design/icons/FileSearchOutlined';
 import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
+import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
 import JobDetailPage from './JobDetailPage';
 import JobStatusTag from '../components/JobStatusTag';
 import notify from '../components/notification';
@@ -27,10 +29,16 @@ export default function JobDetail() {
     | null
   >(null);
   const [fields, setFields] = useState<
-    { key: string; value: string | null; confidence?: number; page?: number; bbox?: string }[]
+    { key: string; value: string | null; confidence?: number; page?: number; hasBbox: boolean }[]
   >([]);
   const [files, setFiles] = useState<
-    { key: string; label: string; path: string; createdAt?: string | null }[]
+    {
+      key: string;
+      label: string;
+      path: string;
+      createdAt?: string | null;
+      info: string;
+    }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
   const { showError } = useApiError();
@@ -102,7 +110,7 @@ export default function JobDetail() {
       try {
         const outUrl = job.paths.output.path.startsWith('http')
           ? job.paths.output.path
-          : `${OpenAPI.BASE}${job.paths.output}`;
+          : `${OpenAPI.BASE}${job.paths.output.path}`;
         const res = await fetch(outUrl, {
           headers: OpenAPI.HEADERS as Record<string, string> | undefined,
         });
@@ -112,7 +120,7 @@ export default function JobDetail() {
           value: string | null;
           confidence?: number;
           page?: number;
-          bbox?: string;
+          hasBbox: boolean;
         }[] = [];
         if (Array.isArray(json)) {
           json.forEach((f: any, i: number) => {
@@ -123,19 +131,20 @@ export default function JobDetail() {
               value: f.Value ?? null,
               confidence: f.Confidence,
               page: span?.Page,
-              bbox: box ? `${box.X},${box.Y},${box.W},${box.H}` : undefined,
+              hasBbox: !!box,
             });
           });
         } else if (json.fields) {
           json.fields.forEach((f: any, i: number) => {
-            const span = f.evidence?.[0];
-            const box = span?.bbox;
+            const span =
+              (Array.isArray(f.spans) ? f.spans[0] : undefined) ||
+              (Array.isArray(f.evidence) ? f.evidence[0] : undefined);
             rows.push({
               key: f.key ?? `f${i}`,
               value: f.value ?? null,
               confidence: f.confidence,
               page: span?.page,
-              bbox: box ? `${box.x},${box.y},${box.w},${box.h}` : undefined,
+              hasBbox: !!span,
             });
           });
         }
@@ -149,16 +158,48 @@ export default function JobDetail() {
 
   useEffect(() => {
     if (!job) return;
+    const mapping: Record<string, { label: string; info: string }> = {
+      input: {
+        label: 'Input',
+        info: 'File submitted with the job request',
+      },
+      prompt: {
+        label: 'Prompt',
+        info: 'Prompt sent to the LLM for extraction',
+      },
+      markdown: {
+        label: 'Markdown',
+        info: 'Markdown content extracted from the input file',
+      },
+      layout: {
+        label: 'Layout',
+        info: 'Parsed layout with bounding boxes',
+      },
+      layoutOutput: {
+        label: 'Output Layout',
+        info: 'Raw JSON response from the markdown conversion service',
+      },
+      output: { label: 'Output', info: 'LLM response' },
+      error: {
+        label: 'Error',
+        info: 'Error message produced during job processing',
+      },
+    };
+    const order = ['input', 'prompt', 'markdown', 'layout', 'layoutOutput', 'output', 'error'];
     const entries = Object.entries(job.paths || {}).filter(([k, v]: any) => {
       if (!v || !v.path) return false;
       if (k === 'error' && job.status === 'Succeeded') return false;
-      if (k === 'output' && job.status === 'Running') return false;
+      if (k === 'output' && job.status !== 'Succeeded') return false;
       return true;
     });
+    const sorted = order
+      .map((k) => entries.find((e) => e[0] === k))
+      .filter(Boolean) as any[];
     setFiles(
-      entries.map(([k, v]: any) => ({
+      sorted.map(([k, v]: any) => ({
         key: k,
-        label: k,
+        label: mapping[k].label,
+        info: mapping[k].info,
         path: v.path as string,
         createdAt: v.createdAt as string | null,
       })),
@@ -241,22 +282,55 @@ export default function JobDetail() {
     return error ? <Alert type="error" message={error} /> : <Loader />;
   }
 
+  const docType = job.paths?.input?.path?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image';
+
   const fieldColumns = [
     { title: 'Key', dataIndex: 'key' },
     { title: 'Value', dataIndex: 'value' },
-    { title: 'Page', dataIndex: 'page' },
-    { title: 'BBox', dataIndex: 'bbox' },
+    {
+      title: 'Page',
+      dataIndex: 'page',
+      render: (value: number | undefined) =>
+        docType === 'pdf' ? value ?? '-' : '-',
+    },
+    {
+      title: 'BBox',
+      dataIndex: 'hasBbox',
+      render: (v: boolean) => (
+        <Tooltip title={v ? 'Bounding box available' : 'Bounding box unavailable'}>
+          {v ? '✅' : '❌'}
+        </Tooltip>
+      ),
+    },
     { title: 'Confidence', dataIndex: 'confidence' },
   ];
 
   const fileColumns = [
-    { title: 'Name', dataIndex: 'label' },
+    {
+      title: 'Name',
+      dataIndex: 'label',
+      render: (_: any, record: any) => (
+        <Space>
+          <Popover content={record.info} trigger="click">
+            <InfoCircleOutlined aria-label="Info" />
+          </Popover>
+          {record.label}
+        </Space>
+      ),
+    },
     { title: 'Created', dataIndex: 'createdAt' },
     {
       title: 'Actions',
-      render: (_: any, record: { label: string; path: string }) => (
+      render: (_: any, record: { key: string; label: string; path: string }) => (
         <Space>
-          {record.label !== 'input' && (
+          {record.key === 'input' ? (
+            <Button
+              onClick={() => setViewerOpen(true)}
+              icon={<EyeOutlined />}
+              aria-label="Document preview"
+              title="Document preview"
+            />
+          ) : (
             <Button
               onClick={() => showPreview(record.label, record.path)}
               icon={<FileSearchOutlined />}
@@ -281,10 +355,16 @@ export default function JobDetail() {
         <Descriptions.Item label="Status">
           <JobStatusTag status={job.status!} derived={job.derivedStatus} />
         </Descriptions.Item>
+        {job.status === 'Failed' && job.errorMessage && (
+          <Descriptions.Item label="Error">
+            <span style={{ color: '#ff4d4f' }}>{job.errorMessage}</span>
+          </Descriptions.Item>
+        )}
         <Descriptions.Item label="Attempts">{job.attempts}</Descriptions.Item>
         <Descriptions.Item label="Model">
           {modelInfo?.name || job.model}
         </Descriptions.Item>
+        <Descriptions.Item label="Markdown system">{job.markdownSystem}</Descriptions.Item>
         <Descriptions.Item label="Template">
           {templateInfo?.name || job.templateToken}
         </Descriptions.Item>
@@ -363,12 +443,13 @@ export default function JobDetail() {
       <Modal
         open={viewerOpen}
         footer={null}
+        title="Document preview"
         onCancel={() => setViewerOpen(false)}
         width="100%"
         style={{ top: 0 }}
         styles={{
           body: {
-            height: '100vh',
+            height: 'calc(100vh - 64px)',
             overflow: 'hidden',
             padding: 0,
             backgroundColor: '#fff',
@@ -378,7 +459,7 @@ export default function JobDetail() {
         destroyOnClose
         data-testid="viewer-modal"
       >
-        <JobDetailPage />
+        {job && <JobDetailPage jobId={job.id} />}
       </Modal>
       {preview && (
         <Modal

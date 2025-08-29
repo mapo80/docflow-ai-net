@@ -13,10 +13,10 @@ public sealed class MarkdownNetConverter : IMarkdownConverter
     public MarkdownNetConverter(DoclingServeClient client)
         => _client = client;
 
-    public Task<MarkdownResult> ConvertPdfAsync(Stream pdf, MarkdownOptions opts, CancellationToken ct = default)
+    public Task<MarkdownResult> ConvertPdfAsync(Stream pdf, MarkdownOptions opts, Guid? systemId = null, CancellationToken ct = default)
         => ConvertAsync(pdf, ct);
 
-    public Task<MarkdownResult> ConvertImageAsync(Stream image, MarkdownOptions opts, CancellationToken ct = default)
+    public Task<MarkdownResult> ConvertImageAsync(Stream image, MarkdownOptions opts, Guid? systemId = null, CancellationToken ct = default)
         => ConvertAsync(image, ct);
 
     private async Task<MarkdownResult> ConvertAsync(Stream file, CancellationToken ct)
