@@ -168,7 +168,7 @@ export default function DocumentPreview({
         data-testid="preview-scroll"
         style={{
           overflowY: 'auto',
-          overflowX: scale > 1 ? 'auto' : 'hidden',
+          overflowX: 'auto',
           position: 'relative',
           width: '100%',
           flex: 1,
