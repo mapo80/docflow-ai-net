@@ -64,7 +64,7 @@ describe('DocumentPreview', () => {
     expect(getByTestId('preview-scroll')).toBeTruthy();
   });
 
-  it('allows horizontal scrolling when content overflows', () => {
+  it('hides horizontal scroll when content fits', async () => {
     const { getByTestId } = render(
       <DocumentPreview
         docType={sample.docType}
@@ -79,7 +79,10 @@ describe('DocumentPreview', () => {
       />,
     );
     const scroll = getByTestId('preview-scroll');
-    expect(scroll.style.overflowX).toBe('auto');
+    Object.defineProperty(scroll, 'clientWidth', { value: 200, configurable: true });
+    Object.defineProperty(scroll, 'clientHeight', { value: 400, configurable: true });
+    window.dispatchEvent(new Event('resize'));
+    await waitFor(() => expect(scroll.style.overflowX).toBe('hidden'));
   });
 
   it('uses flex layout to keep controls anchored', () => {
