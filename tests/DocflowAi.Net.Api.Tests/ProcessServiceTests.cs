@@ -133,7 +133,7 @@ public class ProcessServiceTests : IClassFixture<TempDirFixture>
     }
 
     private static MarkdownResult Md()
-        => new("md", new[] { new PageInfo(1,100,100) }, new[] { new DocflowAi.Net.Application.Markdown.Box(1,0,0,1,1,0,0,1,1,"hi") });
+        => new("md", new[] { new PageInfo(1,100,100) }, new[] { new DocflowAi.Net.Application.Markdown.Box(1,0,0,1,1,0,0,1,1,"hi") }, "{}");
 
     private sealed class StubConverter : IMarkdownConverter
     {

@@ -14,8 +14,11 @@ public static class PathHelpers
     public static string MarkdownPath(string dataRoot, Guid jobId)
         => Path.Combine(JobDir(dataRoot, jobId), "markdown.md");
 
-    public static string MarkdownJsonPath(string dataRoot, Guid jobId)
-        => Path.Combine(JobDir(dataRoot, jobId), "markdown.json");
+    public static string LayoutPath(string dataRoot, Guid jobId)
+        => Path.Combine(JobDir(dataRoot, jobId), "layout.json");
+
+    public static string LayoutOutputPath(string dataRoot, Guid jobId)
+        => Path.Combine(JobDir(dataRoot, jobId), "output-layout.json");
 
     public static string PromptPath(string dataRoot, Guid jobId)
         => Path.Combine(JobDir(dataRoot, jobId), "prompt.md");

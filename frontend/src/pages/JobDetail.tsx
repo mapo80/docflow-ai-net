@@ -171,9 +171,13 @@ export default function JobDetail() {
         label: 'Markdown',
         info: 'Markdown content extracted from the input file',
       },
-      markdownJson: {
+      layout: {
         label: 'Layout',
-        info: 'JSON response from the markdown conversion service',
+        info: 'Parsed layout with bounding boxes',
+      },
+      layoutOutput: {
+        label: 'Output Layout',
+        info: 'Raw JSON response from the markdown conversion service',
       },
       output: { label: 'Output', info: 'LLM response' },
       error: {
@@ -181,7 +185,7 @@ export default function JobDetail() {
         info: 'Error message produced during job processing',
       },
     };
-    const order = ['input', 'prompt', 'markdown', 'markdownJson', 'output', 'error'];
+    const order = ['input', 'prompt', 'markdown', 'layout', 'layoutOutput', 'output', 'error'];
     const entries = Object.entries(job.paths || {}).filter(([k, v]: any) => {
       if (!v || !v.path) return false;
       if (k === 'error' && job.status === 'Succeeded') return false;

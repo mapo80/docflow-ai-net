@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 namespace DocflowAi.Net.Tests.Unit;
 public class ProcessingOrchestratorTests {
     [Fact] public async Task ProcessAsync_InvokesServices_AndReturnsResult() {
-        var md = new MarkdownResult("# Title\n- Key: Value", new List<MarkdownPageInfo>(), new List<MarkdownBox>());
+        var md = new MarkdownResult("# Title\n- Key: Value", new List<MarkdownPageInfo>(), new List<MarkdownBox>(), "{}");
         var expected = new DocumentAnalysisResult("test", new List<ExtractedField>{ new("Key","Value",0.9, Array.Empty<SpanEvidence>())}, "en", null);
         var mdClient = new Mock<IMarkdownConverter>();
         mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);
@@ -41,7 +41,7 @@ public class ProcessingOrchestratorTests {
     [Fact]
     public async Task ProcessAsync_Overload_MapsFieldNames()
     {
-        var md = new MarkdownResult("# Title\n- Key: Value", new List<MarkdownPageInfo>(), new List<MarkdownBox>());
+        var md = new MarkdownResult("# Title\n- Key: Value", new List<MarkdownPageInfo>(), new List<MarkdownBox>(), "{}");
         var expected = new DocumentAnalysisResult("test", new List<ExtractedField>{ new("Key","Value",0.9, Array.Empty<SpanEvidence>())}, "en", null);
         var mdClient = new Mock<IMarkdownConverter>();
         mdClient.Setup(x => x.ConvertImageAsync(It.IsAny<Stream>(), It.IsAny<MarkdownOptions>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(md);

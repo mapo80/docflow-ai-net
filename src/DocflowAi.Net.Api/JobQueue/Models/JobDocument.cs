@@ -35,7 +35,8 @@ public class JobDocument
         public DocumentInfo? Output { get; set; }
         public DocumentInfo? Error { get; set; }
         public DocumentInfo? Markdown { get; set; }
-        public DocumentInfo? MarkdownJson { get; set; }
+        public DocumentInfo? Layout { get; set; }
+        public DocumentInfo? LayoutOutput { get; set; }
     }
 
     public class DocumentInfo

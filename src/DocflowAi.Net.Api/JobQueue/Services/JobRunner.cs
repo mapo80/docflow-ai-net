@@ -65,8 +65,10 @@ public class JobRunner : IJobRunner
                     if (result.MarkdownCreatedAt.HasValue)
                     {
                         job.Paths.Markdown!.CreatedAt = result.MarkdownCreatedAt;
-                        if (job.Paths.MarkdownJson != null)
-                            job.Paths.MarkdownJson.CreatedAt = result.MarkdownCreatedAt;
+                        if (job.Paths.Layout != null)
+                            job.Paths.Layout.CreatedAt = result.MarkdownCreatedAt;
+                        if (job.Paths.LayoutOutput != null)
+                            job.Paths.LayoutOutput.CreatedAt = result.MarkdownCreatedAt;
                     }
                     if (result.PromptCreatedAt.HasValue)
                         job.Paths.Prompt!.CreatedAt = result.PromptCreatedAt;

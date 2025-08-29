@@ -252,7 +252,13 @@ test('lists all paths without extra requests', async () => {
     errorMessage: 'boom',
     createdAt: '',
     updatedAt: '',
-    paths: { input: { path: '/input.pdf' }, error: { path: '/error.txt' }, prompt: { path: '/prompt.md', createdAt: '2024-01-01' } },
+    paths: {
+      input: { path: '/input.pdf' },
+      error: { path: '/error.txt' },
+      prompt: { path: '/prompt.md', createdAt: '2024-01-01' },
+      layout: { path: '/layout.json' },
+      layoutOutput: { path: '/output-layout.json' },
+    },
   } as any);
   const fetchSpy = vi.spyOn(global, 'fetch');
   render(
@@ -272,6 +278,8 @@ test('lists all paths without extra requests', async () => {
   const filesTable = tables[tables.length - 1];
   expect(within(filesTable).getByText('Error')).toBeInTheDocument();
   expect(within(filesTable).getByText('Prompt')).toBeInTheDocument();
+  expect(within(filesTable).getByText('Layout')).toBeInTheDocument();
+  expect(within(filesTable).getByText('Output Layout')).toBeInTheDocument();
   expect(within(filesTable).getByText('2024-01-01')).toBeInTheDocument();
   expect(fetchSpy).not.toHaveBeenCalled();
   expect(screen.getByText('boom')).toBeInTheDocument();

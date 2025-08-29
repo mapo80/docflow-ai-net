@@ -22,7 +22,8 @@ public sealed class MarkdownOptions
 public sealed record MarkdownResult(
     [property: JsonPropertyOrder(2)] string Markdown,
     [property: JsonPropertyOrder(1)] IReadOnlyList<PageInfo> Pages,
-    [property: JsonPropertyOrder(0)] IReadOnlyList<Box> Boxes);
+    [property: JsonPropertyOrder(0)] IReadOnlyList<Box> Boxes,
+    [property: JsonIgnore] string? RawJson = null);
 
 /// <summary>Page information.</summary>
 public sealed record PageInfo(int Number, double Width, double Height);

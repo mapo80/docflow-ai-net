@@ -58,15 +58,18 @@ public class ProcessService : IProcessService
             var fields = JsonSerializer.Deserialize<List<FieldSpec>>(tpl.FieldsJson) ?? new();
 
             var totalSw = Stopwatch.StartNew();
-            var mdJsonPath = Path.ChangeExtension(input.MarkdownPath, ".json");
+            var dir = Path.GetDirectoryName(input.MarkdownPath)!;
+            var layoutPath = Path.Combine(dir, "layout.json");
+            var layoutOutputPath = Path.Combine(dir, "output-layout.json");
             MarkdownResult? md = null;
             Stopwatch mdSw;
             if (File.Exists(input.MarkdownPath) && new FileInfo(input.MarkdownPath).Length > 0 &&
-                File.Exists(mdJsonPath) && new FileInfo(mdJsonPath).Length > 0)
+                File.Exists(layoutPath) && new FileInfo(layoutPath).Length > 0 &&
+                File.Exists(layoutOutputPath) && new FileInfo(layoutOutputPath).Length > 0)
             {
                 try
                 {
-                    var jsonText = await File.ReadAllTextAsync(mdJsonPath, ct);
+                    var jsonText = await File.ReadAllTextAsync(layoutPath, ct);
                     md = JsonSerializer.Deserialize<MarkdownResult>(jsonText);
                     if (md != null)
                         mdCreated = File.GetLastWriteTimeUtc(input.MarkdownPath);
@@ -100,7 +103,9 @@ public class ProcessService : IProcessService
                 mdSw.Stop();
 
                 await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(input.MarkdownPath), md.Markdown);
-                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(mdJsonPath), JsonSerializer.Serialize(md));
+                await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(layoutPath), JsonSerializer.Serialize(md));
+                if (!string.IsNullOrEmpty(md.RawJson))
+                    await _fs.SaveTextAtomic(input.JobId, Path.GetFileName(layoutOutputPath), md.RawJson);
                 mdCreated = DateTimeOffset.UtcNow;
             }
 

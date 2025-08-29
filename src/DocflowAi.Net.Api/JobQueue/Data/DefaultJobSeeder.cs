@@ -52,7 +52,8 @@ public static class DefaultJobSeeder
                 File.Copy(Path.Combine(seedDir, "prompt.md"), Path.Combine(jobDir, "prompt.md"), true);
                 File.Copy(Path.Combine(seedDir, "output.json"), Path.Combine(jobDir, "output.json"), true);
                 File.Copy(Path.Combine(seedDir, "markdown.md"), Path.Combine(jobDir, "markdown.md"), true);
-                File.Copy(Path.Combine(seedDir, "markdown.json"), Path.Combine(jobDir, "markdown.json"), true);
+                File.Copy(Path.Combine(seedDir, "layout.json"), Path.Combine(jobDir, "layout.json"), true);
+                File.Copy(Path.Combine(seedDir, "output-layout.json"), Path.Combine(jobDir, "output-layout.json"), true);
 
                 var job = new JobDocument
                 {
@@ -76,7 +77,8 @@ public static class DefaultJobSeeder
                         Output = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "output.json"), CreatedAt = now },
                         Error = new JobDocument.DocumentInfo { Path = string.Empty },
                         Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "markdown.md"), CreatedAt = now },
-                        MarkdownJson = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "markdown.json"), CreatedAt = now }
+                        Layout = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "layout.json"), CreatedAt = now },
+                        LayoutOutput = new JobDocument.DocumentInfo { Path = Path.Combine(jobDir, "output-layout.json"), CreatedAt = now }
                     }
                 };
 
@@ -90,7 +92,8 @@ public static class DefaultJobSeeder
                 File.Copy(Path.Combine(errSeedDir, "input.pdf"), Path.Combine(errDir, "input.pdf"), true);
                 File.Copy(Path.Combine(errSeedDir, "prompt.md"), Path.Combine(errDir, "prompt.md"), true);
                 File.Copy(Path.Combine(errSeedDir, "markdown.md"), Path.Combine(errDir, "markdown.md"), true);
-                File.Copy(Path.Combine(errSeedDir, "markdown.json"), Path.Combine(errDir, "markdown.json"), true);
+                File.Copy(Path.Combine(errSeedDir, "layout.json"), Path.Combine(errDir, "layout.json"), true);
+                File.Copy(Path.Combine(errSeedDir, "output-layout.json"), Path.Combine(errDir, "output-layout.json"), true);
                 File.Copy(Path.Combine(errSeedDir, "error.txt"), Path.Combine(errDir, "error.txt"), true);
 
                 var errJob = new JobDocument
@@ -116,7 +119,8 @@ public static class DefaultJobSeeder
                         Output = new JobDocument.DocumentInfo { Path = string.Empty },
                         Error = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "error.txt"), CreatedAt = now },
                         Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "markdown.md"), CreatedAt = now },
-                        MarkdownJson = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "markdown.json"), CreatedAt = now }
+                        Layout = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "layout.json"), CreatedAt = now },
+                        LayoutOutput = new JobDocument.DocumentInfo { Path = Path.Combine(errDir, "output-layout.json"), CreatedAt = now }
                     }
                 };
 

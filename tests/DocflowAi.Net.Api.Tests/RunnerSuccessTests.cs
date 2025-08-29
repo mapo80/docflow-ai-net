@@ -45,7 +45,8 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
                 Output = new JobDocument.DocumentInfo { Path = PathHelpers.OutputPath(factory.DataRootPath, id) },
                 Error = new JobDocument.DocumentInfo { Path = PathHelpers.ErrorPath(factory.DataRootPath, id) },
                 Markdown = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownPath(factory.DataRootPath, id) },
-                MarkdownJson = new JobDocument.DocumentInfo { Path = PathHelpers.MarkdownJsonPath(factory.DataRootPath, id) }
+                Layout = new JobDocument.DocumentInfo { Path = PathHelpers.LayoutPath(factory.DataRootPath, id) },
+                LayoutOutput = new JobDocument.DocumentInfo { Path = PathHelpers.LayoutOutputPath(factory.DataRootPath, id) }
             },
             Language = "eng",
             MarkdownSystemId = Guid.NewGuid(),
@@ -64,11 +65,13 @@ public class RunnerSuccessTests : IClassFixture<TempDirFixture>
         job.Metrics.EndedAt.Should().NotBeNull();
         File.Exists(PathHelpers.OutputPath(factory.DataRootPath, id)).Should().BeTrue();
         File.ReadAllText(PathHelpers.MarkdownPath(factory.DataRootPath, id)).Should().Contain("md");
-        File.Exists(PathHelpers.MarkdownJsonPath(factory.DataRootPath, id)).Should().BeTrue();
+        File.Exists(PathHelpers.LayoutPath(factory.DataRootPath, id)).Should().BeTrue();
+        File.Exists(PathHelpers.LayoutOutputPath(factory.DataRootPath, id)).Should().BeTrue();
         File.Exists(PathHelpers.ErrorPath(factory.DataRootPath, id)).Should().BeFalse();
         job.Paths.Output!.CreatedAt.Should().NotBeNull();
         job.Paths.Markdown!.CreatedAt.Should().NotBeNull();
-        job.Paths.MarkdownJson!.CreatedAt.Should().NotBeNull();
+        job.Paths.Layout!.CreatedAt.Should().NotBeNull();
+        job.Paths.LayoutOutput!.CreatedAt.Should().NotBeNull();
         job.Paths.Prompt!.CreatedAt.Should().NotBeNull();
     }
 }

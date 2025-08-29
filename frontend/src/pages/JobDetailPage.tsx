@@ -58,7 +58,8 @@ export default function JobDetailPage({ jobId }: Props) {
           outputJson = await res.json();
           break;
         }
-        let mdUrl = job.paths.markdownJson?.path || job.paths.markdown.path.replace(/\.md$/i, '.json');
+        let mdUrl =
+          job.paths.layout?.path || job.paths.markdown.path.replace(/[^/]+$/, 'layout.json');
         if (!mdUrl.startsWith('http')) mdUrl = `${OpenAPI.BASE}${mdUrl}`;
         const mdRes = await fetch(mdUrl, {
           headers: OpenAPI.HEADERS as Record<string, string> | undefined,

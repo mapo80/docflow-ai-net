@@ -118,14 +118,14 @@ public class MarkdownEndpointTests
         {
             LastOptions = opts;
             LastSystemId = systemId;
-            return Task.FromResult(new MarkdownResult(string.Empty, Array.Empty<PageInfo>(), Array.Empty<Box>()));
+            return Task.FromResult(new MarkdownResult(string.Empty, Array.Empty<PageInfo>(), Array.Empty<Box>(), "{}"));
         }
 
         public Task<MarkdownResult> ConvertImageAsync(Stream image, MarkdownOptions opts, Guid? systemId = null, CancellationToken ct = default)
         {
             LastOptions = opts;
             LastSystemId = systemId;
-            return Task.FromResult(new MarkdownResult(string.Empty, Array.Empty<PageInfo>(), Array.Empty<Box>()));
+            return Task.FromResult(new MarkdownResult(string.Empty, Array.Empty<PageInfo>(), Array.Empty<Box>(), "{}"));
         }
     }
 }

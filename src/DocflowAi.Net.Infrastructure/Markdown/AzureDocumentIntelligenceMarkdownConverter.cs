@@ -4,7 +4,9 @@ using Azure.Identity;
 using DocflowAi.Net.Application.Abstractions;
 using DocflowAi.Net.Application.Markdown;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace DocflowAi.Net.Infrastructure.Markdown;
 
@@ -33,6 +35,11 @@ public sealed class AzureDocumentIntelligenceMarkdownConverter : IMarkdownConver
             OutputContentFormat = DocumentContentFormat.Markdown
         };
         var operation = await _client.AnalyzeDocumentAsync(WaitUntil.Completed, options, ct);
+        string rawJson;
+        using (var reader = new StreamReader(operation.GetRawResponse().ContentStream, Encoding.UTF8))
+        {
+            rawJson = await reader.ReadToEndAsync();
+        }
         var result = operation.Value;
 
         var pages = result.Pages.Select(p => new PageInfo(p.PageNumber, p.Width ?? 0, p.Height ?? 0)).ToList();
@@ -59,6 +66,6 @@ public sealed class AzureDocumentIntelligenceMarkdownConverter : IMarkdownConver
             }
         }
 
-        return new MarkdownResult(result.Content, pages, boxes);
+        return new MarkdownResult(result.Content, pages, boxes, rawJson);
     }
 }

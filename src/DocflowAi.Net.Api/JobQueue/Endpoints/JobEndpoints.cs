@@ -121,7 +121,8 @@ public static class JobEndpoints
                 job.Paths.Output?.Path,
                 job.Paths.Error?.Path,
                 job.Paths.Markdown?.Path,
-                job.Paths.MarkdownJson?.Path,
+                job.Paths.Layout?.Path,
+                job.Paths.LayoutOutput?.Path,
                 job.Paths.Prompt?.Path
             }
                 .Where(p => !string.IsNullOrEmpty(p));
@@ -235,7 +236,8 @@ public static class JobEndpoints
                     Output = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json") },
                     Error = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt") },
                     Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "markdown.md") },
-                    MarkdownJson = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "markdown.json") }
+                    Layout = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "layout.json") },
+                    LayoutOutput = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "output-layout.json") }
                 }
             };
             store.Create(doc);
@@ -310,7 +312,8 @@ public static class JobEndpoints
                 Output = ToPublicDoc(job.Id, job.Paths.Output),
                 Error = ToPublicDoc(job.Id, job.Paths.Error),
                 Markdown = ToPublicDoc(job.Id, job.Paths.Markdown),
-                MarkdownJson = ToPublicDoc(job.Id, job.Paths.MarkdownJson)
+                Layout = ToPublicDoc(job.Id, job.Paths.Layout),
+                LayoutOutput = ToPublicDoc(job.Id, job.Paths.LayoutOutput)
             };
             var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken, job.Language, job.MarkdownSystemName);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
@@ -358,9 +361,14 @@ public static class JobEndpoints
                         ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md"),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
                     },
-                    ["markdownJson"] = new OpenApiObject
+                    ["layout"] = new OpenApiObject
                     {
-                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.json"),
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/layout.json"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    },
+                    ["layoutOutput"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output-layout.json"),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
                     }
                 },
