@@ -1,6 +1,7 @@
 import { render, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
+import { lazy } from 'react';
 import Shell from './Shell';
 
 describe('Shell', () => {
@@ -37,5 +38,26 @@ describe('Shell', () => {
     );
     // jsdom lacks matchMedia so useBreakpoint returns mobile
     expect(document.body.querySelector('.ant-drawer-open')).not.toBeNull();
+  });
+
+  it('shows loader while loading lazy route', async () => {
+    localStorage.setItem('menuCollapsed', 'true');
+    const LazyRoute = lazy(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ default: () => <div>lazy content</div> }), 0),
+        ),
+    );
+    const { getByLabelText, findByText } = render(
+      <MemoryRouter initialEntries={['/lazy']}>
+        <Routes>
+          <Route path="/" element={<Shell />}>
+            <Route path="lazy" element={<LazyRoute />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(getByLabelText('loading')).not.toBeNull();
+    await findByText('lazy content');
   });
 });
