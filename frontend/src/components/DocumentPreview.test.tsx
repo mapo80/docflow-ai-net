@@ -173,6 +173,30 @@ describe('DocumentPreview', () => {
     await waitFor(() => expect(scroll.style.overflowX).toBe('auto'));
   });
 
+  it('expands scroll width when zoomed in', async () => {
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={2}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />, 
+    );
+    const scroll = getByTestId('preview-scroll');
+    Object.defineProperty(scroll, 'clientWidth', { value: 100, configurable: true });
+    Object.defineProperty(scroll, 'clientHeight', { value: 200, configurable: true });
+    window.dispatchEvent(new Event('resize'));
+    await waitFor(() => {
+      const outer = getByTestId('preview-outer');
+      expect(outer.style.width).toBe('200px');
+    });
+  });
+
   it('centers on selected word', async () => {
     const { getByTestId, rerender } = render(
       <DocumentPreview
