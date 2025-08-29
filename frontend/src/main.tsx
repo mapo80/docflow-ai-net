@@ -7,6 +7,7 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { OpenAPI } from './generated';
 import { NotificationProvider } from './components/notification';
+import { GlobalLoaderProvider } from './components/GlobalLoader';
 
 const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 OpenAPI.BASE = apiBase;
@@ -15,9 +16,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider theme={{ algorithm: theme.defaultAlgorithm }}>
       <NotificationProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <GlobalLoaderProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </GlobalLoaderProvider>
       </NotificationProvider>
     </ConfigProvider>
   </StrictMode>,
