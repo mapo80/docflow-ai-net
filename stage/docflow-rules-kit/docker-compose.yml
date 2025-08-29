@@ -1,0 +1,46 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.api
+    environment:
+      - Auth__ApiKeys__0=${API_KEY:-dev-api-key}
+      - Auth__WorkerKeys__0=${WORKER_KEY:-dev-worker-key}
+      - Runner__Mode=OutOfProcess
+      - Runner__WorkerUrl=http://worker:5095
+    ports:
+      - "5080:5080"
+    depends_on:
+      worker:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:./deploy/seccomp/worker-seccomp.json
+      - apparmor:docflow-api-profile
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    environment:
+      - Auth__WorkerKeys__0=${WORKER_KEY:-dev-worker-key}
+    expose:
+      - "5095"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5095/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:./deploy/seccomp/worker-seccomp.json
+      - apparmor:docflow-worker-profile
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
