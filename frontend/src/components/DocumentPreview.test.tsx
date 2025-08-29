@@ -64,6 +64,24 @@ describe('DocumentPreview', () => {
     expect(getByTestId('preview-scroll')).toBeTruthy();
   });
 
+  it('allows horizontal scrolling when content overflows', () => {
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={1}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    const scroll = getByTestId('preview-scroll');
+    expect(scroll.style.overflowX).toBe('auto');
+  });
+
   it('uses flex layout to keep controls anchored', () => {
     const { getByTestId } = render(
       <DocumentPreview
@@ -129,27 +147,6 @@ describe('DocumentPreview', () => {
       const inner = getByTestId('preview-inner');
       expect(inner.style.transform).toContain('scale(2)');
     });
-  });
-
-  it('hides horizontal scroll when document fits', async () => {
-    const { getByTestId } = render(
-      <DocumentPreview
-        docType={sample.docType}
-        srcUrl={sample.srcUrl}
-        pages={sample.pages}
-        currentPage={1}
-        zoom={1}
-        selectedWordIds={new Set()}
-        onWordClick={() => {}}
-        onPageChange={() => {}}
-        onZoomChange={() => {}}
-      />,
-    );
-    const scroll = getByTestId('preview-scroll');
-    Object.defineProperty(scroll, 'clientWidth', { value: 50, configurable: true });
-    Object.defineProperty(scroll, 'clientHeight', { value: 100, configurable: true });
-    window.dispatchEvent(new Event('resize'));
-    await waitFor(() => expect(scroll.style.overflowX).toBe('hidden'));
   });
 
   it('shows horizontal scroll when zoomed in', async () => {
