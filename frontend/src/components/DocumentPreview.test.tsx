@@ -48,7 +48,7 @@ describe('DocumentPreview', () => {
   });
 
   it('wraps preview in scroll container', () => {
-    const { container } = render(
+    const { getByTestId } = render(
       <DocumentPreview
         docType={sample.docType}
         srcUrl={sample.srcUrl}
@@ -61,10 +61,30 @@ describe('DocumentPreview', () => {
         onZoomChange={() => {}}
       />,
     );
-    const wrapper = container.querySelector(
-      '[data-testid="doc-preview"] div[style*="overflow: auto"]',
-    ) as HTMLElement;
-    expect(wrapper).not.toBeNull();
+    expect(getByTestId('preview-scroll')).toBeTruthy();
+  });
+
+  it('scales document to container width', async () => {
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={1}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    const scroll = getByTestId('preview-scroll');
+    Object.defineProperty(scroll, 'clientWidth', { value: 200, configurable: true });
+    window.dispatchEvent(new Event('resize'));
+    await waitFor(() => {
+      const inner = getByTestId('preview-inner');
+      expect(inner.style.transform).toContain('scale(2)');
+    });
   });
 
   it('invokes zoom controls', () => {

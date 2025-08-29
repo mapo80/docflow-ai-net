@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { OcrWord } from '../adapters/extractionAdapter';
 import { Select, Space, Button } from 'antd';
 import { ZoomInOutlined, ZoomOutOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -35,7 +35,20 @@ export default function DocumentPreview({
 }: DocumentPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [baseScale, setBaseScale] = useState(1);
   const page = pages.find((p) => p.index === currentPage) || pages[0];
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (!page || !wrapperRef.current) return;
+      const w = wrapperRef.current.clientWidth;
+      if (w > 0) setBaseScale(w / page.width);
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [page]);
 
   useEffect(() => {
     if (!page || docType !== 'pdf') return;
@@ -71,6 +84,7 @@ export default function DocumentPreview({
   if (!page) return null;
 
   const words = page.words;
+  const scale = zoom * baseScale;
 
   return (
     <div data-testid="doc-preview" style={{ width: '100%' }}>
@@ -112,16 +126,19 @@ export default function DocumentPreview({
         </Space>
       </div>
       <div
+        ref={wrapperRef}
+        data-testid="preview-scroll"
         style={{
           overflow: 'auto',
           position: 'relative',
           width: '100%',
-          maxHeight: '80vh',
+          height: '80vh',
         }}
       >
         <div
+          data-testid="preview-inner"
           style={{
-            transform: `scale(${zoom})`,
+            transform: `scale(${scale})`,
             transformOrigin: 'top left',
             width: page.width,
             height: page.height,
