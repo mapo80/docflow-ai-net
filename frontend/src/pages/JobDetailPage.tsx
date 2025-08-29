@@ -126,7 +126,15 @@ export default function JobDetailPage({ jobId }: Props) {
 
   if (isMobile) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)' }}>
+      <div
+        data-testid="mobile-wrapper"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'calc(100vh - 64px)',
+          gap: 8,
+        }}
+      >
         <div style={{ flex: 3, minHeight: 0 }}>
           <DocumentPreview
             docType={model.docType}

@@ -1,6 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
+import { Grid } from 'antd';
 import JobDetailPage from './JobDetailPage';
 import { JobsService } from '../generated';
 import ApiErrorProvider from '../components/ApiErrorProvider';
@@ -40,21 +41,25 @@ const md = {
     },
   ],
 };
+const fetchSpy = vi.spyOn(global, 'fetch');
 
-vi.spyOn(global, 'fetch')
-  .mockResolvedValueOnce({
+function mockFetch() {
+  fetchSpy.mockReset();
+  fetchSpy.mockResolvedValueOnce({
     ok: true,
     json: async () => output,
     headers: new Headers(),
-  } as any)
-  .mockResolvedValueOnce({
+  } as any);
+  fetchSpy.mockResolvedValueOnce({
     ok: true,
     json: async () => md,
     headers: new Headers(),
   } as any);
+}
 
 describe('JobDetailPage', () => {
   it('keeps row selected when clicking bounding box twice', async () => {
+    mockFetch();
     render(
       <ApiErrorProvider>
         <MemoryRouter initialEntries={[{ pathname: '/jobs/1' }]}>
@@ -82,5 +87,21 @@ describe('JobDetailPage', () => {
     await waitFor(() => expect(row.className).toContain('selected-row'));
     fireEvent.click(rect);
     await waitFor(() => expect(row.className).toContain('selected-row'));
+  });
+
+  it('renders gap between preview and table on mobile', async () => {
+    mockFetch();
+    vi.spyOn(Grid, 'useBreakpoint').mockReturnValue({ md: false } as any);
+    render(
+      <ApiErrorProvider>
+        <MemoryRouter initialEntries={[{ pathname: '/jobs/1' }]}>
+          <Routes>
+            <Route path="/jobs/:id" element={<JobDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ApiErrorProvider>,
+    );
+    const wrapper = await screen.findByTestId('mobile-wrapper');
+    expect(wrapper.style.gap).toBe('8px');
   });
 });
