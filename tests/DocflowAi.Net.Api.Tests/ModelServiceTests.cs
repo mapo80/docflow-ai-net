@@ -98,10 +98,31 @@ public class ModelServiceTests
             BaseUrl = "https://api",
             ApiKey = "plain-secret"
         });
-        dto.HasApiKey.Should().BeTrue();
+        dto.ApiKey.Should().BeNull();
         db.Models.First().ApiKeyEncrypted.Should().NotBe("plain-secret");
         dto.CreatedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
         dto.UpdatedAt.Should().BeCloseTo(dto.CreatedAt, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void GetById_ReturnsApiKey()
+    {
+        var options = new DbContextOptionsBuilder<JobDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        using var db = new JobDbContext(options);
+        var client = new FakeBackgroundJobClient();
+        var service = CreateService(db, Path.GetTempPath(), client);
+        var created = service.Create(new CreateModelRequest
+        {
+            Name = "m1",
+            Type = "hosted-llm",
+            Provider = "openai",
+            BaseUrl = "https://api",
+            ApiKey = "secret"
+        });
+        var dto = service.GetById(created.Id)!;
+        dto.ApiKey.Should().Be("secret");
     }
 
     [Fact]

@@ -37,12 +37,14 @@ public class ModelService : IModelService
         _httpClientFactory = httpClientFactory;
     }
 
-    public IEnumerable<ModelDto> GetAll() => _repo.GetAll().Select(ToDto);
+    public IEnumerable<ModelDto> GetAll() => _repo.GetAll().Select(m => ToDto(m));
 
     public ModelDto? GetById(Guid id)
     {
         var model = _repo.GetById(id);
-        return model == null ? null : ToDto(model);
+        if (model == null) return null;
+        var apiKey = _repo.GetApiKey(id);
+        return ToDto(model, apiKey);
     }
 
     public ModelDto Create(CreateModelRequest request)
@@ -174,7 +176,7 @@ public class ModelService : IModelService
         return File.ReadAllText(model.DownloadLogPath);
     }
 
-    private static ModelDto ToDto(ModelDocument m) =>
+    private static ModelDto ToDto(ModelDocument m, string? apiKey = null) =>
         new(
             m.Id,
             m.Name,
@@ -186,7 +188,7 @@ public class ModelService : IModelService
             m.Downloaded,
             m.DownloadStatus,
             m.LastUsedAt,
-            m.ApiKeyEncrypted != null,
+            apiKey,
             m.HfTokenEncrypted != null,
             m.CreatedAt,
             m.UpdatedAt);

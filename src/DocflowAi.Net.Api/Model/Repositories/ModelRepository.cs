@@ -87,6 +87,13 @@ public class ModelRepository : IModelRepository
         model.UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public string? GetApiKey(Guid id)
+    {
+        var model = _db.Models.AsNoTracking().FirstOrDefault(m => m.Id == id);
+        if (model?.ApiKeyEncrypted == null) return null;
+        return _protector.Unprotect(model.ApiKeyEncrypted);
+    }
+
     public string? GetHfToken(Guid id)
     {
         var model = _db.Models.AsNoTracking().FirstOrDefault(m => m.Id == id);

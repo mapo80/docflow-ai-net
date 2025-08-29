@@ -8,6 +8,7 @@ import {
   Space,
   Grid,
   Popconfirm,
+  Form,
 } from 'antd';
 import type { Breakpoint } from 'antd/es/_util/responsiveObserver';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
@@ -159,9 +160,37 @@ export default function ModelsPage() {
     <div>
       <Space
         direction={isMobile ? 'vertical' : 'horizontal'}
-        style={{ width: '100%', marginBottom: 16 }}
+        style={{ width: '100%', marginBottom: 16, justifyContent: 'space-between' }}
+        align={isMobile ? undefined : 'start'}
         wrap
       >
+        <Form
+          layout={isMobile ? 'vertical' : 'inline'}
+          style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 8 }}
+        >
+          <Form.Item label="Search" style={{ marginBottom: 0 }}>
+            <Input.Search
+              placeholder="Search by name"
+              allowClear
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onSearch={(v) => setSearch(v)}
+              style={{ width: isMobile ? '100%' : 200 }}
+            />
+          </Form.Item>
+          <Form.Item label="Type" style={{ marginBottom: 0 }}>
+            <Select
+              value={typeFilter}
+              onChange={(v) => setTypeFilter(v)}
+              style={{ width: isMobile ? '100%' : 160 }}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'hosted-llm', label: 'Hosted LLM' },
+                { value: 'local', label: 'Local' },
+              ]}
+            />
+          </Form.Item>
+        </Form>
         <Button
           type="primary"
           icon={<PlusOutlined />}
@@ -173,25 +202,6 @@ export default function ModelsPage() {
         >
           Create Model
         </Button>
-        <Space.Compact style={{ flex: 1, minWidth: 200 }}>
-          <Select
-            value={typeFilter}
-            onChange={(v) => setTypeFilter(v)}
-            style={{ width: 160 }}
-            options={[
-              { value: 'all', label: 'All' },
-              { value: 'hosted-llm', label: 'Hosted LLM' },
-              { value: 'local', label: 'Local' },
-            ]}
-          />
-          <Input.Search
-            placeholder="Search by name"
-            allowClear
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ flex: 1 }}
-          />
-        </Space.Compact>
       </Space>
       {isMobile ? (
         <List
