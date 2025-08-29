@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Form, Upload, Button, Tabs, Select } from 'antd';
 import InboxOutlined from '@ant-design/icons/InboxOutlined';
 import MDEditor from '@uiw/react-md-editor';
@@ -8,12 +8,14 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { ApiError } from '../generated';
 import { MarkdownService } from '../generated/services/MarkdownService';
+import { MarkdownSystemsService } from '../generated/services/MarkdownSystemsService';
 import { validateFile } from './JobNew';
 import { useApiError } from '../components/ApiErrorProvider';
 
-export async function convertFile(file: File, language: string) {
+export async function convertFile(file: File, language: string, markdownSystemId: string) {
   return await MarkdownService.markdownConvert({
     language,
+    markdownSystemId,
     formData: { file },
   });
 }
@@ -24,7 +26,20 @@ export default function MarkdownPage() {
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('ita');
+  const [markdownSystems, setMarkdownSystems] = useState<any[]>([]);
+  const [markdownSystemId, setMarkdownSystemId] = useState('');
   const { showError } = useApiError();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const ms = await MarkdownSystemsService.markdownSystemsList();
+        setMarkdownSystems(ms);
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
 
   const handleConvert = async () => {
     if (!file) {
@@ -36,10 +51,14 @@ export default function MarkdownPage() {
       showError(err);
       return;
     }
+    if (!markdownSystemId) {
+      showError('Markdown system is required');
+      return;
+    }
     setLoading(true);
     const start = performance.now();
     try {
-      const res = await convertFile(file, language);
+      const res = await convertFile(file, language, markdownSystemId);
       setResult(res);
       setElapsed(performance.now() - start);
     } catch (e) {
@@ -88,6 +107,13 @@ export default function MarkdownPage() {
               { label: 'English', value: 'eng' },
               { label: 'Latin', value: 'lat' },
             ]}
+          />
+        </Form.Item>
+        <Form.Item label="Markdown system" required>
+          <Select
+            value={markdownSystemId || undefined}
+            onChange={setMarkdownSystemId}
+            options={markdownSystems.map((m) => ({ value: m.id, label: m.name }))}
           />
         </Form.Item>
         <Form.Item>

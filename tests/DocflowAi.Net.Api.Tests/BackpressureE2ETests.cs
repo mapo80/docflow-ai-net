@@ -31,7 +31,20 @@ public class BackpressureE2ETests : IClassFixture<TempDirFixture>
         var dirsBefore = Directory.GetDirectories(factory.DataRootPath).Length;
         using (TestCorrelator.CreateContext())
         {
-            var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(new byte[10]), fileName = "c.pdf", model = "m", templateToken = "t", language = "eng" });
+            Guid msId;
+            using (var scopeMs = factory.Services.CreateScope())
+            {
+                var dbMs = scopeMs.ServiceProvider.GetRequiredService<JobDbContext>();
+                var ms = dbMs.MarkdownSystems.FirstOrDefault();
+                if (ms == null)
+                {
+                    ms = new DocflowAi.Net.Api.MarkdownSystem.Models.MarkdownSystemDocument { Id = Guid.NewGuid(), Name = "d", Provider = "docling", Endpoint = "http://localhost", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow };
+                    dbMs.MarkdownSystems.Add(ms);
+                    dbMs.SaveChanges();
+                }
+                msId = ms.Id;
+            }
+            var resp = await client.PostAsJsonAsync("/api/v1/jobs", new { fileBase64 = Convert.ToBase64String(new byte[10]), fileName = "c.pdf", model = "m", templateToken = "t", language = "eng", markdownSystemId = msId });
             resp.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
             resp.Headers.Should().ContainKey("Retry-After");
             Directory.GetDirectories(factory.DataRootPath).Length.Should().Be(dirsBefore);

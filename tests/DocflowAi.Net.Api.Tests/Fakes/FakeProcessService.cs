@@ -32,6 +32,9 @@ public class FakeProcessService : IProcessService
         }
 
         await File.WriteAllTextAsync(input.MarkdownPath, "# md", ct);
+        var dir = Path.GetDirectoryName(input.MarkdownPath)!;
+        await File.WriteAllTextAsync(Path.Combine(dir, "layout.json"), "{\"markdown\":\"md\"}", ct);
+        await File.WriteAllTextAsync(Path.Combine(dir, "output-layout.json"), "{}", ct);
         await File.WriteAllTextAsync(input.PromptPath, "prompt", ct);
         var ts = DateTimeOffset.UtcNow;
 

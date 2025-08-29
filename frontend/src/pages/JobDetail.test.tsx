@@ -58,6 +58,7 @@ test('does not show success notification when navigating to detail', async () =>
     model: 'm',
     templateToken: 't',
     language: 'eng',
+    markdownSystem: 'ms',
     createdAt: '',
     updatedAt: '',
   } as any);
@@ -83,6 +84,7 @@ test('shows duration in seconds with suffix', async () => {
     model: 'm',
     templateToken: 't',
     language: 'eng',
+    markdownSystem: 'ms',
     createdAt: '',
     updatedAt: '',
     metrics: { durationMs: 1234 },
@@ -109,6 +111,7 @@ test('shows reload and cancel only when running', async () => {
     model: 'm',
     templateToken: 't',
     language: 'eng',
+    markdownSystem: 'ms',
     createdAt: '',
     updatedAt: '',
     paths: { input: { path: '/input.pdf', createdAt: 'x' } },
@@ -130,7 +133,7 @@ test('shows reload and cancel only when running', async () => {
   expect(screen.getByText('Cancel')).toBeInTheDocument();
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('input'));
+  await waitFor(() => screen.getByText('Input'));
   expect(fetchSpy).not.toHaveBeenCalled();
   fetchSpy.mockRestore();
 
@@ -144,6 +147,7 @@ test('shows reload and cancel only when running', async () => {
     model: 'm',
     templateToken: 't',
     language: 'eng',
+    markdownSystem: 'ms',
     createdAt: '',
     updatedAt: '',
   } as any);
@@ -167,6 +171,41 @@ test('shows reload and cancel only when running', async () => {
   expect(fetchSpy2).not.toHaveBeenCalled();
 });
 
+test('shows error message in dedicated row', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Failed',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    errorMessage: 'boom',
+    createdAt: '',
+    updatedAt: '',
+    paths: {},
+  } as any);
+  const { container } = render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() =>
+    expect(container.querySelector('.ant-descriptions-view table')).toBeTruthy(),
+  );
+  const table = container.querySelector('.ant-descriptions-view table')!;
+  const rows = within(table).getAllByRole('row');
+  const statusIdx = rows.findIndex((r) => within(r).queryByText('Status'));
+  const errorIdx = rows.findIndex((r) => within(r).queryByText('Error'));
+  expect(errorIdx).toBe(statusIdx + 1);
+  expect(within(rows[errorIdx]).getByText('boom')).toBeInTheDocument();
+});
+
 test('lists markdown file while running', async () => {
   getByIdSpy.mockReset();
   getByIdSpy.mockResolvedValueOnce({
@@ -176,6 +215,7 @@ test('lists markdown file while running', async () => {
     model: 'm',
     templateToken: 't',
     language: 'eng',
+    markdownSystem: 'ms',
     createdAt: '',
     updatedAt: '',
     paths: { input: { path: '/i.pdf' }, markdown: { path: '/m.md' } },
@@ -196,7 +236,7 @@ test('lists markdown file while running', async () => {
   await waitFor(() => screen.getByText('Reload'));
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('markdown'));
+  await waitFor(() => screen.getByText('Markdown'));
   expect(fetchSpy).not.toHaveBeenCalled();
 });
 
@@ -209,9 +249,16 @@ test('lists all paths without extra requests', async () => {
     model: 'm',
     templateToken: 't',
     language: 'eng',
+    errorMessage: 'boom',
     createdAt: '',
     updatedAt: '',
-    paths: { input: { path: '/input.pdf' }, error: { path: '/error.txt' }, prompt: { path: '/prompt.md', createdAt: '2024-01-01' } },
+    paths: {
+      input: { path: '/input.pdf' },
+      error: { path: '/error.txt' },
+      prompt: { path: '/prompt.md', createdAt: '2024-01-01' },
+      layout: { path: '/layout.json' },
+      layoutOutput: { path: '/output-layout.json' },
+    },
   } as any);
   const fetchSpy = vi.spyOn(global, 'fetch');
   render(
@@ -226,12 +273,17 @@ test('lists all paths without extra requests', async () => {
   await waitFor(() => screen.getByText('Attempts'));
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('input'));
-  expect(screen.getByText('error')).toBeInTheDocument();
-  expect(screen.getByText('prompt')).toBeInTheDocument();
-  expect(screen.getByText('2024-01-01')).toBeInTheDocument();
+  await waitFor(() => screen.getByText('Input'));
+  const tables = screen.getAllByRole('table');
+  const filesTable = tables[tables.length - 1];
+  expect(within(filesTable).getByText('Error')).toBeInTheDocument();
+  expect(within(filesTable).getByText('Prompt')).toBeInTheDocument();
+  expect(within(filesTable).getByText('Layout')).toBeInTheDocument();
+  expect(within(filesTable).getByText('Output Layout')).toBeInTheDocument();
+  expect(within(filesTable).getByText('2024-01-01')).toBeInTheDocument();
   expect(fetchSpy).not.toHaveBeenCalled();
-});
+  expect(screen.getByText('boom')).toBeInTheDocument();
+  });
 
 test('previews markdown file', async () => {
   getByIdSpy.mockReset();
@@ -263,12 +315,43 @@ test('previews markdown file', async () => {
   await waitFor(() => screen.getByText('Attempts'));
   const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
   fireEvent.click(filesTab);
-  await waitFor(() => screen.getByText('markdown'));
-  const row = screen.getByText('markdown').closest('tr')!;
+  await waitFor(() => screen.getByText('Markdown'));
+  const row = screen.getByText('Markdown').closest('tr')!;
   const previewBtn = within(row).getByLabelText('Preview');
   fireEvent.click(previewBtn);
   await waitFor(() => screen.getByText('hi'));
   expect(fetchSpy).toHaveBeenCalledTimes(1);
+});
+
+test('shows document preview button for input', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    createdAt: '',
+    updatedAt: '',
+    paths: { input: { path: '/input.pdf' } },
+  } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const filesTab = screen.getAllByRole('tab', { name: 'Files' })[0];
+  fireEvent.click(filesTab);
+  await waitFor(() => screen.getByText('Input'));
+  const row = screen.getByText('Input').closest('tr')!;
+  expect(within(row).getByLabelText('Document preview')).toBeInTheDocument();
 });
 
 test('opens document preview modal', async () => {
@@ -285,39 +368,41 @@ test('opens document preview modal', async () => {
     paths: {
       input: { path: '/file.png' },
       output: { path: '/out.json' },
+      markdown: { path: '/m.md' },
     },
   } as any);
-  vi.spyOn(global, 'fetch').mockResolvedValue({
-    ok: true,
-    json: async () => ({
-      pages: [
-        {
-          index: 1,
-          width: 100,
-          height: 100,
-          words: [
-            {
-              id: 'w1',
-              text: 'hi',
-              bbox: { x: 10, y: 10, width: 10, height: 10 },
-              conf: 0.9,
-            },
-          ],
-        },
-      ],
-      fields: [
-        {
-          id: 'f1',
-          name: 'name',
-          value: 'hi',
-          page: 1,
-          wordIds: ['w1'],
-          conf: 0.9,
-        },
-      ],
-    }),
-    headers: new Headers(),
-  } as any);
+  vi.spyOn(global, 'fetch')
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        fields: [
+          {
+            key: 'name',
+            value: 'hi',
+            confidence: 0.9,
+            spans: [{ page: 1, x: 0.1, y: 0.1, width: 0.1, height: 0.1 }],
+          },
+        ],
+      }),
+      headers: new Headers(),
+    } as any)
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        pages: [{ number: 1, width: 100, height: 100 }],
+        boxes: [
+          {
+            page: 1,
+            xNorm: 0.1,
+            yNorm: 0.1,
+            widthNorm: 0.1,
+            heightNorm: 0.1,
+            text: 'hi',
+          },
+        ],
+      }),
+      headers: new Headers(),
+    } as any);
 
   render(
     <ApiErrorProvider>
@@ -332,6 +417,92 @@ test('opens document preview modal', async () => {
   await waitFor(() => screen.getByText('Attempts'));
   fireEvent.click(screen.getByTestId('open-preview'));
   await waitFor(() => expect(getByIdSpy).toHaveBeenCalledTimes(2));
+});
+
+test('renders extracted fields in fields tab', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    createdAt: '',
+    updatedAt: '',
+    paths: { output: { path: '/out.json' } },
+  } as any);
+  const fetchSpy = vi
+    .spyOn(global, 'fetch')
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ fields: [{ key: 'name', value: 'value' }] }),
+      headers: new Headers(),
+    } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const fieldsTab = screen.getAllByRole('tab', { name: 'Fields' })[0];
+  fireEvent.click(fieldsTab);
+  await waitFor(() => screen.getByText('name'));
+  expect(screen.getByText('value')).toBeInTheDocument();
+  expect(fetchSpy).toHaveBeenCalledWith(
+    expect.stringContaining('/out.json'),
+    expect.anything(),
+  );
+});
+
+test('marks bounding box presence using spans', async () => {
+  getByIdSpy.mockReset();
+  getByIdSpy.mockResolvedValueOnce({
+    id: '1',
+    status: 'Succeeded',
+    attempts: 1,
+    model: 'm',
+    templateToken: 't',
+    language: 'eng',
+    markdownSystem: 'ms',
+    createdAt: '',
+    updatedAt: '',
+    paths: { input: { path: '/doc.pdf' }, output: { path: '/out.json' } },
+  } as any);
+  const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({
+      fields: [
+        {
+          key: 'name',
+          value: 'ACME',
+          spans: [{ page: 1, x: 0, y: 0, width: 0.1, height: 0.1 }],
+        },
+      ],
+    }),
+    headers: new Headers(),
+  } as any);
+  render(
+    <ApiErrorProvider>
+      <MemoryRouter initialEntries={['/jobs/1']}>
+        <Routes>
+          <Route path="/jobs/:id" element={<JobDetail />} />
+        </Routes>
+      </MemoryRouter>
+    </ApiErrorProvider>,
+  );
+  await waitFor(() => screen.getByText('Attempts'));
+  const fieldsTab = screen.getAllByRole('tab', { name: 'Fields' })[0];
+  fireEvent.click(fieldsTab);
+  await waitFor(() => screen.getByText('name'));
+  const row = screen.getByText('name').closest('tr')!;
+  expect(within(row).getByText('✅')).toBeInTheDocument();
+  fetchSpy.mockRestore();
 });
 
 

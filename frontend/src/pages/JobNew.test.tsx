@@ -18,7 +18,7 @@ test('validateFile', () => {
 });
 
 test('submitPayload', async () => {
-  const payload = await buildPayload(new File(['a'], 'a.pdf'), 'm', 't', 'eng');
+  const payload = await buildPayload(new File(['a'], 'a.pdf'), 'm', 't', 'eng', 'ms');
   (__request as any).mockResolvedValueOnce({ job_id: '1', status: 'Queued' });
   const res = await submitPayload(payload);
   expect(res).toMatchObject({ job_id: '1', status: 'Queued' });
