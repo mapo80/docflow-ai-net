@@ -173,6 +173,30 @@ describe('DocumentPreview', () => {
     await waitFor(() => expect(scroll.style.overflowX).toBe('auto'));
   });
 
+  it('limits scroll width to scaled image size', async () => {
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={0.5}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    const scroll = getByTestId('preview-scroll');
+    Object.defineProperty(scroll, 'clientWidth', { value: 100, configurable: true });
+    Object.defineProperty(scroll, 'clientHeight', { value: 200, configurable: true });
+    window.dispatchEvent(new Event('resize'));
+    await waitFor(() => {
+      const content = getByTestId('preview-content');
+      expect(content.style.width).toBe('50px');
+    });
+  });
+
   it('centers on selected word', async () => {
     const { getByTestId, rerender } = render(
       <DocumentPreview
@@ -291,6 +315,41 @@ describe('DocumentPreview', () => {
     expect(canvas.width).toBe(200);
     expect(canvas.style.width).toBe('100px');
     Object.defineProperty(window, 'devicePixelRatio', { value: origRatio, configurable: true });
+    HTMLCanvasElement.prototype.getContext = origCtx;
+  });
+
+  it('limits scroll width to scaled PDF size', async () => {
+    const pdfjs: any = await import('pdfjs-dist');
+    const getPage = vi.fn(async () => ({
+      getViewport: () => ({ width: 100, height: 200 }),
+      render: () => ({ promise: Promise.resolve() }),
+    }));
+    (pdfjs.getDocument as any).mockReturnValue({
+      promise: Promise.resolve({ getPage }),
+    });
+    const origCtx = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType="pdf"
+        srcUrl="file.pdf"
+        pages={[{ index: 1, width: 100, height: 200, words: [] }]}
+        currentPage={1}
+        zoom={0.5}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    const scroll = getByTestId('preview-scroll');
+    Object.defineProperty(scroll, 'clientWidth', { value: 100, configurable: true });
+    Object.defineProperty(scroll, 'clientHeight', { value: 200, configurable: true });
+    window.dispatchEvent(new Event('resize'));
+    await waitFor(() => {
+      const content = getByTestId('preview-content');
+      expect(content.style.width).toBe('50px');
+    });
     HTMLCanvasElement.prototype.getContext = origCtx;
   });
 });

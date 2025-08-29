@@ -190,51 +190,60 @@ export default function DocumentPreview({
         }}
       >
         <div
-          data-testid="preview-inner"
+          data-testid="preview-content"
           style={{
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-            width: page.width,
-            height: page.height,
+            width: page.width * scale,
+            height: page.height * scale,
             position: 'relative',
           }}
         >
-          {docType === 'pdf' ? (
-            <canvas
-              data-testid="pdf-canvas"
-              ref={canvasRef}
-              style={{ display: 'block' }}
-            />
-          ) : (
-            <img
-              ref={imgRef}
-              data-testid="img-preview"
-              src={srcUrl}
-              alt="document"
-              style={{ display: 'block', width: page.width, height: page.height }}
-            />
-          )}
-          <svg
-            width={page.width}
-            height={page.height}
-            style={{ position: 'absolute', top: 0, left: 0 }}
+          <div
+            data-testid="preview-inner"
+            style={{
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+              width: page.width,
+              height: page.height,
+              position: 'relative',
+            }}
           >
-            {words.map((w) => (
-              <rect
-                key={w.id}
-                data-testid={`bbox-${w.id}`}
-                data-word-id={w.id}
-                x={w.bbox.x}
-                y={w.bbox.y}
-                width={w.bbox.width}
-                height={w.bbox.height}
-                fill={selectedWordIds.has(w.id) ? 'rgba(0,123,255,0.3)' : 'transparent'}
-                stroke={selectedWordIds.has(w.id) ? '#1890ff' : 'rgba(0,0,0,0.2)'}
-                strokeWidth={selectedWordIds.has(w.id) ? 2 : 1}
-                onClick={() => onWordClick(w.id)}
+            {docType === 'pdf' ? (
+              <canvas
+                data-testid="pdf-canvas"
+                ref={canvasRef}
+                style={{ display: 'block' }}
               />
-            ))}
-          </svg>
+            ) : (
+              <img
+                ref={imgRef}
+                data-testid="img-preview"
+                src={srcUrl}
+                alt="document"
+                style={{ display: 'block', width: page.width, height: page.height }}
+              />
+            )}
+            <svg
+              width={page.width}
+              height={page.height}
+              style={{ position: 'absolute', top: 0, left: 0 }}
+            >
+              {words.map((w) => (
+                <rect
+                  key={w.id}
+                  data-testid={`bbox-${w.id}`}
+                  data-word-id={w.id}
+                  x={w.bbox.x}
+                  y={w.bbox.y}
+                  width={w.bbox.width}
+                  height={w.bbox.height}
+                  fill={selectedWordIds.has(w.id) ? 'rgba(0,123,255,0.3)' : 'transparent'}
+                  stroke={selectedWordIds.has(w.id) ? '#1890ff' : 'rgba(0,0,0,0.2)'}
+                  strokeWidth={selectedWordIds.has(w.id) ? 2 : 1}
+                  onClick={() => onWordClick(w.id)}
+                />
+              ))}
+            </svg>
+          </div>
         </div>
       </div>
     </div>
