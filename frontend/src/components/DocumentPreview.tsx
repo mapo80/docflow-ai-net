@@ -39,6 +39,7 @@ export default function DocumentPreview({
   const imgRef = useRef<HTMLImageElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [baseScale, setBaseScale] = useState(1);
+  const [showScrollX, setShowScrollX] = useState(false);
   const page = pages.find((p) => p.index === currentPage) || pages[0];
 
   useEffect(() => {
@@ -96,6 +97,19 @@ export default function DocumentPreview({
 
   const words = page.words;
   const scale = zoom * baseScale;
+
+  useEffect(() => {
+    const updateOverflow = () => {
+      const wrapper = wrapperRef.current;
+      if (!wrapper) return;
+      const w = wrapper.clientWidth;
+      if (w === 0) return;
+      setShowScrollX(page.width * scale > w);
+    };
+    updateOverflow();
+    window.addEventListener('resize', updateOverflow);
+    return () => window.removeEventListener('resize', updateOverflow);
+  }, [scale, page]);
 
   useEffect(() => {
     if (!wrapperRef.current || selectedWordIds.size === 0) return;
@@ -168,7 +182,7 @@ export default function DocumentPreview({
         data-testid="preview-scroll"
         style={{
           overflowY: 'auto',
-          overflowX: 'auto',
+          overflowX: showScrollX ? 'auto' : 'hidden',
           position: 'relative',
           width: '100%',
           flex: 1,
