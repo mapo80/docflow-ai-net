@@ -1,9 +1,11 @@
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DocflowAi.Net.Application.Markdown;
+using DocflowAi.Net.Application.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
@@ -20,8 +22,11 @@ public class MarkdownDoclingIntegrationTests
         var url = docling.Urls.Single();
         using var factory = new TestWebAppFactory(Path.GetTempPath(), extra: new()
         {
-            ["Markdown:DoclingServeUrl"] = url,
-            ["Api:Keys:0"] = "test-key"
+            ["Api:Keys:0"] = "test-key",
+            ["JobQueue:SeedDefaults"] = "true",
+            ["Seed:MarkdownSystems:0:Name"] = "stub",
+            ["Seed:MarkdownSystems:0:Provider"] = "docling",
+            ["Seed:MarkdownSystems:0:Endpoint"] = url
         });
         using var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-API-Key", "test-key");
@@ -29,7 +34,9 @@ public class MarkdownDoclingIntegrationTests
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent(new byte[] {1,2,3}), "file", "test.png");
 
-        var resp = await client.PostAsync("/api/v1/markdown?language=eng", content);
+        var systems = await client.GetFromJsonAsync<MarkdownSystemDto[]>("/api/markdown-systems");
+        var msId = systems![0].Id;
+        var resp = await client.PostAsync($"/api/v1/markdown?language=eng&markdownSystemId={msId}", content);
         resp.EnsureSuccessStatusCode();
         var json = await resp.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<MarkdownResult>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

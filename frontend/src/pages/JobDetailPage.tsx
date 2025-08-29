@@ -1,15 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Row, Col, Switch } from 'antd';
+import { Alert, Row, Col, Grid } from 'antd';
 import { JobsService, OpenAPI } from '../generated';
-import { parseOutputToViewModel, type ExtractionViewModel } from '../adapters/extractionAdapter';
+import {
+  parseOutputToViewModel,
+  type ExtractionViewModel,
+} from '../adapters/extractionAdapter';
 import DocumentPreview from '../components/DocumentPreview';
 import FieldsTable from '../components/FieldsTable';
 import Loader from '../components/Loader';
 import { useApiError } from '../components/ApiErrorProvider';
 
-export default function JobDetailPage() {
-  const { id } = useParams();
+interface Props {
+  jobId?: string;
+}
+
+export default function JobDetailPage({ jobId }: Props) {
+  const params = useParams();
+  const id = jobId ?? params.id;
   const [model, setModel] = useState<ExtractionViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +27,9 @@ export default function JobDetailPage() {
   const [selectedWordIds, setSelectedWordIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(1);
-  const [showOnlySelected, setShowOnlySelected] = useState(false);
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+  const BBOX_ZOOM = 1.5;
 
   useEffect(() => {
     const load = async () => {
@@ -27,7 +37,7 @@ export default function JobDetailPage() {
       setLoading(true);
       try {
         const job = await JobsService.jobsGetById({ id });
-        if (!job.paths?.output?.path) {
+        if (!job.paths?.output?.path || !job.paths?.markdown?.path) {
           setError('No output available');
           setModel(null);
           return;
@@ -48,7 +58,15 @@ export default function JobDetailPage() {
           outputJson = await res.json();
           break;
         }
-        const vm = parseOutputToViewModel(job, outputJson);
+        let mdUrl =
+          job.paths.layout?.path || job.paths.markdown.path.replace(/[^/]+$/, 'layout.json');
+        if (!mdUrl.startsWith('http')) mdUrl = `${OpenAPI.BASE}${mdUrl}`;
+        const mdRes = await fetch(mdUrl, {
+          headers: OpenAPI.HEADERS as Record<string, string> | undefined,
+        });
+        if (!mdRes.ok) throw new Error('Failed to fetch markdown');
+        const mdJson = await mdRes.json();
+        const vm = parseOutputToViewModel(job, outputJson, mdJson);
         if (!vm || vm.pages.length === 0) {
           setError('No bounding boxes available');
           setModel(null);
@@ -69,23 +87,36 @@ export default function JobDetailPage() {
 
   const handleFieldSelect = (fieldId: string) => {
     if (!model) return;
-    setSelectedFieldId(fieldId);
+    if (selectedFieldId === fieldId) {
+      setSelectedFieldId(undefined);
+      setSelectedWordIds(new Set());
+      return;
+    }
     const field = model.fields.find((f) => f.id === fieldId);
     const wordSet = new Set(field?.wordIds || []);
+    setSelectedFieldId(fieldId);
     setSelectedWordIds(wordSet);
     if (field?.page && field.page !== currentPage) {
       setCurrentPage(field.page);
     }
+    if (wordSet.size > 0) setZoom(BBOX_ZOOM);
   };
 
   const handleWordClick = (wordId: string) => {
     if (!model) return;
     const field = model.fields.find((f) => f.wordIds.includes(wordId));
     if (field) {
-      handleFieldSelect(field.id);
+      if (selectedFieldId !== field.id) {
+        handleFieldSelect(field.id);
+      }
     } else {
+      const already =
+        selectedWordIds.has(wordId) &&
+        selectedWordIds.size === 1 &&
+        !selectedFieldId;
       setSelectedFieldId(undefined);
-      setSelectedWordIds(new Set([wordId]));
+      setSelectedWordIds(already ? new Set() : new Set([wordId]));
+      if (!already) setZoom(BBOX_ZOOM);
     }
   };
 
@@ -93,35 +124,66 @@ export default function JobDetailPage() {
   if (error) return <Alert type="error" message={error} />;
   if (!model) return <Alert message="No data" type="warning" />;
 
+  if (isMobile) {
+    return (
+      <div
+        data-testid="mobile-wrapper"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'calc(100vh - 64px)',
+          gap: 8,
+        }}
+      >
+        <div style={{ flex: 3, minHeight: 0 }}>
+          <DocumentPreview
+            docType={model.docType}
+            srcUrl={model.srcUrl}
+            pages={model.pages}
+            currentPage={currentPage}
+            zoom={zoom}
+            selectedWordIds={selectedWordIds}
+            onWordClick={handleWordClick}
+            onPageChange={setCurrentPage}
+            onZoomChange={setZoom}
+            fitWidth={false}
+          />
+        </div>
+        <div style={{ flex: 2, minHeight: 0, overflow: 'auto' }}>
+          <FieldsTable
+            docType={model.docType}
+            fields={model.fields}
+            selectedFieldId={selectedFieldId}
+            onFieldSelect={handleFieldSelect}
+            isMobile
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Row gutter={16}>
-      <Col span={16}>
+    <Row gutter={[16, 16]} style={{ height: 'calc(100vh - 64px)' }}>
+      <Col span={14} style={{ height: '100%' }}>
         <DocumentPreview
           docType={model.docType}
           srcUrl={model.srcUrl}
           pages={model.pages}
           currentPage={currentPage}
           zoom={zoom}
-          showOnlySelected={showOnlySelected}
           selectedWordIds={selectedWordIds}
           onWordClick={handleWordClick}
           onPageChange={setCurrentPage}
           onZoomChange={setZoom}
-          onToggleShowOnly={setShowOnlySelected}
+          fitWidth
         />
       </Col>
-      <Col span={8}>
+      <Col span={10} style={{ height: '100%', overflow: 'auto' }}>
         <FieldsTable
+          docType={model.docType}
           fields={model.fields}
           selectedFieldId={selectedFieldId}
           onFieldSelect={handleFieldSelect}
-        />
-        <Switch
-          checked={showOnlySelected}
-          onChange={setShowOnlySelected}
-          checkedChildren="Only selected"
-          unCheckedChildren="All"
-          style={{ marginTop: 8 }}
         />
       </Col>
     </Row>

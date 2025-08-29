@@ -2,6 +2,7 @@ using DocflowAi.Net.Api.Contracts;
 using DocflowAi.Net.Api.JobQueue.Abstractions;
 using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Options;
+using DocflowAi.Net.Api.MarkdownSystem.Abstractions;
 using Hangfire;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
@@ -21,7 +22,7 @@ namespace DocflowAi.Net.Api.JobQueue.Endpoints;
 
 public static class JobEndpoints
 {
-    private record SubmitRequest(string FileBase64, string FileName, string Model, string TemplateToken, string Language);
+    private record SubmitRequest(string FileBase64, string FileName, string Model, string TemplateToken, string Language, Guid MarkdownSystemId);
 
     public static IEndpointRouteBuilder MapJobEndpoints(this IEndpointRouteBuilder builder)
     {
@@ -53,7 +54,8 @@ public static class JobEndpoints
                     i.UpdatedAt,
                     i.Model,
                     i.TemplateToken,
-                    i.Language
+                    i.Language,
+                    i.MarkdownSystemName
                 )).ToList()
             );
             return Results.Ok(response);
@@ -78,7 +80,8 @@ public static class JobEndpoints
                         ["progress"] = new OpenApiInteger(0),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
                         ["updatedAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
-                        ["language"] = new OpenApiString("eng")
+                        ["language"] = new OpenApiString("eng"),
+                        ["markdownSystem"] = new OpenApiString("docling")
                     },
                     new OpenApiObject
                     {
@@ -88,7 +91,8 @@ public static class JobEndpoints
                         ["progress"] = new OpenApiInteger(100),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
                         ["updatedAt"] = new OpenApiString("2024-01-01T00:01:00Z"),
-                        ["language"] = new OpenApiString("ita")
+                        ["language"] = new OpenApiString("ita"),
+                        ["markdownSystem"] = new OpenApiString("docling")
                     },
                     new OpenApiObject
                     {
@@ -98,7 +102,8 @@ public static class JobEndpoints
                         ["progress"] = new OpenApiInteger(0),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z"),
                         ["updatedAt"] = new OpenApiString("2024-01-01T00:02:00Z"),
-                        ["language"] = new OpenApiString("lat")
+                        ["language"] = new OpenApiString("lat"),
+                        ["markdownSystem"] = new OpenApiString("docling")
                     }
                 }
             };
@@ -116,6 +121,8 @@ public static class JobEndpoints
                 job.Paths.Output?.Path,
                 job.Paths.Error?.Path,
                 job.Paths.Markdown?.Path,
+                job.Paths.Layout?.Path,
+                job.Paths.LayoutOutput?.Path,
                 job.Paths.Prompt?.Path
             }
                 .Where(p => !string.IsNullOrEmpty(p));
@@ -131,7 +138,7 @@ public static class JobEndpoints
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost(string.Empty, async (HttpRequest req, IJobRepository store, IUnitOfWork uow, IFileSystemService fs, IBackgroundJobClient jobs, IOptions<JobQueueOptions> opts, ILoggerFactory lf) =>
+        group.MapPost(string.Empty, async (HttpRequest req, IJobRepository store, IUnitOfWork uow, IFileSystemService fs, IMarkdownSystemRepository msRepo, IBackgroundJobClient jobs, IOptions<JobQueueOptions> opts, ILoggerFactory lf) =>
         {
             var logger = lf.CreateLogger("JobEndpoints");
             var sw = Stopwatch.StartNew();
@@ -139,8 +146,13 @@ public static class JobEndpoints
 
             SubmitRequest? payload = await req.ReadFromJsonAsync<SubmitRequest>();
             if (payload is null || string.IsNullOrEmpty(payload.FileBase64) || string.IsNullOrEmpty(payload.FileName)
-                || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken) || string.IsNullOrEmpty(payload.Language))
-                return Results.Json(new ErrorResponse("bad_request", "file, model, template and language required"), statusCode: 400);
+                || string.IsNullOrEmpty(payload.Model) || string.IsNullOrEmpty(payload.TemplateToken) || string.IsNullOrEmpty(payload.Language)
+                || payload.MarkdownSystemId == Guid.Empty)
+                return Results.Json(new ErrorResponse("bad_request", "file, model, template, language and markdown system required"), statusCode: 400);
+
+            var system = msRepo.GetById(payload.MarkdownSystemId);
+            if (system == null)
+                return Results.Json(new ErrorResponse("bad_request", "markdown system not found"), statusCode: 400);
 
             if (payload.Language != "ita" && payload.Language != "eng" && payload.Language != "lat")
                 return Results.Json(new ErrorResponse("bad_request", "language must be 'ita', 'eng', or 'lat'"), statusCode: 400);
@@ -200,7 +212,7 @@ public static class JobEndpoints
             var jobId = Guid.NewGuid();
             fs.CreateJobDirectory(jobId);
             var inputPath = await fs.SaveInputAtomic(jobId, formFile);
-            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken, language = payload.Language });
+            var manifest = JsonSerializer.Serialize(new { jobId, payload.FileName, ext, hash, createdAtUtc = DateTimeOffset.UtcNow, model = payload.Model, templateToken = payload.TemplateToken, language = payload.Language, markdownSystem = system.Name });
             await fs.SaveTextAtomic(jobId, "manifest.json", manifest);
 
             var doc = new JobDocument
@@ -214,6 +226,8 @@ public static class JobEndpoints
                 Model = payload.Model,
                 TemplateToken = payload.TemplateToken,
                 Language = payload.Language,
+                MarkdownSystemId = system.Id,
+                MarkdownSystemName = system.Name,
                 Paths = new JobDocument.PathInfo
                 {
                     Dir = Path.GetDirectoryName(inputPath)!,
@@ -221,7 +235,9 @@ public static class JobEndpoints
                     Prompt = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "prompt.md") },
                     Output = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "output.json") },
                     Error = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "error.txt") },
-                    Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "markdown.md") }
+                    Markdown = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "markdown.md") },
+                    Layout = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "layout.json") },
+                    LayoutOutput = new JobDocument.DocumentInfo { Path = Path.Combine(Path.GetDirectoryName(inputPath)!, "output-layout.json") }
                 }
             };
             store.Create(doc);
@@ -295,9 +311,11 @@ public static class JobEndpoints
                 Prompt = ToPublicDoc(job.Id, job.Paths.Prompt),
                 Output = ToPublicDoc(job.Id, job.Paths.Output),
                 Error = ToPublicDoc(job.Id, job.Paths.Error),
-                Markdown = ToPublicDoc(job.Id, job.Paths.Markdown)
+                Markdown = ToPublicDoc(job.Id, job.Paths.Markdown),
+                Layout = ToPublicDoc(job.Id, job.Paths.Layout),
+                LayoutOutput = ToPublicDoc(job.Id, job.Paths.LayoutOutput)
             };
-            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken, job.Language);
+            var resp = new JobDetailResponse(job.Id, job.Status, MapDerivedStatus(job.Status), job.Progress, job.Attempts, job.CreatedAt, job.UpdatedAt, job.Metrics, apiPaths, job.ErrorMessage, job.Model, job.TemplateToken, job.Language, job.MarkdownSystemName);
             logger.LogInformation("GetJobCompleted {JobId} {ElapsedMs}", id, sw.ElapsedMilliseconds);
             return Results.Ok(resp);
         })
@@ -342,11 +360,22 @@ public static class JobEndpoints
                     {
                         ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/markdown.md"),
                         ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    },
+                    ["layout"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/layout.json"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
+                    },
+                    ["layoutOutput"] = new OpenApiObject
+                    {
+                        ["path"] = new OpenApiString("/api/v1/jobs/00000000-0000-0000-0000-000000000000/files/output-layout.json"),
+                        ["createdAt"] = new OpenApiString("2024-01-01T00:00:00Z")
                     }
                 },
                 ["model"] = new OpenApiString("model"),
                 ["templateToken"] = new OpenApiString("template"),
-                ["language"] = new OpenApiString("eng")
+                ["language"] = new OpenApiString("eng"),
+                ["markdownSystem"] = new OpenApiString("docling")
             };
             op.Responses["404"].Content["application/json"].Example = new OpenApiObject
             {

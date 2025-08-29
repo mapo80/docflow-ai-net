@@ -1,5 +1,7 @@
 namespace DocflowAi.Net.Application.Markdown;
 
+using System.Text.Json.Serialization;
+
 /// <summary>Options for markdown conversion.</summary>
 public sealed class MarkdownOptions
 {
@@ -17,7 +19,11 @@ public sealed class MarkdownOptions
 }
 
 /// <summary>Conversion result containing markdown and bounding boxes.</summary>
-public sealed record MarkdownResult(string Markdown, IReadOnlyList<PageInfo> Pages, IReadOnlyList<Box> Boxes);
+public sealed record MarkdownResult(
+    [property: JsonPropertyOrder(2)] string Markdown,
+    [property: JsonPropertyOrder(1)] IReadOnlyList<PageInfo> Pages,
+    [property: JsonPropertyOrder(0)] IReadOnlyList<Box> Boxes,
+    [property: JsonIgnore] string? RawJson = null);
 
 /// <summary>Page information.</summary>
 public sealed record PageInfo(int Number, double Width, double Height);

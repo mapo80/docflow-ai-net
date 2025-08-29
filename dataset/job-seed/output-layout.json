@@ -1,0 +1,8 @@
+{
+  "modelVersion": "2023-10-31",
+  "contentFormat": "markdown",
+  "pages": [
+    { "pageNumber": 1, "width": 8.5, "height": 11, "unit": "inch" }
+  ],
+  "content": "sample markdown"
+}
