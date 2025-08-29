@@ -64,6 +64,24 @@ describe('DocumentPreview', () => {
     expect(getByTestId('preview-scroll')).toBeTruthy();
   });
 
+  it('uses flex layout to keep controls anchored', () => {
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={1}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    const outer = getByTestId('doc-preview');
+    expect(outer.style.display).toBe('flex');
+  });
+
   it('scales document to container size', async () => {
     const { getByTestId } = render(
       <DocumentPreview

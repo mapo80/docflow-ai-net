@@ -114,7 +114,15 @@ export default function DocumentPreview({
   }, [selectedWordIds, scale, words]);
 
   return (
-    <div data-testid="doc-preview" style={{ width: '100%', height: '100%' }}>
+    <div
+      data-testid="doc-preview"
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <div
         style={{
           display: 'flex',
@@ -162,7 +170,8 @@ export default function DocumentPreview({
           overflow: 'auto',
           position: 'relative',
           width: '100%',
-          height: '100%',
+          flex: 1,
+          minHeight: 0,
         }}
       >
         <div
