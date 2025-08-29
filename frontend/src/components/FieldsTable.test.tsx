@@ -39,6 +39,19 @@ describe('FieldsTable', () => {
     expect(onSelect).toHaveBeenCalledWith('f2');
   });
 
+  it('shows search icon column', () => {
+    const { container } = render(
+      <FieldsTable
+        docType="pdf"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={() => {}}
+      />,
+    );
+    const icons = container.querySelectorAll('.anticon-search');
+    expect(icons.length).toBe(fields.length);
+  });
+
   it('navigates with keyboard', () => {
     const onSelect = vi.fn();
     const { getAllByTestId } = render(

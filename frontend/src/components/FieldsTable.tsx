@@ -1,4 +1,5 @@
 import { Table, Tooltip } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import type { ExtractedField } from '../adapters/extractionAdapter';
 import { useCallback, type Key } from 'react';
 
@@ -40,6 +41,12 @@ export default function FieldsTable({ docType, fields, selectedFieldId, onFieldS
         dataSource={fields}
         rowKey={(f) => f.id as Key}
         columns={[
+          {
+            title: '',
+            key: 'icon',
+            width: 32,
+            render: () => <SearchOutlined aria-label="search" />, 
+          },
           { title: 'Name', dataIndex: 'name' },
           { title: 'Value', dataIndex: 'value' },
           { title: 'Confidence', dataIndex: 'conf' },

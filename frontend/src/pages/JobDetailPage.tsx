@@ -105,9 +105,14 @@ export default function JobDetailPage({ jobId }: Props) {
     if (!model) return;
     const field = model.fields.find((f) => f.wordIds.includes(wordId));
     if (field) {
-      handleFieldSelect(field.id);
+      if (selectedFieldId !== field.id) {
+        handleFieldSelect(field.id);
+      }
     } else {
-      const already = selectedWordIds.has(wordId) && selectedWordIds.size === 1 && !selectedFieldId;
+      const already =
+        selectedWordIds.has(wordId) &&
+        selectedWordIds.size === 1 &&
+        !selectedFieldId;
       setSelectedFieldId(undefined);
       setSelectedWordIds(already ? new Set() : new Set([wordId]));
       if (!already) setZoom(BBOX_ZOOM);

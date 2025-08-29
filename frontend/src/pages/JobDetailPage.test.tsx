@@ -54,7 +54,7 @@ vi.spyOn(global, 'fetch')
   } as any);
 
 describe('JobDetailPage', () => {
-  it('toggles selection bidirectionally', async () => {
+  it('keeps row selected when clicking bounding box twice', async () => {
     render(
       <ApiErrorProvider>
         <MemoryRouter initialEntries={[{ pathname: '/jobs/1' }]}>
@@ -81,8 +81,6 @@ describe('JobDetailPage', () => {
     fireEvent.click(rect);
     await waitFor(() => expect(row.className).toContain('selected-row'));
     fireEvent.click(rect);
-    await waitFor(() =>
-      expect(row.className).not.toContain('selected-row'),
-    );
+    await waitFor(() => expect(row.className).toContain('selected-row'));
   });
 });
