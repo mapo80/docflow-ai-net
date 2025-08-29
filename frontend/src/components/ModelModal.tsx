@@ -22,7 +22,6 @@ export default function ModelModal({
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const [initial, setInitial] = useState<ModelDto | null>(null);
-  const [updateKey, setUpdateKey] = useState(false);
   const type = Form.useWatch('type', form) || initial?.type || 'hosted-llm';
   const { showError } = useApiError();
   const editing = !!modelId;
@@ -37,6 +36,7 @@ export default function ModelModal({
             type: m.type,
             provider: m.provider,
             baseUrl: m.baseUrl,
+            apiKey: m.apiKey,
           });
         })
         .catch(() => {});
@@ -57,7 +57,7 @@ export default function ModelModal({
             name: values.name,
             provider: values.provider,
             baseUrl: values.baseUrl,
-            apiKey: updateKey ? values.apiKey : undefined,
+            apiKey: values.apiKey,
           },
         });
         notify('success', 'Model updated');
@@ -140,21 +140,12 @@ export default function ModelModal({
             <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true, type: 'url' }]}> 
               <Input />
             </Form.Item>
-            {editing && initial?.hasApiKey && (
-              <Form.Item>
-                <Space>
-                  <Button type="link" onClick={() => setUpdateKey(!updateKey)} aria-label="Update API Key">
-                    {updateKey ? 'Keep existing key' : 'Update API Key'}
-                  </Button>
-                </Space>
-              </Form.Item>
-            )}
             <Form.Item
               name="apiKey"
               label="API Key"
-              rules={updateKey || !editing ? [{ required: true }] : []}
+              rules={[{ required: true }]}
             >
-              <Input.Password placeholder={editing ? '••••••' : undefined} disabled={editing && !updateKey} />
+              <Input.Password visibilityToggle />
             </Form.Item>
           </>
         )}

@@ -7,7 +7,7 @@ vi.mock('./notification', () => ({ default: mockNotify, notify: mockNotify }));
 vi.mock('../generated', () => ({
   ModelsService: {
     modelsCreate: vi.fn().mockResolvedValue({}),
-    modelsGet: vi.fn().mockResolvedValue({ id: '1', name: 'host', type: 'hosted-llm', provider: 'openai', baseUrl: 'https://x', hasApiKey: true }),
+    modelsGet: vi.fn().mockResolvedValue({ id: '1', name: 'host', type: 'hosted-llm', provider: 'openai', baseUrl: 'https://x', apiKey: 'k' }),
     modelsUpdate: vi.fn().mockResolvedValue({}),
   },
   ApiError: class ApiError extends Error {},

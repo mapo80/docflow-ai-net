@@ -14,6 +14,7 @@ public interface IModelRepository
     void SetDownloadStatus(Guid id, string status);
     void SetDownloaded(Guid id, bool downloaded, string? localPath = null, long? fileSize = null, string? checksum = null);
     void SetDownloadLogPath(Guid id, string path);
+    string? GetApiKey(Guid id);
     string? GetHfToken(Guid id);
     void TouchLastUsed(Guid id);
     void SaveChanges();

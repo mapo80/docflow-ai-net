@@ -14,7 +14,7 @@ public record ModelDto(
     bool? Downloaded,
     string? DownloadStatus,
     DateTimeOffset? LastUsedAt,
-    bool HasApiKey,
+    string? ApiKey,
     bool HasHfToken,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);

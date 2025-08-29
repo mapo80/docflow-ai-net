@@ -1485,8 +1485,9 @@
             "format": "date-time",
             "nullable": true
           },
-          "hasApiKey": {
-            "type": "boolean"
+          "apiKey": {
+            "type": "string",
+            "nullable": true
           },
           "hasHfToken": {
             "type": "boolean"
