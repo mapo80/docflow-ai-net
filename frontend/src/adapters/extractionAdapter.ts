@@ -47,7 +47,11 @@ export function parseOutputToViewModel(
   const pageDims = new Map<number, { width: number; height: number }>();
   pagesMeta.forEach((p: any, idx: number) => {
     const num = normalizePage(idx + 1);
-    pageDims.set(num, { width: Number(p.width ?? 0), height: Number(p.height ?? 0) });
+    const rawW = Number(p.width ?? 0);
+    const rawH = Number(p.height ?? 0);
+    const width = rawW < 100 ? rawW * 72 : rawW;
+    const height = rawH < 100 ? rawH * 72 : rawH;
+    pageDims.set(num, { width, height });
   });
 
   const wordsByPage = new Map<number, OcrWord[]>();
@@ -72,10 +76,14 @@ export function parseOutputToViewModel(
   const pages: { index: number; width: number; height: number; words: OcrWord[] }[] = pagesMeta.map(
     (p: any, idx: number) => {
       const num = normalizePage(idx + 1);
+      const rawW = Number(p.width ?? 0);
+      const rawH = Number(p.height ?? 0);
+      const width = rawW < 100 ? rawW * 72 : rawW;
+      const height = rawH < 100 ? rawH * 72 : rawH;
       return {
         index: num,
-        width: Number(p.width ?? 0),
-        height: Number(p.height ?? 0),
+        width,
+        height,
         words: wordsByPage.get(num) ?? [],
       };
     },

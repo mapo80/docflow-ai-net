@@ -66,4 +66,26 @@ describe('parseOutputToViewModel', () => {
     expect(res.fields[0].page).toBe(1);
     expect(res.pages[0].words).toHaveLength(1);
   });
+
+  it('scales inch-based page dimensions to pixels', () => {
+    const job = { paths: { input: { path: '/doc.pdf' } } } as JobDetailResponse;
+    const output = { fields: [] };
+    const md = {
+      pages: [{ number: 1, width: 8.5, height: 11 }],
+      boxes: [
+        {
+          page: 1,
+          xNorm: 0,
+          yNorm: 0,
+          widthNorm: 0.1,
+          heightNorm: 0.1,
+          text: 'x',
+        },
+      ],
+    };
+    const res = parseOutputToViewModel(job, output, md)!;
+    expect(res.pages[0].width).toBeCloseTo(612); // 8.5 * 72
+    expect(res.pages[0].height).toBeCloseTo(792); // 11 * 72
+    expect(res.pages[0].words[0].bbox.width).toBeCloseTo(61.2);
+  });
 });
