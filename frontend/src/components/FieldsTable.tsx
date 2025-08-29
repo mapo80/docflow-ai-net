@@ -34,7 +34,7 @@ export default function FieldsTable({ docType, fields, selectedFieldId, onFieldS
       data-testid="fields-table"
       onKeyDown={handleKey}
       tabIndex={0}
-      style={{ maxHeight: '60vh', overflowX: 'auto', overflowY: 'auto' }}
+      style={{ height: '100%', overflow: 'auto' }}
     >
       <Table
         dataSource={fields}
@@ -64,7 +64,7 @@ export default function FieldsTable({ docType, fields, selectedFieldId, onFieldS
           record.id === selectedFieldId ? 'selected-row' : ''
         }
         onRow={onRow as any}
-        scroll={{ x: true }}
+        scroll={{ x: 'max-content' }}
       />
     </div>
   );

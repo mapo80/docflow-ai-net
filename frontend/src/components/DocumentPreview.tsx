@@ -43,7 +43,12 @@ export default function DocumentPreview({
     const updateScale = () => {
       if (!page || !wrapperRef.current) return;
       const w = wrapperRef.current.clientWidth;
-      if (w > 0) setBaseScale(w / page.width);
+      const h = wrapperRef.current.clientHeight;
+      if (w > 0 && h > 0) {
+        const scaleW = w / page.width;
+        const scaleH = h / page.height;
+        setBaseScale(Math.min(scaleW, scaleH));
+      }
     };
     updateScale();
     window.addEventListener('resize', updateScale);
@@ -86,8 +91,24 @@ export default function DocumentPreview({
   const words = page.words;
   const scale = zoom * baseScale;
 
+  useEffect(() => {
+    if (!wrapperRef.current || selectedWordIds.size === 0) return;
+    const word = words.find((w) => selectedWordIds.has(w.id));
+    if (!word) return;
+    const s = scale;
+    const rectX = word.bbox.x * s + word.bbox.width * s / 2;
+    const rectY = word.bbox.y * s + word.bbox.height * s / 2;
+    const left = rectX - wrapperRef.current.clientWidth / 2;
+    const top = rectY - wrapperRef.current.clientHeight / 2;
+    wrapperRef.current.scrollTo?.({
+      left: Math.max(left, 0),
+      top: Math.max(top, 0),
+      behavior: 'smooth',
+    });
+  }, [selectedWordIds, scale, words]);
+
   return (
-    <div data-testid="doc-preview" style={{ width: '100%' }}>
+    <div data-testid="doc-preview" style={{ width: '100%', height: '100%' }}>
       <div
         style={{
           display: 'flex',
@@ -118,7 +139,10 @@ export default function DocumentPreview({
           />
           <Button
             icon={<ReloadOutlined />}
-            onClick={() => onZoomChange(1)}
+            onClick={() => {
+              onZoomChange(1);
+              wrapperRef.current?.scrollTo?.({ left: 0, top: 0 });
+            }}
             aria-label="reset zoom"
             data-testid="zoom-reset"
             type="text"
@@ -132,7 +156,7 @@ export default function DocumentPreview({
           overflow: 'auto',
           position: 'relative',
           width: '100%',
-          height: '80vh',
+          height: '100%',
         }}
       >
         <div

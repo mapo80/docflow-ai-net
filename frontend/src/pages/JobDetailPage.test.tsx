@@ -71,6 +71,11 @@ describe('JobDetailPage', () => {
     await waitFor(() =>
       expect(rect.getAttribute('fill')).toContain('0,123,255'),
     );
+    await waitFor(() =>
+      expect(screen.getByTestId('preview-inner').style.transform).toContain(
+        'scale(1.5)',
+      ),
+    );
     fireEvent.click(row);
     await waitFor(() => expect(rect.getAttribute('fill')).toBe('transparent'));
     fireEvent.click(rect);

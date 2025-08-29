@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Row, Col } from 'antd';
+import { Alert, Row, Col, Grid } from 'antd';
 import { JobsService, OpenAPI } from '../generated';
 import {
   parseOutputToViewModel,
@@ -27,6 +27,9 @@ export default function JobDetailPage({ jobId }: Props) {
   const [selectedWordIds, setSelectedWordIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(1);
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+  const BBOX_ZOOM = 1.5;
 
   useEffect(() => {
     const load = async () => {
@@ -95,6 +98,7 @@ export default function JobDetailPage({ jobId }: Props) {
     if (field?.page && field.page !== currentPage) {
       setCurrentPage(field.page);
     }
+    if (wordSet.size > 0) setZoom(BBOX_ZOOM);
   };
 
   const handleWordClick = (wordId: string) => {
@@ -106,6 +110,7 @@ export default function JobDetailPage({ jobId }: Props) {
       const already = selectedWordIds.has(wordId) && selectedWordIds.size === 1 && !selectedFieldId;
       setSelectedFieldId(undefined);
       setSelectedWordIds(already ? new Set() : new Set([wordId]));
+      if (!already) setZoom(BBOX_ZOOM);
     }
   };
 
@@ -113,9 +118,37 @@ export default function JobDetailPage({ jobId }: Props) {
   if (error) return <Alert type="error" message={error} />;
   if (!model) return <Alert message="No data" type="warning" />;
 
+  if (isMobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)' }}>
+        <div style={{ flex: 3, minHeight: 0 }}>
+          <DocumentPreview
+            docType={model.docType}
+            srcUrl={model.srcUrl}
+            pages={model.pages}
+            currentPage={currentPage}
+            zoom={zoom}
+            selectedWordIds={selectedWordIds}
+            onWordClick={handleWordClick}
+            onPageChange={setCurrentPage}
+            onZoomChange={setZoom}
+          />
+        </div>
+        <div style={{ flex: 2, minHeight: 0, overflow: 'auto' }}>
+          <FieldsTable
+            docType={model.docType}
+            fields={model.fields}
+            selectedFieldId={selectedFieldId}
+            onFieldSelect={handleFieldSelect}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Row gutter={[16, 16]}>
-      <Col xs={24} lg={16}>
+    <Row gutter={[16, 16]} style={{ height: 'calc(100vh - 64px)' }}>
+      <Col span={16} style={{ height: '100%' }}>
         <DocumentPreview
           docType={model.docType}
           srcUrl={model.srcUrl}
@@ -128,7 +161,7 @@ export default function JobDetailPage({ jobId }: Props) {
           onZoomChange={setZoom}
         />
       </Col>
-      <Col xs={24} lg={8}>
+      <Col span={8} style={{ height: '100%', overflow: 'auto' }}>
         <FieldsTable
           docType={model.docType}
           fields={model.fields}

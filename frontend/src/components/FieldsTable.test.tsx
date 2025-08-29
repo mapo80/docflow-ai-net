@@ -67,7 +67,7 @@ describe('FieldsTable', () => {
     const wrapper = container.querySelector(
       '[data-testid="fields-table"]',
     ) as HTMLElement;
-    expect(wrapper.style.overflowY).toBe('auto');
+    expect(wrapper.style.overflow).toBe('auto');
     const body = container.querySelector('.ant-table-content') as HTMLElement;
     expect(body.style.overflowX).toBe('auto');
   });

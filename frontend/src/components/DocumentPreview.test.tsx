@@ -64,7 +64,7 @@ describe('DocumentPreview', () => {
     expect(getByTestId('preview-scroll')).toBeTruthy();
   });
 
-  it('scales document to container width', async () => {
+  it('scales document to container size', async () => {
     const { getByTestId } = render(
       <DocumentPreview
         docType={sample.docType}
@@ -80,11 +80,46 @@ describe('DocumentPreview', () => {
     );
     const scroll = getByTestId('preview-scroll');
     Object.defineProperty(scroll, 'clientWidth', { value: 200, configurable: true });
+    Object.defineProperty(scroll, 'clientHeight', { value: 400, configurable: true });
     window.dispatchEvent(new Event('resize'));
     await waitFor(() => {
       const inner = getByTestId('preview-inner');
       expect(inner.style.transform).toContain('scale(2)');
     });
+  });
+
+  it('centers on selected word', async () => {
+    const { getByTestId, rerender } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={2}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    const scroll = getByTestId('preview-scroll');
+    Object.defineProperty(scroll, 'clientWidth', { value: 100, configurable: true });
+    Object.defineProperty(scroll, 'clientHeight', { value: 200, configurable: true });
+    scroll.scrollTo = vi.fn();
+    rerender(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={2}
+        selectedWordIds={new Set(['w1'])}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    await waitFor(() => expect(scroll.scrollTo).toHaveBeenCalled());
   });
 
   it('invokes zoom controls', () => {
