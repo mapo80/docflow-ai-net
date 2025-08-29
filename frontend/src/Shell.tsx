@@ -13,8 +13,9 @@ import MenuOutlined from '@ant-design/icons/MenuOutlined';
 import RobotOutlined from '@ant-design/icons/RobotOutlined';
 import FileMarkdownOutlined from '@ant-design/icons/FileMarkdownOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { openHangfire } from './hangfire';
+import Loader from './components/Loader';
 
 const { Sider, Header, Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -93,7 +94,9 @@ export default function Shell() {
           <span style={{ fontWeight: 600 }}>DocFlow AI</span>
         </Header>
         <Content style={{ padding: 24 }}>
-          <Outlet />
+          <Suspense fallback={<Loader />}>
+            <Outlet />
+          </Suspense>
         </Content>
       </Layout>
       {isMobile && (
