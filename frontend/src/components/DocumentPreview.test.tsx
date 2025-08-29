@@ -88,6 +88,31 @@ describe('DocumentPreview', () => {
     });
   });
 
+  it('fits width when requested', async () => {
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType={sample.docType}
+        srcUrl={sample.srcUrl}
+        pages={sample.pages}
+        currentPage={1}
+        zoom={1}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+        fitWidth
+      />,
+    );
+    const scroll = getByTestId('preview-scroll');
+    Object.defineProperty(scroll, 'clientWidth', { value: 200, configurable: true });
+    Object.defineProperty(scroll, 'clientHeight', { value: 50, configurable: true });
+    window.dispatchEvent(new Event('resize'));
+    await waitFor(() => {
+      const inner = getByTestId('preview-inner');
+      expect(inner.style.transform).toContain('scale(2)');
+    });
+  });
+
   it('centers on selected word', async () => {
     const { getByTestId, rerender } = render(
       <DocumentPreview
@@ -173,5 +198,39 @@ describe('DocumentPreview', () => {
       expect(getPage).toHaveBeenCalledWith(1);
     });
     HTMLCanvasElement.prototype.getContext = orig;
+  });
+
+  it('renders PDF at device pixel ratio', async () => {
+    const pdfjs: any = await import('pdfjs-dist');
+    const getPage = vi.fn(async () => ({
+      getViewport: ({ scale }: any) => ({ width: 100 * scale, height: 200 * scale }),
+      render: () => ({ promise: Promise.resolve() }),
+    }));
+    (pdfjs.getDocument as any).mockReturnValue({
+      promise: Promise.resolve({ getPage }),
+    });
+    const origCtx = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
+    const origRatio = window.devicePixelRatio;
+    Object.defineProperty(window, 'devicePixelRatio', { value: 2, configurable: true });
+    const { getByTestId } = render(
+      <DocumentPreview
+        docType="pdf"
+        srcUrl="file.pdf"
+        pages={[{ index: 1, width: 100, height: 200, words: [] }]}
+        currentPage={1}
+        zoom={1}
+        selectedWordIds={new Set()}
+        onWordClick={() => {}}
+        onPageChange={() => {}}
+        onZoomChange={() => {}}
+      />,
+    );
+    await waitFor(() => expect(pdfjs.getDocument).toHaveBeenCalled());
+    const canvas = getByTestId('pdf-canvas') as HTMLCanvasElement;
+    expect(canvas.width).toBe(200);
+    expect(canvas.style.width).toBe('100px');
+    Object.defineProperty(window, 'devicePixelRatio', { value: origRatio, configurable: true });
+    HTMLCanvasElement.prototype.getContext = origCtx;
   });
 });

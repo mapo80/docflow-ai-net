@@ -20,6 +20,7 @@ export interface DocumentPreviewProps {
   onWordClick: (id: string) => void;
   onPageChange: (p: number) => void;
   onZoomChange: (z: number) => void;
+  fitWidth?: boolean;
 }
 
 export default function DocumentPreview({
@@ -32,6 +33,7 @@ export default function DocumentPreview({
   onWordClick,
   onPageChange,
   onZoomChange,
+  fitWidth = false,
 }: DocumentPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -47,13 +49,13 @@ export default function DocumentPreview({
       if (w > 0 && h > 0) {
         const scaleW = w / page.width;
         const scaleH = h / page.height;
-        setBaseScale(Math.min(scaleW, scaleH));
+        setBaseScale(fitWidth ? scaleW : Math.min(scaleW, scaleH));
       }
     };
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, [page]);
+  }, [page, fitWidth]);
 
   useEffect(() => {
     if (!page || docType !== 'pdf') return;
@@ -65,11 +67,15 @@ export default function DocumentPreview({
       const pdf = await pdfjs.getDocument(srcUrl).promise;
       if (cancelled) return;
       const pdfPage = await pdf.getPage(currentPage);
-      const viewport = pdfPage.getViewport({ scale: 1 });
+      const ratio = window.devicePixelRatio || 1;
+      const rawViewport = pdfPage.getViewport({ scale: 1 });
+      const viewport = pdfPage.getViewport({ scale: ratio });
       const canvas = canvasRef.current!;
       const ctx = canvas.getContext('2d')!;
       canvas.width = viewport.width;
       canvas.height = viewport.height;
+      canvas.style.width = `${rawViewport.width}px`;
+      canvas.style.height = `${rawViewport.height}px`;
       await pdfPage.render({ canvasContext: ctx, viewport }).promise;
     })();
     return () => {

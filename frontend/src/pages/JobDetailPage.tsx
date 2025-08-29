@@ -137,6 +137,7 @@ export default function JobDetailPage({ jobId }: Props) {
             onWordClick={handleWordClick}
             onPageChange={setCurrentPage}
             onZoomChange={setZoom}
+            fitWidth={false}
           />
         </div>
         <div style={{ flex: 2, minHeight: 0, overflow: 'auto' }}>
@@ -145,6 +146,7 @@ export default function JobDetailPage({ jobId }: Props) {
             fields={model.fields}
             selectedFieldId={selectedFieldId}
             onFieldSelect={handleFieldSelect}
+            isMobile
           />
         </div>
       </div>
@@ -153,7 +155,7 @@ export default function JobDetailPage({ jobId }: Props) {
 
   return (
     <Row gutter={[16, 16]} style={{ height: 'calc(100vh - 64px)' }}>
-      <Col span={16} style={{ height: '100%' }}>
+      <Col span={14} style={{ height: '100%' }}>
         <DocumentPreview
           docType={model.docType}
           srcUrl={model.srcUrl}
@@ -164,9 +166,10 @@ export default function JobDetailPage({ jobId }: Props) {
           onWordClick={handleWordClick}
           onPageChange={setCurrentPage}
           onZoomChange={setZoom}
+          fitWidth
         />
       </Col>
-      <Col span={8} style={{ height: '100%', overflow: 'auto' }}>
+      <Col span={10} style={{ height: '100%', overflow: 'auto' }}>
         <FieldsTable
           docType={model.docType}
           fields={model.fields}

@@ -68,8 +68,20 @@ describe('FieldsTable', () => {
     expect(onSelect).toHaveBeenCalledWith('f2');
   });
 
-  it('sets scroll styles', () => {
-    const { container } = render(
+  it('sets horizontal scroll only on mobile', () => {
+    const { container: mobile } = render(
+      <FieldsTable
+        docType="pdf"
+        fields={fields}
+        selectedFieldId="f1"
+        onFieldSelect={() => {}}
+        isMobile
+      />,
+    );
+    const bodyMobile = mobile.querySelector('.ant-table-content') as HTMLElement;
+    expect(bodyMobile.style.overflowX).toBe('auto');
+
+    const { container: desktop } = render(
       <FieldsTable
         docType="pdf"
         fields={fields}
@@ -77,12 +89,8 @@ describe('FieldsTable', () => {
         onFieldSelect={() => {}}
       />,
     );
-    const wrapper = container.querySelector(
-      '[data-testid="fields-table"]',
-    ) as HTMLElement;
-    expect(wrapper.style.overflow).toBe('auto');
-    const body = container.querySelector('.ant-table-content') as HTMLElement;
-    expect(body.style.overflowX).toBe('auto');
+    const bodyDesktop = desktop.querySelector('.ant-table-content') as HTMLElement;
+    expect(bodyDesktop.style.overflowX).toBe('');
   });
 
   it('shows page dash and bbox icons for images', () => {

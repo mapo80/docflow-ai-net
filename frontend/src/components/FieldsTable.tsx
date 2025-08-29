@@ -8,9 +8,10 @@ interface Props {
   fields: ExtractedField[];
   selectedFieldId?: string;
   onFieldSelect: (id: string) => void;
+  isMobile?: boolean;
 }
 
-export default function FieldsTable({ docType, fields, selectedFieldId, onFieldSelect }: Props) {
+export default function FieldsTable({ docType, fields, selectedFieldId, onFieldSelect, isMobile }: Props) {
   const onRow = useCallback(
     (record: ExtractedField) => ({
       onClick: () => onFieldSelect(record.id),
@@ -71,7 +72,7 @@ export default function FieldsTable({ docType, fields, selectedFieldId, onFieldS
           record.id === selectedFieldId ? 'selected-row' : ''
         }
         onRow={onRow as any}
-        scroll={{ x: 'max-content' }}
+        scroll={isMobile ? { x: 'max-content' } : undefined}
       />
     </div>
   );
