@@ -148,8 +148,12 @@ describe('DocumentPreview', () => {
     const scroll = getByTestId('preview-scroll');
     Object.defineProperty(scroll, 'clientWidth', { value: 50, configurable: true });
     Object.defineProperty(scroll, 'clientHeight', { value: 100, configurable: true });
+    Object.defineProperty(scroll, 'scrollWidth', { value: 50, configurable: true });
     window.dispatchEvent(new Event('resize'));
-    await waitFor(() => expect(scroll.style.overflowX).toBe('hidden'));
+    await waitFor(() => {
+      expect(scroll.style.overflowX).toBe('auto');
+      expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth);
+    });
   });
 
   it('shows horizontal scroll when zoomed in', async () => {
@@ -169,8 +173,12 @@ describe('DocumentPreview', () => {
     const scroll = getByTestId('preview-scroll');
     Object.defineProperty(scroll, 'clientWidth', { value: 50, configurable: true });
     Object.defineProperty(scroll, 'clientHeight', { value: 100, configurable: true });
+    Object.defineProperty(scroll, 'scrollWidth', { value: 150, configurable: true });
     window.dispatchEvent(new Event('resize'));
-    await waitFor(() => expect(scroll.style.overflowX).toBe('auto'));
+    await waitFor(() => {
+      expect(scroll.style.overflowX).toBe('auto');
+      expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
+    });
   });
 
   it('centers on selected word', async () => {
