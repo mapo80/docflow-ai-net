@@ -6,13 +6,13 @@ export type HeatCell = 'na' | 'notrun' | 'pass' | 'fail';
 export function cellColor(c: HeatCell): string {
   switch (c) {
     case 'pass':
-      return '#d9f7be';
+      return 'var(--ant-color-success-bg)';
     case 'fail':
-      return '#ffa39e';
+      return 'var(--ant-color-error-bg)';
     case 'notrun':
-      return '#fff1b8';
+      return 'var(--ant-color-warning-bg)';
     case 'na':
-      return '#f0f0f0';
+      return 'var(--ant-color-bg-container)';
   }
 }
 
@@ -32,7 +32,7 @@ function Legend() {
               width: 16,
               height: 16,
               background: cellColor(i.v),
-              border: '1px solid #d9d9d9',
+              border: '1px solid var(--ant-color-border)',
             }}
           />
           <span>{i.label}</span>
@@ -199,8 +199,8 @@ export default function CoverageHeatmap({
                       writingMode: 'vertical-rl',
                       transform: 'rotate(180deg)',
                       padding: 6,
-                      borderBottom: '1px solid #eee',
-                      borderLeft: '1px solid #f5f5f5',
+                      borderBottom: '1px solid var(--ant-color-border)',
+                      borderLeft: '1px solid var(--ant-color-border)',
                       fontSize: 12,
                     }}
                   >
@@ -209,9 +209,9 @@ export default function CoverageHeatmap({
                 ))}
                 <th
                   style={{
-                    background: '#fafafa',
+                    background: 'var(--ant-color-bg-container)',
                     padding: '8px 12px',
-                    borderBottom: '1px solid #eee',
+                    borderBottom: '1px solid var(--ant-color-border)',
                     position: 'sticky',
                     right: 0,
                     zIndex: 2,
@@ -228,10 +228,10 @@ export default function CoverageHeatmap({
                     style={{
                       position: 'sticky',
                       left: 0,
-                      background: '#fff',
+                      background: 'var(--ant-color-bg-container)',
                       zIndex: 1,
                       padding: '6px 12px',
-                      borderRight: '1px solid #f5f5f5',
+                      borderRight: '1px solid var(--ant-color-border)',
                     }}
                   >
                     {t.name}
@@ -239,7 +239,11 @@ export default function CoverageHeatmap({
                   {fields.map((f, ci) => (
                     <td
                       key={t.id + '-' + f}
-                      style={{ padding: 0, borderLeft: '1px solid #f5f5f5', borderBottom: '1px solid #fafafa' }}
+                      style={{
+                        padding: 0,
+                        borderLeft: '1px solid var(--ant-color-border)',
+                        borderBottom: '1px solid var(--ant-color-border)',
+                      }}
                     >
                       <Tooltip title={`${t.name} · ${f}: ${matrix[ri][ci]}`}>
                         <div
@@ -253,7 +257,7 @@ export default function CoverageHeatmap({
                     style={{
                       position: 'sticky',
                       right: 0,
-                      background: '#fff',
+                      background: 'var(--ant-color-bg-container)',
                       padding: '0 8px',
                       textAlign: 'right',
                       fontVariantNumeric: 'tabular-nums',
@@ -270,10 +274,10 @@ export default function CoverageHeatmap({
                   style={{
                     position: 'sticky',
                     left: 0,
-                    background: '#fafafa',
+                    background: 'var(--ant-color-bg-container)',
                     zIndex: 2,
                     padding: '8px 12px',
-                    borderTop: '1px solid #eee',
+                    borderTop: '1px solid var(--ant-color-border)',
                   }}
                 >
                   Col %
@@ -281,17 +285,23 @@ export default function CoverageHeatmap({
               {fields.map((_, ci) => (
                 <td
                   key={'col' + ci}
-                    style={{
-                      textAlign: 'center',
-                      fontVariantNumeric: 'tabular-nums',
-                      background: '#fafafa',
-                      borderTop: '1px solid #eee',
-                    }}
+                  style={{
+                    textAlign: 'center',
+                    fontVariantNumeric: 'tabular-nums',
+                    background: 'var(--ant-color-bg-container)',
+                    borderTop: '1px solid var(--ant-color-border)',
+                  }}
                   >
                     {colPassPct[ci]}%
                   </td>
                 ))}
-                <td style={{ position: 'sticky', right: 0, background: '#fafafa' }}></td>
+                <td
+                  style={{
+                    position: 'sticky',
+                    right: 0,
+                    background: 'var(--ant-color-bg-container)',
+                  }}
+                ></td>
               </tr>
             </tfoot>
           </table>

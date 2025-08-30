@@ -165,7 +165,11 @@ export default function RuleTestsPanel({ ruleId }: { ruleId: string }) {
       render: (_: any, row: TestRow) => {
         const r = results[row.name];
         if (!r) return <Tag>not run</Tag>;
-        return r.passed ? <Tag color="green">passed</Tag> : <Tag color="red">failed</Tag>;
+        return r.passed ? (
+          <Tag color="var(--ant-color-success)">passed</Tag>
+        ) : (
+          <Tag color="var(--ant-color-error)">failed</Tag>
+        );
       },
     },
     { title: 'Name', dataIndex: 'name' },
@@ -204,8 +208,16 @@ export default function RuleTestsPanel({ ruleId }: { ruleId: string }) {
     >
       <Space style={{ marginBottom: 12 }}>
         <Statistic title="Total" value={stats.total} />
-        <Statistic title="Passed" value={stats.passed} valueStyle={{ color: '#3f8600' }} />
-        <Statistic title="Failed" value={stats.failed} valueStyle={{ color: '#cf1322' }} />
+        <Statistic
+          title="Passed"
+          value={stats.passed}
+          valueStyle={{ color: 'var(--ant-color-success)' }}
+        />
+        <Statistic
+          title="Failed"
+          value={stats.failed}
+          valueStyle={{ color: 'var(--ant-color-error)' }}
+        />
         {loading ? <Progress percent={70} status="active" style={{ minWidth: 200 }} /> : null}
       </Space>
       <Table<TestRow>

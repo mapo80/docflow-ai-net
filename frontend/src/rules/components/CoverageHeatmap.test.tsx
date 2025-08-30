@@ -76,9 +76,9 @@ describe('CoverageHeatmap', () => {
   });
 
   it('maps status to colors', () => {
-    expect(cellColor('pass')).toBe('#d9f7be');
-    expect(cellColor('fail')).toBe('#ffa39e');
-    expect(cellColor('notrun')).toBe('#fff1b8');
-    expect(cellColor('na')).toBe('#f0f0f0');
+    expect(cellColor('pass')).toBe('var(--ant-color-success-bg)');
+    expect(cellColor('fail')).toBe('var(--ant-color-error-bg)');
+    expect(cellColor('notrun')).toBe('var(--ant-color-warning-bg)');
+    expect(cellColor('na')).toBe('var(--ant-color-bg-container)');
   });
 });
