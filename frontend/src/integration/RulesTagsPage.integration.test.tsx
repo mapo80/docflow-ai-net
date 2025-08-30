@@ -18,7 +18,7 @@ describe('RulesTagsPage integration', () => {
       const url = typeof input === 'string' ? input : input.url;
       if (url === '/api/v1/suites' && (!init || init.method === 'GET')) {
         return Promise.resolve(
-          new Response(JSON.stringify([{ id: 's1', name: 'suite1' }]), {
+          new Response(JSON.stringify({ items: [{ id: 's1', name: 'suite1' }] }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
           }),
@@ -26,7 +26,7 @@ describe('RulesTagsPage integration', () => {
       }
       if (url === '/api/v1/tags' && (!init || init.method === 'GET')) {
         return Promise.resolve(
-          new Response(JSON.stringify([{ id: 't1', name: 'tag1' }]), {
+          new Response(JSON.stringify({ items: [{ id: 't1', name: 'tag1' }] }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
           }),

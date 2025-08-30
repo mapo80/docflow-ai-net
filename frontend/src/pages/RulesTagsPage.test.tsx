@@ -28,8 +28,8 @@ vi.mock('../generated', () => ({
 }));
 
 beforeEach(() => {
-  (SuitesService.getApiV1Suites as any).mockResolvedValue(suites);
-  (TagsService.getApiV1Tags as any).mockResolvedValue(tags);
+  (SuitesService.getApiV1Suites as any).mockResolvedValue({ items: suites });
+  (TagsService.getApiV1Tags as any).mockResolvedValue({ items: tags });
   (SuitesService.postApiV1Suites as any).mockResolvedValue({});
   (TagsService.postApiV1Tags as any).mockResolvedValue({});
   (SuitesService.deleteApiV1Suites as any).mockResolvedValue({});

@@ -31,8 +31,8 @@ export default function RulesTagsPage() {
         SuitesService.getApiV1Suites(),
         TagsService.getApiV1Tags(),
       ]);
-      setSuites(Array.isArray(s) ? s : []);
-      setTags(Array.isArray(t) ? t : []);
+      setSuites(Array.isArray(s) ? s : s?.items ?? []);
+      setTags(Array.isArray(t) ? t : t?.items ?? []);
     } catch {
       notify('error', 'Failed to load taxonomies.');
     }
