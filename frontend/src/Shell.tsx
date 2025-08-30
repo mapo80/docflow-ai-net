@@ -15,6 +15,7 @@ import FileMarkdownOutlined from '@ant-design/icons/FileMarkdownOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import BranchesOutlined from '@ant-design/icons/BranchesOutlined';
 import TagsOutlined from '@ant-design/icons/TagsOutlined';
+import ToolOutlined from '@ant-design/icons/ToolOutlined';
 import { useState } from 'react';
 import { openHangfire } from './hangfire';
 
@@ -49,6 +50,7 @@ export default function Shell() {
       children: [
         { key: '/rules', icon: <BranchesOutlined />, label: 'Rules' },
         { key: '/rules/tags', icon: <TagsOutlined />, label: 'Tags' },
+        { key: '/rules/builder', icon: <ToolOutlined />, label: 'Builder' },
       ],
     },
     { key: '/templates', icon: <AppstoreOutlined />, label: 'Templates' },
