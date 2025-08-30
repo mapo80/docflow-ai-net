@@ -44,6 +44,18 @@ public static class RuleTestsEndpoints
             return ok ? Results.NoContent() : Results.NotFound();
         });
 
+        group.MapPut("/{testId:guid}/content", async (Guid ruleId, Guid testId, UpdateContent req, RuleTestCaseService svc, CancellationToken ct) =>
+        {
+            var ok = await svc.UpdateContentAsync(ruleId, testId, req.Input, req.Expect, ct);
+            return ok ? Results.NoContent() : Results.NotFound();
+        });
+
+        group.MapDelete("/{testId:guid}", async (Guid ruleId, Guid testId, RuleTestCaseService svc, CancellationToken ct) =>
+        {
+            var ok = await svc.DeleteAsync(ruleId, testId, ct);
+            return ok ? Results.NoContent() : Results.NotFound();
+        });
+
         group.MapPost("/{testId:guid}/clone", async (Guid ruleId, Guid testId, CloneTestRequest req, RuleTestCaseService svc, CancellationToken ct) =>
         {
             var clone = await svc.CloneAsync(ruleId, testId, req.NewName, req.Suite, req.Tags, ct);
@@ -73,6 +85,7 @@ public static class RuleTestsEndpoints
 
     public record TestUpsert(string Name, JsonObject Input, JsonObject Expect, string? Suite, string[]? Tags, int? Priority);
     public record UpdateMeta(string? Name, string? Suite, string[]? Tags, int? Priority);
+    public record UpdateContent(JsonObject Input, JsonObject Expect);
     public record CloneTestRequest(string? NewName, string? Suite, string[]? Tags);
     public record RunSelectedRequest(List<Guid> Ids);
 }

@@ -52,13 +52,19 @@ public class RuleTestsEndpointsTests : IClassFixture<TempDirFixture>
         var upd = await client.PutAsJsonAsync($"/api/v1/rules/{ruleId}/tests/{t2Id}", new { name = "t2-upd", suite = "s", tags = new[] { "a" }, priority = 2 });
         upd.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
+        var updContent = await client.PutAsJsonAsync($"/api/v1/rules/{ruleId}/tests/{t1Id}/content", new { input = new JsonObject(), expect = expect2 });
+        updContent.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
         var cloneResp = await client.PostAsJsonAsync($"/api/v1/rules/{ruleId}/tests/{t1Id}/clone", new { newName = "copy", suite = (string?)null, tags = (string[]?)null });
         cloneResp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var delResp = await client.DeleteAsync($"/api/v1/rules/{ruleId}/tests/{t2Id}");
+        delResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var runAll = await client.PostAsync($"/api/v1/rules/{ruleId}/tests/run", null);
         runAll.StatusCode.Should().Be(HttpStatusCode.OK);
         var runArr = await runAll.Content.ReadFromJsonAsync<JsonArray>();
-        runArr!.Count.Should().Be(3);
+        runArr!.Count.Should().Be(2);
 
         var runSel = await client.PostAsJsonAsync($"/api/v1/rules/{ruleId}/tests/run-selected", new { ids = new[] { t1Id } });
         runSel.StatusCode.Should().Be(HttpStatusCode.OK);

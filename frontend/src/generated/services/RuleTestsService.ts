@@ -5,6 +5,7 @@
 import type { CloneTestRequest } from '../models/CloneTestRequest';
 import type { RunSelectedRequest } from '../models/RunSelectedRequest';
 import type { TestUpsert } from '../models/TestUpsert';
+import type { UpdateContent } from '../models/UpdateContent';
 import type { UpdateMeta } from '../models/UpdateMeta';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -87,6 +88,50 @@ export class RuleTestsService {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/rules/{ruleId}/tests/{testId}',
+            path: {
+                'ruleId': ruleId,
+                'testId': testId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static deleteApiV1RulesTests({
+        ruleId,
+        testId,
+    }: {
+        ruleId: string,
+        testId: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/rules/{ruleId}/tests/{testId}',
+            path: {
+                'ruleId': ruleId,
+                'testId': testId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static putApiV1RulesTestsContent({
+        ruleId,
+        testId,
+        requestBody,
+    }: {
+        ruleId: string,
+        testId: string,
+        requestBody: UpdateContent,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/rules/{ruleId}/tests/{testId}/content',
             path: {
                 'ruleId': ruleId,
                 'testId': testId,

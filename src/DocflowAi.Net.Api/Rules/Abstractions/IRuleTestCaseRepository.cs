@@ -7,6 +7,7 @@ public interface IRuleTestCaseRepository
     IReadOnlyList<RuleTestCase> GetByRule(Guid ruleId);
     void Add(RuleTestCase test);
     void Update(RuleTestCase test);
+    void Remove(RuleTestCase test);
     void SaveChanges();
 }
 

@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Linq;
 using System.Collections.Generic;
 using DocflowAi.Net.Api.Rules.Abstractions;
@@ -73,6 +74,26 @@ public class RuleTestCaseService
         if (tags != null) t.TagsCsv = string.Join(',', tags);
         if (priority.HasValue) t.Priority = priority.Value;
         _tests.Update(t);
+        _tests.SaveChanges();
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> UpdateContentAsync(Guid ruleId, Guid testId, JsonObject input, JsonObject expect, CancellationToken ct)
+    {
+        var t = _tests.GetByRule(ruleId).FirstOrDefault(x => x.Id == testId);
+        if (t == null) return Task.FromResult(false);
+        t.InputJson = input.ToJsonString();
+        t.ExpectJson = expect.ToJsonString();
+        _tests.Update(t);
+        _tests.SaveChanges();
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> DeleteAsync(Guid ruleId, Guid testId, CancellationToken ct)
+    {
+        var t = _tests.GetByRule(ruleId).FirstOrDefault(x => x.Id == testId);
+        if (t == null) return Task.FromResult(false);
+        _tests.Remove(t);
         _tests.SaveChanges();
         return Task.FromResult(true);
     }
@@ -213,15 +234,40 @@ public class RuleTestCaseService
         {
             foreach (var kv in fexp)
             {
-                var actualField = actual["fields"]?.AsObject()?[kv.Key];
-                if (!JsonNode.DeepEquals(actualField, kv.Value))
+                var actualField = actual[kv.Key];
+                var expected = kv.Value;
+                bool fieldPass = true;
+
+                if (expected is JsonObject eobj)
+                {
+                    if (eobj.TryGetPropertyValue("equals", out var eq))
+                    {
+                        if (!JsonNode.DeepEquals(actualField, eq)) fieldPass = false;
+                    }
+                    else if (eobj.TryGetPropertyValue("regex", out var rxNode))
+                    {
+                        var av = actualField?.GetValue<string>() ?? string.Empty;
+                        var pattern = rxNode?.GetValue<string>() ?? string.Empty;
+                        if (!Regex.IsMatch(av, pattern)) fieldPass = false;
+                    }
+                    else if (!JsonNode.DeepEquals(actualField, expected))
+                    {
+                        fieldPass = false;
+                    }
+                }
+                else if (!JsonNode.DeepEquals(actualField, expected))
+                {
+                    fieldPass = false;
+                }
+
+                if (!fieldPass)
                 {
                     pass = false;
                     diff.Add(new JsonObject
                     {
                         ["field"] = kv.Key,
-                        ["expected"] = kv.Value,
-                        ["actual"] = actualField
+                        ["expected"] = expected.DeepClone(),
+                        ["actual"] = actualField?.DeepClone()
                     });
                 }
             }
