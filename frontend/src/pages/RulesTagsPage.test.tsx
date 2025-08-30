@@ -116,6 +116,14 @@ describe('RulesTagsPage', () => {
     );
   });
 
+  it('handles empty responses', async () => {
+    (SuitesService.getApiV1Suites as any).mockResolvedValueOnce(undefined);
+    (TagsService.getApiV1Tags as any).mockResolvedValueOnce(undefined);
+    render(<RulesTagsPage />);
+    await waitFor(() => expect(SuitesService.getApiV1Suites).toHaveBeenCalled());
+    expect(screen.getAllByText('No data').length).toBeGreaterThanOrEqual(2);
+  });
+
   it('renders lists on mobile', async () => {
     breakpointMock.md = false;
     render(<RulesTagsPage />);
