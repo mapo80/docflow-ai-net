@@ -41,6 +41,7 @@ describe('PropertyReport', () => {
     await waitFor(() => expect(PropertiesService.postApiV1RulesPropertiesRun).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByText('p')).toBeInTheDocument());
     fireEvent.click(screen.getAllByRole('checkbox')[1]);
+    fireEvent.click(screen.getByText('Select all'));
     fireEvent.click(screen.getByText('Import as tests'));
     await waitFor(() =>
       expect(PropertiesService.postApiV1RulesPropertiesImportFailures).toHaveBeenCalledWith({

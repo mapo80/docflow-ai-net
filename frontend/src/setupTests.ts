@@ -26,3 +26,12 @@ Object.defineProperty(globalThis, 'matchMedia', {
 window.getComputedStyle = vi.fn(() => ({
   getPropertyValue: () => '',
 }) as any);
+
+// polyfill ResizeObserver for libraries like Recharts
+class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+(window as any).ResizeObserver = ResizeObserver;
+(globalThis as any).ResizeObserver = ResizeObserver;
