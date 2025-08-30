@@ -13,6 +13,8 @@ const ModelsPage = lazy(withLoader(() => import('./pages/ModelsPage')));
 const RulesPage = lazy(withLoader(() => import('./pages/RulesPage')));
 const RulesTagsPage = lazy(withLoader(() => import('./pages/RulesTagsPage')));
 const RuleBuilderPage = lazy(withLoader(() => import('./pages/RuleBuilderPage')));
+const RuleBundlesPage = lazy(withLoader(() => import('./pages/RuleBundlesPage')));
+const RuleDecisionPage = lazy(withLoader(() => import('./pages/RuleDecisionPage')));
 const RuleEditPage = lazy(withLoader(() => import('./pages/RuleEditPage')));
 const TemplatesList = lazy(withLoader(() => import('./pages/TemplatesList')));
 const MarkdownPage = lazy(withLoader(() => import('./pages/MarkdownPage')));
@@ -50,6 +52,8 @@ function App() {
             <Route path="rules/:id" element={<RuleEditPage />} />
             <Route path="rules/tags" element={<RulesTagsPage />} />
             <Route path="rules/builder" element={<RuleBuilderPage />} />
+            <Route path="rules/bundles" element={<RuleBundlesPage />} />
+            <Route path="rules/decision" element={<RuleDecisionPage />} />
             <Route path="templates" element={<TemplatesList />} />
             <Route path="markdown" element={<MarkdownPage />} />
             <Route path="markdown-systems" element={<MarkdownSystemsPage />} />

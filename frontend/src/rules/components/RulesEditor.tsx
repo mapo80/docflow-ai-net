@@ -80,7 +80,14 @@ export default function RulesEditor({ ruleId }: RulesEditorProps) {
       title={rule.name}
       extra={
         <Space>
-          <EditorSyncBadge saving={saving} synced={synced} />
+          <Space style={{marginBottom:12}} wrap>
+          <span style={{opacity:0.7}}>Insert snippet:</span>
+          <Button size="small" onClick={()=>insertSnippet('var s = g.Get<string>("iban") ?? string.Empty;\n')}>Get iban</Button>
+          <Button size="small" onClick={()=>insertSnippet('s = System.Text.RegularExpressions.Regex.Replace(s, "[^A-Z0-9]+", "");\n')}>Regex strip non-alnum</Button>
+          <Button size="small" onClick={()=>insertSnippet('s = s.ToUpperInvariant();\n')}>Uppercase</Button>
+          <Button size="small" onClick={()=>insertSnippet('g.Set("iban", s);\n')}>Set iban</Button>
+        </Space>
+        <EditorSyncBadge saving={saving} synced={synced} />
           <Button onClick={handleCompile}>Compile</Button>
           <Button type="primary" onClick={handleSave}>
             Save
@@ -88,7 +95,14 @@ export default function RulesEditor({ ruleId }: RulesEditorProps) {
         </Space>
       }
     >
-      <Editor
+      <Space style={{marginBottom:12}} wrap>
+          <span style={{opacity:0.7}}>Insert snippet:</span>
+          <Button size="small" onClick={()=>insertSnippet('var s = g.Get<string>("iban") ?? string.Empty;\n')}>Get iban</Button>
+          <Button size="small" onClick={()=>insertSnippet('s = System.Text.RegularExpressions.Regex.Replace(s, "[^A-Z0-9]+", "");\n')}>Regex strip non-alnum</Button>
+          <Button size="small" onClick={()=>insertSnippet('s = s.ToUpperInvariant();\n')}>Uppercase</Button>
+          <Button size="small" onClick={()=>insertSnippet('g.Set("iban", s);\n')}>Set iban</Button>
+        </Space>
+        <Editor
         height="50vh"
         defaultLanguage="csharp"
         value={code}

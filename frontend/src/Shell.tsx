@@ -51,6 +51,8 @@ export default function Shell() {
         { key: '/rules', icon: <BranchesOutlined />, label: 'Rules' },
         { key: '/rules/tags', icon: <TagsOutlined />, label: 'Tags' },
         { key: '/rules/builder', icon: <ToolOutlined />, label: 'Builder' },
+        { key: '/rules/bundles', icon: <UploadOutlined />, label: 'Bundles' },
+        { key: '/rules/decision', icon: <TableOutlined />, label: 'Decision Table' },
       ],
     },
     { key: '/templates', icon: <AppstoreOutlined />, label: 'Templates' },
