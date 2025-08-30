@@ -7,7 +7,7 @@ public static class MarkdownSystemEndpoints
 {
     public static IEndpointRouteBuilder MapMarkdownSystemEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/markdown-systems")
+        var group = builder.MapGroup("/api/v1/markdown-systems")
             .WithTags("MarkdownSystems")
             .RequireAuthorization()
             .RequireRateLimiting("General");
@@ -32,7 +32,7 @@ public static class MarkdownSystemEndpoints
             try
             {
                 var sys = svc.Create(req);
-                return Results.Created($"/api/markdown-systems/{sys.Id}", sys);
+                return Results.Created($"/api/v1/markdown-systems/{sys.Id}", sys);
             }
             catch (InvalidOperationException ex)
             {

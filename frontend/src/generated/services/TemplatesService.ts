@@ -28,7 +28,7 @@ export class TemplatesService {
     }): CancelablePromise<TemplateSummaryPagedResult> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/templates',
+            url: '/api/v1/templates',
             query: {
                 'q': q,
                 'page': page,
@@ -49,7 +49,7 @@ export class TemplatesService {
     }): CancelablePromise<TemplateDto> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/templates',
+            url: '/api/v1/templates',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -70,7 +70,7 @@ export class TemplatesService {
     }): CancelablePromise<TemplateDto> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/templates/{id}',
+            url: '/api/v1/templates/{id}',
             path: {
                 'id': id,
             },
@@ -93,7 +93,7 @@ export class TemplatesService {
     }): CancelablePromise<TemplateDto> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/templates/{id}',
+            url: '/api/v1/templates/{id}',
             path: {
                 'id': id,
             },
@@ -118,7 +118,7 @@ export class TemplatesService {
     }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/templates/{id}',
+            url: '/api/v1/templates/{id}',
             path: {
                 'id': id,
             },

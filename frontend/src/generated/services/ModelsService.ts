@@ -17,7 +17,7 @@ export class ModelsService {
     public static modelsList(): CancelablePromise<Array<ModelDto>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/models',
+            url: '/api/v1/models',
         });
     }
     /**
@@ -32,7 +32,7 @@ export class ModelsService {
     }): CancelablePromise<ModelDto> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/models',
+            url: '/api/v1/models',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -52,7 +52,7 @@ export class ModelsService {
     }): CancelablePromise<ModelDto> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/models/{id}',
+            url: '/api/v1/models/{id}',
             path: {
                 'id': id,
             },
@@ -75,7 +75,7 @@ export class ModelsService {
     }): CancelablePromise<ModelDto> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/models/{id}',
+            url: '/api/v1/models/{id}',
             path: {
                 'id': id,
             },
@@ -98,7 +98,7 @@ export class ModelsService {
     }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/models/{id}',
+            url: '/api/v1/models/{id}',
             path: {
                 'id': id,
             },
@@ -116,7 +116,7 @@ export class ModelsService {
     }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/models/{id}/download',
+            url: '/api/v1/models/{id}/download',
             path: {
                 'id': id,
             },
@@ -137,7 +137,7 @@ export class ModelsService {
     }): CancelablePromise<string> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/models/{id}/download-log',
+            url: '/api/v1/models/{id}/download-log',
             path: {
                 'id': id,
             },

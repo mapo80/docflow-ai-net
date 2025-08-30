@@ -657,7 +657,7 @@
         }
       }
     },
-    "/api/markdown-systems": {
+    "/api/v1/markdown-systems": {
       "get": {
         "tags": [
           "MarkdownSystems"
@@ -720,7 +720,7 @@
         }
       }
     },
-    "/api/markdown-systems/{id}": {
+    "/api/v1/markdown-systems/{id}": {
       "get": {
         "tags": [
           "MarkdownSystems"
@@ -828,192 +828,7 @@
         }
       }
     },
-    "/api/v1/model": {
-      "get": {
-        "tags": [
-          "Model"
-        ],
-        "summary": "Current model",
-        "description": "Gets current model info",
-        "operationId": "Model_Current",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModelInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/model/available": {
-      "get": {
-        "tags": [
-          "Model"
-        ],
-        "summary": "Available models",
-        "description": "Lists available GGUF models",
-        "operationId": "Model_Available",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/model/download": {
-      "post": {
-        "tags": [
-          "Model"
-        ],
-        "summary": "Download model",
-        "description": "Starts downloading the specified model",
-        "operationId": "Model_Download",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DownloadModelRequest"
-              },
-              "example": {
-                "hfKey": "***",
-                "modelRepo": "TheOrg/the-model",
-                "modelFile": "model.gguf"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Void"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/model/switch": {
-      "post": {
-        "tags": [
-          "Model"
-        ],
-        "summary": "Switch model",
-        "description": "Activates a downloaded model",
-        "operationId": "Model_Switch",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SwitchModelRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/model/status": {
-      "get": {
-        "tags": [
-          "Model"
-        ],
-        "summary": "Model switch status",
-        "description": "Gets progress for the current model download",
-        "operationId": "Model_Status",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModelDownloadStatus"
-                },
-                "example": {
-                  "completed": false,
-                  "percentage": 35,
-                  "message": "downloading..."
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/models": {
+    "/api/v1/models": {
       "get": {
         "tags": [
           "Models"
@@ -1076,7 +891,7 @@
         }
       }
     },
-    "/api/models/{id}": {
+    "/api/v1/models/{id}": {
       "get": {
         "tags": [
           "Models"
@@ -1184,7 +999,7 @@
         }
       }
     },
-    "/api/models/{id}/download": {
+    "/api/v1/models/{id}/download": {
       "post": {
         "tags": [
           "Models"
@@ -1212,7 +1027,7 @@
         }
       }
     },
-    "/api/models/{id}/download-log": {
+    "/api/v1/models/{id}/download-log": {
       "get": {
         "tags": [
           "Models"
@@ -2118,7 +1933,7 @@
         }
       }
     },
-    "/api/templates": {
+    "/api/v1/templates": {
       "get": {
         "tags": [
           "Templates"
@@ -2220,7 +2035,7 @@
         }
       }
     },
-    "/api/templates/{id}": {
+    "/api/v1/templates/{id}": {
       "get": {
         "tags": [
           "Templates"
@@ -2571,29 +2386,6 @@
         },
         "additionalProperties": false
       },
-      "DownloadModelRequest": {
-        "required": [
-          "hfKey",
-          "modelFile",
-          "modelRepo"
-        ],
-        "type": "object",
-        "properties": {
-          "hfKey": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "modelRepo": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "modelFile": {
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
       "ErrorResponse": {
         "type": "object",
         "properties": {
@@ -2918,19 +2710,6 @@
         },
         "additionalProperties": false
       },
-      "ModelDownloadStatus": {
-        "type": "object",
-        "properties": {
-          "completed": {
-            "type": "boolean"
-          },
-          "percentage": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
       "ModelDto": {
         "type": "object",
         "properties": {
@@ -2989,34 +2768,6 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ModelInfo": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "repo": {
-            "type": "string",
-            "nullable": true
-          },
-          "file": {
-            "type": "string",
-            "nullable": true
-          },
-          "contextSize": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "loadedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3236,25 +2987,6 @@
           "description": {
             "type": "string",
             "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SwitchModelRequest": {
-        "required": [
-          "modelFile"
-        ],
-        "type": "object",
-        "properties": {
-          "modelFile": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "contextSize": {
-            "maximum": 2147483647,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false

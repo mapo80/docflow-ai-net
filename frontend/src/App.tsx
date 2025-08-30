@@ -9,7 +9,6 @@ const JobsList = lazy(withLoader(() => import('./pages/JobsList')));
 const JobNew = lazy(withLoader(() => import('./pages/JobNew')));
 const JobDetail = lazy(withLoader(() => import('./pages/JobDetail')));
 const HealthPage = lazy(withLoader(() => import('./pages/HealthPage')));
-const ModelManagerPage = lazy(withLoader(() => import('./pages/ModelManagerPage')));
 const ModelsPage = lazy(withLoader(() => import('./pages/ModelsPage')));
 const RulesPage = lazy(withLoader(() => import('./pages/RulesPage')));
 const RulesTagsPage = lazy(withLoader(() => import('./pages/RulesTagsPage')));
@@ -46,7 +45,6 @@ function App() {
             <Route path="jobs/new" element={<JobNew />} />
             <Route path="jobs/:id" element={<JobDetail />} />
             <Route path="health" element={<HealthPage />} />
-            <Route path="model" element={<ModelManagerPage />} />
             <Route path="models" element={<ModelsPage />} />
             <Route path="rules" element={<RulesPage />} />
             <Route path="rules/:id" element={<RuleEditPage />} />

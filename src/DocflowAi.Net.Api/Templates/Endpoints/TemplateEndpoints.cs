@@ -9,7 +9,7 @@ public static class TemplateEndpoints
 {
     public static IEndpointRouteBuilder MapTemplateEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/templates")
+        var group = builder.MapGroup("/api/v1/templates")
             .WithTags("Templates")
             .RequireAuthorization()
             .RequireRateLimiting("General");
@@ -38,7 +38,7 @@ public static class TemplateEndpoints
             try
             {
                 var tpl = service.Create(request);
-                return Results.Created($"/api/templates/{tpl.Id}", tpl);
+                return Results.Created($"/api/v1/templates/{tpl.Id}", tpl);
             }
             catch (InvalidOperationException ex)
             {

@@ -20,7 +20,7 @@ public class MarkdownDoclingIntegrationTests
     {
         await using var docling = await StartDoclingStubAsync();
         var url = docling.Urls.Single();
-        using var factory = new TestWebAppFactory(Path.GetTempPath(), extra: new()
+        await using var factory = new TestWebAppFactory(Path.GetTempPath(), extra: new()
         {
             ["Api:Keys:0"] = "test-key",
             ["JobQueue:SeedDefaults"] = "true",
@@ -34,7 +34,7 @@ public class MarkdownDoclingIntegrationTests
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent(new byte[] {1,2,3}), "file", "test.png");
 
-        var systems = await client.GetFromJsonAsync<MarkdownSystemDto[]>("/api/markdown-systems");
+        var systems = await client.GetFromJsonAsync<MarkdownSystemDto[]>("/api/v1/markdown-systems");
         var msId = systems![0].Id;
         var resp = await client.PostAsync($"/api/v1/markdown?language=eng&markdownSystemId={msId}", content);
         resp.EnsureSuccessStatusCode();

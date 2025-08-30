@@ -31,10 +31,10 @@ public class AppSettingsSeederTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-API-Key", "test-key");
 
-        var models = await client.GetFromJsonAsync<List<ModelDto>>("/api/models");
+        var models = await client.GetFromJsonAsync<List<ModelDto>>("/api/v1/models");
         models!.Should().ContainSingle(m => m.Name == "m1" && m.Provider == "openai");
 
-        var systems = await client.GetFromJsonAsync<List<MarkdownSystemDto>>("/api/markdown-systems");
+        var systems = await client.GetFromJsonAsync<List<MarkdownSystemDto>>("/api/v1/markdown-systems");
         systems!.Should().ContainSingle(s => s.Name == "doc" && s.Provider == "docling");
     }
 
@@ -55,9 +55,9 @@ public class AppSettingsSeederTests : IClassFixture<TempDirFixture>
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-API-Key", "test-key");
 
-        var models = await client.GetFromJsonAsync<List<ModelDto>>("/api/models");
+        var models = await client.GetFromJsonAsync<List<ModelDto>>("/api/v1/models");
         models!.Should().BeEmpty();
-        var systems = await client.GetFromJsonAsync<List<MarkdownSystemDto>>("/api/markdown-systems");
+        var systems = await client.GetFromJsonAsync<List<MarkdownSystemDto>>("/api/v1/markdown-systems");
         systems!.Should().BeEmpty();
     }
 }

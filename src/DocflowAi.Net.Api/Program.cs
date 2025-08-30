@@ -26,6 +26,7 @@ using DocflowAi.Net.Api.MarkdownSystem.Repositories;
 using DocflowAi.Net.Api.MarkdownSystem.Services;
 using DocflowAi.Net.Api.MarkdownSystem.Endpoints;
 using DocflowAi.Net.Api.Markdown.Services;
+using DocflowAi.Net.Api.Model.Endpoints;
 using DocflowAi.Net.Api.Data;
 using DocflowAi.Net.Api.Rules.Data;
 using DocflowAi.Net.Api.Rules.Abstractions;
@@ -39,7 +40,6 @@ using Hangfire.MemoryStorage;
 using Hangfire.Common;
 using Hellang.Middleware.ProblemDetails;
 using FluentValidation;
-using DocflowAi.Net.Api.Model.Endpoints;
 using DocflowAi.Net.Api.Templates.Endpoints;
 using DocflowAi.Net.Api.Templates.Data;
 using DocflowAi.Net.Api.Markdown.Endpoints;
@@ -369,7 +369,6 @@ app.MapHealthChecks(
     }
 );
 app.MapMarkdownEndpoints();
-app.MapModelEndpoints();
 app.MapModelManagementEndpoints();
 app.MapMarkdownSystemEndpoints();
 app.MapJobEndpoints();
