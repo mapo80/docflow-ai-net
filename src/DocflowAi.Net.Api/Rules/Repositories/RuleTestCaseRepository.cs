@@ -30,6 +30,8 @@ public class RuleTestCaseRepository : IRuleTestCaseRepository
         _db.RuleTestCases.Update(test);
     }
 
+    public void Remove(RuleTestCase test) => _db.RuleTestCases.Remove(test);
+
     public void SaveChanges() => _db.SaveChanges();
 }
 

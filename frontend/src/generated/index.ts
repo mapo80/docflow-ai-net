@@ -45,6 +45,7 @@ export type { TemplateDto } from './models/TemplateDto';
 export type { TemplateSummary } from './models/TemplateSummary';
 export type { TemplateSummaryPagedResult } from './models/TemplateSummaryPagedResult';
 export type { TestUpsert } from './models/TestUpsert';
+export type { UpdateContent } from './models/UpdateContent';
 export type { UpdateMarkdownSystemRequest } from './models/UpdateMarkdownSystemRequest';
 export type { UpdateMeta } from './models/UpdateMeta';
 export type { UpdateModelRequest } from './models/UpdateModelRequest';
