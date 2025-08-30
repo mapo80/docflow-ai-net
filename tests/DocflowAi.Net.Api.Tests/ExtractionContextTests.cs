@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using DocflowAi.Net.Api.Rules.Runtime;
 using FluentAssertions;
@@ -39,6 +40,16 @@ public class ExtractionContextTests
         var ctx = new ExtractionContext();
         ctx.Upsert("c", "abc");
         ctx.Get<int>("c").Should().Be(0);
+    }
+
+    [Fact]
+    public void Get_handles_JsonElement_values()
+    {
+        using var doc = JsonDocument.Parse("\"xyz\"");
+        var ctx = new ExtractionContext();
+        ctx.Upsert("ibanRaw", doc.RootElement.Clone());
+        ctx.Get<string>("ibanRaw").Should().Be("xyz");
+        ctx.Get("ibanRaw").Should().Be("xyz");
     }
 }
 

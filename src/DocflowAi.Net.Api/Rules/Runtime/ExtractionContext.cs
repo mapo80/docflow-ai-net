@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace DocflowAi.Net.Api.Rules.Runtime;
@@ -15,17 +16,40 @@ public sealed class ExtractionContext
     }
 
     public bool Has(string key) => _fields.ContainsKey(key);
-    public object? Get(string key) => _fields.TryGetValue(key, out var f) ? f.Value : null;
+
+    public object? Get(string key)
+    {
+        if (!_fields.TryGetValue(key, out var f)) return null;
+        var v = f.Value;
+        if (v is JsonElement je)
+        {
+            switch (je.ValueKind)
+            {
+                case JsonValueKind.String:
+                    return je.GetString();
+                case JsonValueKind.Number:
+                    if (je.TryGetInt64(out var l)) return l;
+                    if (je.TryGetDouble(out var d)) return d;
+                    break;
+                case JsonValueKind.True:
+                    return true;
+                case JsonValueKind.False:
+                    return false;
+                case JsonValueKind.Null:
+                    return null;
+            }
+            return je.ToString();
+        }
+        return v;
+    }
+
     public T? Get<T>(string key)
     {
-        if (_fields.TryGetValue(key, out var f))
-        {
-            if (f.Value is null) return default;
-            if (f.Value is T t) return t;
-            try { return (T)Convert.ChangeType(f.Value, typeof(T)); }
-            catch { return default(T?); }
-        }
-        return default(T?);
+        var val = Get(key);
+        if (val is null) return default;
+        if (val is T t) return t;
+        try { return (T)Convert.ChangeType(val, typeof(T)); }
+        catch { return default(T?); }
     }
 
     public void Upsert(string key, object? value, double confidence = 0.99, string source = "rule")
