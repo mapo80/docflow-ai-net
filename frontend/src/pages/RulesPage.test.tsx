@@ -83,4 +83,15 @@ describe('RulesPage', () => {
     await waitFor(() => expect(mockNotify).toHaveBeenCalledWith('error', 'Failed to load rules.'));
   });
 
+  it('handles empty responses', async () => {
+    (RulesService.getApiV1Rules as any).mockResolvedValueOnce(undefined);
+    render(
+      <MemoryRouter>
+        <RulesPage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(RulesService.getApiV1Rules).toHaveBeenCalled());
+    expect(screen.getAllByText('No data').length).toBeGreaterThan(0);
+  });
+
 });
