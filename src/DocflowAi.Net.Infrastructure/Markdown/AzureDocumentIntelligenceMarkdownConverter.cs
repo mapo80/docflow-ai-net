@@ -36,7 +36,8 @@ public sealed class AzureDocumentIntelligenceMarkdownConverter : IMarkdownConver
         };
         var operation = await _client.AnalyzeDocumentAsync(WaitUntil.Completed, options, ct);
         string rawJson;
-        using (var reader = new StreamReader(operation.GetRawResponse().ContentStream, Encoding.UTF8))
+        var contentStream = operation.GetRawResponse().ContentStream ?? Stream.Null;
+        using (var reader = new StreamReader(contentStream, Encoding.UTF8))
         {
             rawJson = await reader.ReadToEndAsync();
         }

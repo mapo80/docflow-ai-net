@@ -27,6 +27,13 @@ using DocflowAi.Net.Api.MarkdownSystem.Services;
 using DocflowAi.Net.Api.MarkdownSystem.Endpoints;
 using DocflowAi.Net.Api.Markdown.Services;
 using DocflowAi.Net.Api.Data;
+using DocflowAi.Net.Api.Rules.Data;
+using DocflowAi.Net.Api.Rules.Abstractions;
+using DocflowAi.Net.Api.Rules.Repositories;
+using DocflowAi.Net.Api.Rules.Runtime;
+using DocflowAi.Net.Api.Rules.Services;
+using DocflowAi.Net.Api.Rules.Validation;
+using DocflowAi.Net.Api.Rules.Endpoints;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.Common;
@@ -86,6 +93,7 @@ builder.Services.AddAuthentication(ApiKeyDefaults.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, DocflowAi.Net.Api.Security.ApiKeyAuthenticationHandler>(ApiKeyDefaults.SchemeName, _ => {});
 builder.Services.AddAuthorization();
 builder.Services.AddHttpClient();
+builder.Services.AddDocflowRulesCore();
 
 builder.Services.AddControllers();
 
@@ -143,6 +151,22 @@ builder.Services.AddSingleton<IHostedModelProvider, OpenAiModelProvider>();
 builder.Services.AddSingleton<IHostedModelProvider, AzureOpenAiModelProvider>();
 builder.Services.AddScoped<DocflowAi.Net.Api.Templates.Abstractions.ITemplateRepository, DocflowAi.Net.Api.Templates.Repositories.TemplateRepository>();
 builder.Services.AddScoped<ITemplateService, DocflowAi.Net.Api.Templates.Services.TemplateService>();
+builder.Services.AddScoped<IRuleFunctionRepository, RuleFunctionRepository>();
+builder.Services.AddScoped<IRuleTestCaseRepository, RuleTestCaseRepository>();
+builder.Services.AddScoped<ITestSuiteRepository, TestSuiteRepository>();
+builder.Services.AddScoped<ITestTagRepository, TestTagRepository>();
+builder.Services.AddScoped<ISuggestedTestRepository, SuggestedTestRepository>();
+builder.Services.AddScoped<IRuleTestCaseTagRepository, RuleTestCaseTagRepository>();
+builder.Services.AddScoped<TestUpsertValidator>();
+builder.Services.AddScoped<SuggestionService>();
+builder.Services.AddScoped<FuzzService>();
+builder.Services.AddScoped<PropertyTestService>();
+builder.Services.AddScoped<SuiteService>();
+builder.Services.AddScoped<TagService>();
+builder.Services.AddScoped<RuleBuilderService>();
+builder.Services.AddScoped<RuleService>();
+builder.Services.AddScoped<RuleTestCaseService>();
+builder.Services.AddScoped<LspProxyService>();
 builder.Services.Configure<ModelDownloadOptions>(builder.Configuration.GetSection(ModelDownloadOptions.SectionName));
 builder.Services.AddSingleton<IFileSystemService, FileSystemService>();
 builder.Services.AddScoped<IModelDispatchService, ModelDispatchService>();
@@ -262,14 +286,15 @@ using (var scope = app.Services.CreateScope())
     if (cfg.Cleanup.Enabled)
     {
         var manager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-        manager.AddOrUpdate(
-            "cleanup",
-            Job.FromExpression<CleanupJob>(j => j.RunAsync()),
-            Cron.Daily(cfg.Cleanup.DailyHour, cfg.Cleanup.DailyMinute),
-            new RecurringJobOptions { QueueName = "maintenance" });
+        manager.AddOrUpdate<CleanupJob>(
+            recurringJobId: "cleanup",
+            methodCall: j => j.RunAsync(),
+            cronExpression: () => Cron.Daily(cfg.Cleanup.DailyHour, cfg.Cleanup.DailyMinute));
     }
 }
 AppSettingsSeeder.Build(app);
+RuleFunctionSeeder.Build(app);
+RuleTestCaseSeeder.Build(app);
 DefaultTemplateSeeder.Build(app);
 DefaultJobSeeder.Build(app);
 
@@ -349,6 +374,15 @@ app.MapModelManagementEndpoints();
 app.MapMarkdownSystemEndpoints();
 app.MapJobEndpoints();
 app.MapTemplateEndpoints();
+app.MapAiTestsEndpoints();
+app.MapFuzzEndpoints();
+app.MapPropertyEndpoints();
+app.MapTagsEndpoints();
+app.MapSuitesEndpoints();
+app.MapRuleBuilderEndpoints();
+app.MapRulesEndpoints();
+app.MapRuleTestsEndpoints();
+app.MapLspProxyEndpoints();
 app.MapFallbackToFile("index.html");
 app.Run();
 

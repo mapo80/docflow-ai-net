@@ -56,7 +56,8 @@ public class ModelDispatchService : IModelDispatchService
 
     private async Task<string> HandleHostedAsync(ModelDocument model, string payload, CancellationToken ct)
     {
-        if (!_providers.TryGetValue(model.Provider, out var provider))
+        var providerName = model.Provider ?? throw new InvalidOperationException("Provider is required for hosted models");
+        if (!_providers.TryGetValue(providerName, out var provider))
             throw new NotSupportedException($"Unknown hosted provider '{model.Provider}'");
 
         var baseUrl = model.BaseUrl ?? throw new InvalidOperationException("BaseUrl is required for hosted models");

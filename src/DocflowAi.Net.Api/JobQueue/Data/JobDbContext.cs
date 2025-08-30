@@ -2,6 +2,7 @@ using DocflowAi.Net.Api.JobQueue.Models;
 using DocflowAi.Net.Api.Model.Models;
 using DocflowAi.Net.Api.Templates.Models;
 using DocflowAi.Net.Api.MarkdownSystem.Models;
+using DocflowAi.Net.Api.Rules.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -15,6 +16,12 @@ public class JobDbContext : DbContext
     public DbSet<ModelDocument> Models => Set<ModelDocument>();
     public DbSet<TemplateDocument> Templates => Set<TemplateDocument>();
     public DbSet<MarkdownSystemDocument> MarkdownSystems => Set<MarkdownSystemDocument>();
+    public DbSet<RuleFunction> RuleFunctions => Set<RuleFunction>();
+    public DbSet<RuleTestCase> RuleTestCases => Set<RuleTestCase>();
+    public DbSet<SuggestedTest> SuggestedTests => Set<SuggestedTest>();
+    public DbSet<TestSuite> TestSuites => Set<TestSuite>();
+    public DbSet<TestTag> TestTags => Set<TestTag>();
+    public DbSet<RuleTestCaseTag> RuleTestCaseTags => Set<RuleTestCaseTag>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,7 +45,6 @@ public class JobDbContext : DbContext
         job.Property(j => j.CreatedAt).HasConversion(converter);
         job.Property(j => j.UpdatedAt).HasConversion(converter);
         job.Property(j => j.Language).IsRequired();
-        
 
         job.OwnsOne(j => j.Metrics, m =>
         {
@@ -82,5 +88,34 @@ public class JobDbContext : DbContext
         ms.Property(m => m.Endpoint).IsRequired();
         ms.Property(m => m.CreatedAt).HasConversion(converter);
         ms.Property(m => m.UpdatedAt).HasConversion(converter);
+
+        var rf = modelBuilder.Entity<RuleFunction>();
+        rf.HasKey(r => r.Id);
+        rf.HasIndex(r => r.Name).IsUnique();
+        rf.Property(r => r.CodeHash).HasMaxLength(128);
+        rf.Property(r => r.UpdatedAt).HasConversion(converter);
+
+        var rtc = modelBuilder.Entity<RuleTestCase>();
+        rtc.HasKey(r => r.Id);
+        rtc.HasIndex(r => new { r.RuleFunctionId, r.Name }).IsUnique();
+        rtc.Property(r => r.UpdatedAt).HasConversion(converter);
+
+        var st = modelBuilder.Entity<SuggestedTest>();
+        st.HasKey(s => s.Id);
+        st.Property(s => s.CreatedAt).HasConversion(converter);
+
+        var ts = modelBuilder.Entity<TestSuite>();
+        ts.HasKey(t => t.Id);
+        ts.HasIndex(t => t.Name).IsUnique();
+        ts.Property(t => t.UpdatedAt).HasConversion(converter);
+
+        var tt = modelBuilder.Entity<TestTag>();
+        tt.HasKey(t => t.Id);
+        tt.HasIndex(t => t.Name).IsUnique();
+        tt.Property(t => t.UpdatedAt).HasConversion(converter);
+
+        var rtcTag = modelBuilder.Entity<RuleTestCaseTag>();
+        rtcTag.HasKey(t => new { t.RuleTestCaseId, t.TestTagId });
+        rtcTag.HasIndex(t => t.TestTagId);
     }
 }

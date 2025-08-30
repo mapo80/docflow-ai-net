@@ -99,6 +99,29 @@ The service throws when the model token is unknown or when the provider type is
 not supported. It is consumed by the job `ProcessService` to execute jobs with
 the requested model.
 
+## Rule Kit API
+
+The API integrates the rule engine from **DocflowRules.Sdk**. The runtime exposes
+`ExtractionContext`, Roslyn‐based `Runner`, and utility `ScriptGlobals` so rules
+can read fields, mutate state, and execute scripts at runtime. Persistence is
+handled through per‑entity repositories and seeded with a default IBAN rule and
+test case.
+
+All endpoints require an **API key** and provide authoring and testing
+capabilities:
+
+| Endpoint group | Description |
+| --- | --- |
+| `/api/v1/rules` | Manage rule definitions: list, create, update, stage, publish, compile, run, and clone rules. |
+| `/api/v1/rules/{ruleId}/tests` | CRUD operations for rule test cases, run selected tests, compute coverage, and clone cases. |
+| `/api/v1/rules/{ruleId}/fuzz` | Generate boundary tests and import them into a rule’s test suite. |
+| `/api/v1/rules/{ruleId}/properties` | Run property‑based tests and import failing cases as rule tests. |
+| `/api/v1/rulebuilder` | Validate and compile block‑based rule builder definitions. |
+| `/api/v1/ai/tests` | Suggest rule tests via an LLM and import selected suggestions. |
+| `/api/v1/suites` | CRUD and clone operations for test suites that group rule tests. |
+| `/api/v1/tags` | CRUD operations for tags applied to rule test cases. |
+| `/api/v1/lsp` | Sync workspace files and proxy WebSocket traffic to a C# language server. |
+
 ## High-level Architecture
 
 ```
