@@ -9,7 +9,12 @@ export default defineConfig({
     include: ['src/integration/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
-      include: ['src/pages/RulesPage.tsx'],
+      include: [
+        'src/pages/RulesPage.tsx',
+        'src/pages/RuleEditPage.tsx',
+        'src/pages/RuleBuilderPage.tsx',
+        'src/pages/RulesTagsPage.tsx',
+      ],
       thresholds: { lines: 0.9, functions: 0.9, branches: 0.9, statements: 0.9 },
     },
   },
