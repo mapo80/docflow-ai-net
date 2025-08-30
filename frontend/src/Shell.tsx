@@ -47,6 +47,7 @@ export default function Shell() {
       icon: <BranchesOutlined />,
       label: 'Rules Manager',
       children: [
+        { key: '/rules', icon: <BranchesOutlined />, label: 'Rules' },
         { key: '/rules/tags', icon: <TagsOutlined />, label: 'Tags' },
       ],
     },
