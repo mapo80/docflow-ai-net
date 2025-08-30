@@ -1,6 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+const breakpointMock = { md: true } as any;
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, Grid: { ...actual.Grid, useBreakpoint: () => breakpointMock } };
+});
 import RuleBuilderPage from './RuleBuilderPage';
 import { RuleBuilderService, PropertiesService, RulesService } from '../generated';
 
@@ -95,6 +100,17 @@ describe('RuleBuilderPage', () => {
     );
     fireEvent.click(screen.getAllByText('Create Rule')[0]);
     await waitFor(() => expect(mockNotify).toHaveBeenCalledWith('error', 'Failed to create rule.'));
+  });
+
+  it('renders list on mobile', () => {
+    breakpointMock.md = false;
+    const { container } = render(
+      <MemoryRouter>
+        <RuleBuilderPage />
+      </MemoryRouter>,
+    );
+    expect(container.querySelector('.ant-list')).toBeTruthy();
+    breakpointMock.md = true;
   });
 });
 

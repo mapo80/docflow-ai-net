@@ -1,5 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+const breakpointMock = { md: true } as any;
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, Grid: { ...actual.Grid, useBreakpoint: () => breakpointMock } };
+});
 import RulesTagsPage from './RulesTagsPage';
 import { SuitesService, TagsService } from '../generated';
 
@@ -109,5 +114,13 @@ describe('RulesTagsPage', () => {
     await waitFor(() =>
       expect(mockNotify).toHaveBeenCalledWith('error', 'Failed to load taxonomies.'),
     );
+  });
+
+  it('renders lists on mobile', async () => {
+    breakpointMock.md = false;
+    render(<RulesTagsPage />);
+    await screen.findAllByText('suite1');
+    expect(document.querySelectorAll('.ant-list').length).toBe(2);
+    breakpointMock.md = true;
   });
 });
