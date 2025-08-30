@@ -402,3 +402,4 @@ dist/
 build/
 # GGUF models
 models/
+!stage/docflow-rules-kit/frontend/packages/**
