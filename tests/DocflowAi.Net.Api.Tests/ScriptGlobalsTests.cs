@@ -30,6 +30,12 @@ public class ScriptGlobalsTests
         g.get<int>("x").Should().Be(1);
         g.has("x").Should().BeTrue();
         g.missing("y").Should().BeTrue();
+
+        g.Set("X", 2);
+        g.Get<int>("X").Should().Be(2);
+        g.Has("X").Should().BeTrue();
+        g.Missing("Y").Should().BeTrue();
+        g.g.Should().BeSameAs(g);
     }
 
     [Fact]
