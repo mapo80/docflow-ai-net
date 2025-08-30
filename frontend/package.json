@@ -13,7 +13,8 @@
     "pree2e": "npm run build",
     "gen:api": "openapi --input swagger/v1/swagger.json --output src/generated --client fetch --useOptions --useUnionTypes",
     "predev": "npm run gen:api",
-    "prebuild": "npm run gen:api"
+    "prebuild": "npm run gen:api",
+    "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
