@@ -21,7 +21,7 @@ vi.mock('../generated', () => ({
 }));
 
 beforeEach(() => {
-  (RulesService.getApiV1Rules as any).mockResolvedValue(rules);
+  (RulesService.getApiV1Rules as any).mockResolvedValue({ items: rules });
   (RulesService.postApiV1RulesClone as any).mockResolvedValue({ id: 'r2' });
   mockNotify.mockReset();
   mockNav.mockReset();
