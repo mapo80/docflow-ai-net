@@ -171,7 +171,9 @@ export default function PropertyReport({ ruleId }: { ruleId: string }) {
           <Statistic
             title="Failed"
             value={data?.failed ?? 0}
-            valueStyle={{ color: (data?.failed ?? 0) > 0 ? 'red' : undefined }}
+            valueStyle={{
+              color: (data?.failed ?? 0) > 0 ? 'var(--ant-color-error)' : undefined,
+            }}
           />
         </Col>
       </Row>
@@ -200,7 +202,12 @@ export default function PropertyReport({ ruleId }: { ruleId: string }) {
         dataSource={data?.failures ?? []}
         rowSelection={{ selectedRowKeys: selected, onChange: setSelected }}
         columns={[
-          { title: 'Property', dataIndex: 'property', render: (v: string) => <Tag color="red">{v}</Tag>, width: 180 },
+          {
+            title: 'Property',
+            dataIndex: 'property',
+            render: (v: string) => <Tag color="var(--ant-color-error)">{v}</Tag>,
+            width: 180,
+          },
           { title: 'Message', dataIndex: 'message' },
           {
             title: 'Input (preview)',

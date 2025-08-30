@@ -218,9 +218,11 @@ export default function RuleBuilderPage() {
         />
       </div>
       {propResult && (
-        <pre style={{ padding: 8, background: '#f7f7f7' }}>
-          {JSON.stringify(propResult, null, 2)}
-        </pre>
+        <Card type="inner" title="Property Check Result" style={{ marginTop: 12 }}>
+          <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+            {JSON.stringify(propResult, null, 2)}
+          </pre>
+        </Card>
       )}
     </Card>
   );

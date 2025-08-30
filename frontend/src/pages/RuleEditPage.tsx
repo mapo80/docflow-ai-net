@@ -1,4 +1,4 @@
-import { Card } from 'antd';
+import { Card, Space } from 'antd';
 import { useParams } from 'react-router-dom';
 import { RulesEditor, RuleTestsPanel, PropertyReport } from '../rules';
 
@@ -6,7 +6,7 @@ export default function RuleEditPage() {
   const { id } = useParams();
   if (!id) return null;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <Card>
         <RulesEditor ruleId={id} />
       </Card>
@@ -16,6 +16,6 @@ export default function RuleEditPage() {
       <Card>
         <PropertyReport ruleId={id} />
       </Card>
-    </div>
+    </Space>
   );
 }
