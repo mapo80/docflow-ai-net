@@ -11,6 +11,7 @@ const JobDetail = lazy(withLoader(() => import('./pages/JobDetail')));
 const HealthPage = lazy(withLoader(() => import('./pages/HealthPage')));
 const ModelManagerPage = lazy(withLoader(() => import('./pages/ModelManagerPage')));
 const ModelsPage = lazy(withLoader(() => import('./pages/ModelsPage')));
+const RulesTagsPage = lazy(withLoader(() => import('./pages/RulesTagsPage')));
 const TemplatesList = lazy(withLoader(() => import('./pages/TemplatesList')));
 const MarkdownPage = lazy(withLoader(() => import('./pages/MarkdownPage')));
 const MarkdownSystemsPage = lazy(withLoader(() => import('./pages/MarkdownSystemsPage')));
@@ -44,6 +45,7 @@ function App() {
             <Route path="health" element={<HealthPage />} />
             <Route path="model" element={<ModelManagerPage />} />
             <Route path="models" element={<ModelsPage />} />
+            <Route path="rules/tags" element={<RulesTagsPage />} />
             <Route path="templates" element={<TemplatesList />} />
             <Route path="markdown" element={<MarkdownPage />} />
             <Route path="markdown-systems" element={<MarkdownSystemsPage />} />
