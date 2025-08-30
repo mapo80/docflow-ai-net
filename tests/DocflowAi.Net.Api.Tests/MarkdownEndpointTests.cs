@@ -50,7 +50,7 @@ public class MarkdownEndpointTests
         var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", Guid.NewGuid(), new ThrowingMarkdownConverter(code), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(status, json.StatusCode);
-        Assert.Equal(code, json.Value.Error);
+        Assert.Equal(code, json.Value!.Error);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class MarkdownEndpointTests
         var result = await MarkdownEndpoints.ConvertFileAsync(file, "eng", Guid.NewGuid(), new ThrowingMarkdownConverter(new DllNotFoundException("liblept.so.5")), Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
         var json = Assert.IsType<JsonHttpResult<ErrorResponse>>(result);
         Assert.Equal(500, json.StatusCode);
-        Assert.Equal("native_library_missing", json.Value.Error);
+        Assert.Equal("native_library_missing", json.Value!.Error);
     }
 
     [Fact]
@@ -69,7 +69,8 @@ public class MarkdownEndpointTests
         var file = new FormFile(new MemoryStream(new byte[] {1,2,3}), 0, 3, "file", "test.png");
         var conv = new RecordingMarkdownConverter();
         await MarkdownEndpoints.ConvertFileAsync(file, "eng", Guid.NewGuid(), conv, Microsoft.Extensions.Options.Options.Create(new MarkdownOptions()));
-        Assert.Equal("eng", conv.LastOptions.OcrLanguage);
+        Assert.NotNull(conv.LastOptions);
+        Assert.Equal("eng", conv.LastOptions!.OcrLanguage);
     }
 
     [Fact]

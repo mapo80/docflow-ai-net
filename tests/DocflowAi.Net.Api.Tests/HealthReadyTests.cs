@@ -17,7 +17,7 @@ public class HealthReadyTests : IClassFixture<TempDirFixture>
     [Fact]
     public async Task Ready_ReturnsOk()
     {
-        using var factory = new TestWebAppFactory(_fixture.RootPath);
+        await using var factory = new TestWebAppFactory(_fixture.RootPath);
         var client = factory.CreateClient();
         var resp = await client.GetAsync("/health/ready");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);

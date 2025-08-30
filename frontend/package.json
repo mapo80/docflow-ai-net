@@ -11,7 +11,7 @@
     "test": "vitest",
     "e2e": "node run-e2e.mjs",
     "pree2e": "npm run build",
-    "gen:api": "openapi --input ${VITE_API_BASE_URL:-.}/swagger/v1/swagger.json --output src/generated --client fetch --useOptions --useUnionTypes",
+    "gen:api": "openapi --input swagger/v1/swagger.json --output src/generated --client fetch --useOptions --useUnionTypes",
     "predev": "npm run gen:api",
     "prebuild": "npm run gen:api"
   },
