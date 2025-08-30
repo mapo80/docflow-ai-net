@@ -32,14 +32,28 @@ public sealed class ConfigurableFakeLlmModelService : ILlmModelService
         _pct = 0;
         _ = Task.Run(async () =>
         {
-            for (var i = 1; i <= 5; i++)
+            try
             {
-                await Task.Delay(20, ct);
-                _pct = i * 20;
+                for (var i = 1; i <= 5; i++)
+                {
+                    await Task.Delay(20, ct);
+                    _pct = i * 20;
+                }
+                _completed = true;
             }
-            _completed = true;
-            _running = false;
-        }, ct);
+            catch (OperationCanceledException)
+            {
+                // ignore cancellation
+            }
+            finally
+            {
+                _running = false;
+                if (!_completed)
+                {
+                    _completed = true;
+                }
+            }
+        });
         return Task.CompletedTask;
     }
 
