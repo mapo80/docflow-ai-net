@@ -1,1 +1,0 @@
-export type paths = {}; export type components = {}; export type operations = {};
