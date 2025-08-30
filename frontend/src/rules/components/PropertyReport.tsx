@@ -1,5 +1,29 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, InputNumber, Select, Space, Table, Tag, message, Statistic } from 'antd';
+import {
+  Button,
+  Card,
+  Col,
+  InputNumber,
+  Row,
+  Select,
+  Space,
+  Statistic,
+  Table,
+  Tag,
+  message,
+} from 'antd';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
 import { PropertiesService, SuitesService, TagsService } from '../../generated';
 
 interface Failure {
@@ -74,6 +98,13 @@ export default function PropertyReport({ ruleId }: { ruleId: string }) {
     message.success(`Imported ${picked.length} tests.`);
   };
 
+  const failureCounts = Object.entries(
+    (data?.failures || []).reduce((acc: Record<string, number>, f: Failure) => {
+      acc[f.property] = (acc[f.property] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([property, count]) => ({ property, count }));
+
   return (
     <Card
       title="Property Report"
@@ -89,15 +120,61 @@ export default function PropertyReport({ ruleId }: { ruleId: string }) {
         </Space>
       }
     >
-      <Space style={{ marginBottom: 12 }}>
-        <Statistic title="Trials" value={data?.trials ?? 0} />
-        <Statistic title="Passed" value={data?.passed ?? 0} />
-        <Statistic
-          title="Failed"
-          value={data?.failed ?? 0}
-          valueStyle={{ color: (data?.failed ?? 0) > 0 ? 'red' : undefined }}
-        />
-      </Space>
+      <Row gutter={16} style={{ marginBottom: 12 }}>
+        <Col span={12}>
+          <Card size="small" title="Pass/Fail">
+            <div style={{ height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Passed', value: data?.passed || 0 },
+                      { name: 'Failed', value: data?.failed || 0 },
+                    ]}
+                    dataKey="value"
+                    nameKey="name"
+                    outerRadius={80}
+                    label
+                  />
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card size="small" title="Failures by property">
+            <div style={{ height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={failureCounts}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="property" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+      <Row gutter={16} style={{ marginBottom: 12 }}>
+        <Col span={8}>
+          <Statistic title="Trials" value={data?.trials ?? 0} />
+        </Col>
+        <Col span={8}>
+          <Statistic title="Passed" value={data?.passed ?? 0} />
+        </Col>
+        <Col span={8}>
+          <Statistic
+            title="Failed"
+            value={data?.failed ?? 0}
+            valueStyle={{ color: (data?.failed ?? 0) > 0 ? 'red' : undefined }}
+          />
+        </Col>
+      </Row>
       <Space style={{ marginBottom: 12 }} wrap>
         <span>Suite:</span>
         <Select
