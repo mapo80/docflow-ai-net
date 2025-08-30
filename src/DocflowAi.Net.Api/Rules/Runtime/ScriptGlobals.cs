@@ -5,12 +5,23 @@ namespace DocflowAi.Net.Api.Rules.Runtime;
 public sealed class ScriptGlobals
 {
     public ExtractionContext Ctx { get; init; } = default!;
-    public object? get(string key) => Ctx.Get(key);
-    public T? get<T>(string key) => Ctx.Get<T>(key);
-    public void set(string key, object? value, double conf = 0.99, string src = "rule") => Ctx.Upsert(key, value, conf, src);
-    public bool has(string key) => Ctx.Has(key);
-    public bool missing(string key) => !Ctx.Has(key);
-    public void assert(bool cond, string? msg = null) { if (!cond) throw new RuleAssertionException(msg ?? "Assertion failed"); }
+
+    public ScriptGlobals g => this;
+
+    public object? Get(string key) => Ctx.Get(key);
+    public T? Get<T>(string key) => Ctx.Get<T>(key);
+    public void Set(string key, object? value, double conf = 0.99, string src = "rule") => Ctx.Upsert(key, value, conf, src);
+    public bool Has(string key) => Ctx.Has(key);
+    public bool Missing(string key) => !Ctx.Has(key);
+    public void Assert(bool cond, string? msg = null) { if (!cond) throw new RuleAssertionException(msg ?? "Assertion failed"); }
+
+    // lowercase aliases for backward compatibility
+    public object? get(string key) => Get(key);
+    public T? get<T>(string key) => Get<T>(key);
+    public void set(string key, object? value, double conf = 0.99, string src = "rule") => Set(key, value, conf, src);
+    public bool has(string key) => Has(key);
+    public bool missing(string key) => Missing(key);
+    public void assert(bool cond, string? msg = null) => Assert(cond, msg);
 
     public TextUtil Text { get; } = new();
     public MoneyUtil Money { get; } = new();
