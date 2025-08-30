@@ -13,6 +13,8 @@ import MenuOutlined from '@ant-design/icons/MenuOutlined';
 import RobotOutlined from '@ant-design/icons/RobotOutlined';
 import FileMarkdownOutlined from '@ant-design/icons/FileMarkdownOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
+import BranchesOutlined from '@ant-design/icons/BranchesOutlined';
+import TagsOutlined from '@ant-design/icons/TagsOutlined';
 import { useState } from 'react';
 import { openHangfire } from './hangfire';
 
@@ -40,6 +42,14 @@ export default function Shell() {
     { key: '/jobs/new', icon: <FileAddOutlined />, label: 'New Job' },
     { key: '/markdown', icon: <FileMarkdownOutlined />, label: 'Markdown' },
     { key: '/models', icon: <ExperimentOutlined />, label: 'Models' },
+    {
+      key: 'rules',
+      icon: <BranchesOutlined />,
+      label: 'Rules Manager',
+      children: [
+        { key: '/rules/tags', icon: <TagsOutlined />, label: 'Tags' },
+      ],
+    },
     { key: '/templates', icon: <AppstoreOutlined />, label: 'Templates' },
     { key: '/markdown-systems', icon: <SettingOutlined />, label: 'Markdown Systems' },
     { key: '/health', icon: <HeartOutlined />, label: 'Health' },
