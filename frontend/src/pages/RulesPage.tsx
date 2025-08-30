@@ -21,7 +21,7 @@ export default function RulesPage() {
   const load = async () => {
     try {
       const data = await RulesService.getApiV1Rules({ search });
-      setRows(data as RuleRow[]);
+      setRows(Array.isArray(data) ? data : []);
     } catch {
       notify('error', 'Failed to load rules.');
     }
