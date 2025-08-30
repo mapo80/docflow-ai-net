@@ -21,6 +21,17 @@ export interface RulesEditorProps {
 }
 
 export default function RulesEditor({ ruleId }: RulesEditorProps) {
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
+  const insertSnippet = (snippet: string) => {
+    const ed = editorRef.current;
+    const mon = monacoRef.current;
+    if (!ed || !mon) return;
+    const sel = ed.getSelection();
+    const pos = sel ? sel.getStartPosition() : ed.getPosition();
+    ed.executeEdits('snippet', [{ range: new mon.Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column), text: snippet }]);
+    ed.focus();
+  };
   const [rule, setRule] = useState<RuleDetail | null>(null);
   const [code, setCode] = useState('');
   const [saving, setSaving] = useState(false);
@@ -65,6 +76,8 @@ export default function RulesEditor({ ruleId }: RulesEditorProps) {
   };
 
   const handleMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
     const uri = monaco.Uri.parse('inmemory://rule.csx');
     let model = monaco.editor.getModel(uri);
     if (!model) {

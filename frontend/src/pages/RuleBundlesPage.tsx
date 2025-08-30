@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Checkbox, List, Space, Upload, message } from 'antd';
 import { RulesService } from '../generated/services/RulesService';
 import { RuleTestsService } from '../generated/services/RuleTestsService';
-import { DownloadOutlined, UploadOutlined } from '@ant-design/icons';
+import UploadOutlined from '@ant-design/icons/UploadOutlined';
+import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
 
 type RuleRow = { id: string; name: string; selected: boolean; testsCount?: number };
 
@@ -11,7 +12,7 @@ export default function RuleBundlesPage(){
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
-    const data:any = await RulesService.getApiV1Rules();
+    const data:any = await RulesService.getApiV1Rules({});
     const arr = (data?.items||data||[]).map((r:any)=> ({ id: r.id, name: r.name, selected: false }));
     setRows(arr);
   };
