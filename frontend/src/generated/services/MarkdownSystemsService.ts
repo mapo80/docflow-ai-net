@@ -17,7 +17,7 @@ export class MarkdownSystemsService {
     public static markdownSystemsList(): CancelablePromise<Array<MarkdownSystemDto>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/markdown-systems',
+            url: '/api/v1/markdown-systems',
         });
     }
     /**
@@ -32,7 +32,7 @@ export class MarkdownSystemsService {
     }): CancelablePromise<MarkdownSystemDto> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/markdown-systems',
+            url: '/api/v1/markdown-systems',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -52,7 +52,7 @@ export class MarkdownSystemsService {
     }): CancelablePromise<MarkdownSystemDto> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/markdown-systems/{id}',
+            url: '/api/v1/markdown-systems/{id}',
             path: {
                 'id': id,
             },
@@ -75,7 +75,7 @@ export class MarkdownSystemsService {
     }): CancelablePromise<MarkdownSystemDto> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/markdown-systems/{id}',
+            url: '/api/v1/markdown-systems/{id}',
             path: {
                 'id': id,
             },
@@ -98,7 +98,7 @@ export class MarkdownSystemsService {
     }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/markdown-systems/{id}',
+            url: '/api/v1/markdown-systems/{id}',
             path: {
                 'id': id,
             },

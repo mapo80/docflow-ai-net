@@ -35,10 +35,10 @@ The seeded job's `output.json` exposes bounding-box coordinates for each field u
 
 Each job must specify four values:
 
-- `model` — the model token to execute (see `/api/models` for available models).
-- `templateToken` — the template token describing the prompt and fields (see `/api/templates`).
+- `model` — the model token to execute (see `/api/v1/models` for available models).
+- `templateToken` — the template token describing the prompt and fields (see `/api/v1/templates`).
 - `language` — language code used for OCR and downstream processing.
-- `markdownSystemId` — identifier of the markdown conversion system (see `/api/markdown-systems`).
+- `markdownSystemId` — identifier of the markdown conversion system (see `/api/v1/markdown-systems`).
 
 Clients send these fields to `POST /api/v1/jobs` and they are persisted on the job record. The job detail endpoint returns them so that consumers can later inspect model, template, language, and markdown system information.
 
@@ -46,8 +46,8 @@ Clients send these fields to `POST /api/v1/jobs` and they are persisted on the j
 
 Both models and markdown conversion systems are stored in the database and managed through dedicated REST endpoints:
 
-- `/api/models` — CRUD for LLM models (local or hosted).
-- `/api/markdown-systems` — CRUD for markdown conversion systems (Docling Serve or Azure Document Intelligence).
+- `/api/v1/models` — CRUD for LLM models (local or hosted).
+- `/api/v1/markdown-systems` — CRUD for markdown conversion systems (Docling Serve or Azure Document Intelligence).
 
 Startup seeding reads initial entries from the `Seed` section in `appsettings.json`:
 

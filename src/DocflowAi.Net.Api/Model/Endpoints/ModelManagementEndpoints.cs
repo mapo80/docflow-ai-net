@@ -8,7 +8,7 @@ public static class ModelManagementEndpoints
 {
     public static IEndpointRouteBuilder MapModelManagementEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/api/models")
+        var group = builder.MapGroup("/api/v1/models")
             .WithTags("Models")
             .RequireAuthorization()
             .RequireRateLimiting("General");
@@ -34,7 +34,7 @@ public static class ModelManagementEndpoints
             try
             {
                 var model = service.Create(request);
-                return Results.Created($"/api/models/{model.Id}", model);
+                return Results.Created($"/api/v1/models/{model.Id}", model);
             }
             catch (InvalidOperationException ex)
             {
