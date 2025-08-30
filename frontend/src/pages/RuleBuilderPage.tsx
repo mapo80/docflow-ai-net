@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Input, Select, Space, Table } from 'antd';
+import { Button, Card, Input, Select, Space, Table, List, Grid } from 'antd';
 import Editor from '@monaco-editor/react';
 import { useNavigate } from 'react-router-dom';
 import { RuleBuilderService, PropertiesService, RulesService } from '../generated';
@@ -24,6 +24,8 @@ export default function RuleBuilderPage() {
   const [propResult, setPropResult] = React.useState<any | null>(null);
   const [name, setName] = React.useState('New Rule from Builder');
   const nav = useNavigate();
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
 
   function add(t: Block['type']) {
     setBlocks((b) => [
@@ -101,114 +103,245 @@ export default function RuleBuilderPage() {
         />
         <Button onClick={createRule}>Create Rule</Button>
       </Space>
-      <Table
-        rowKey={(r: any) => r.id}
-        dataSource={blocks}
-        pagination={false}
-        columns={[
-          { title: 'Type', dataIndex: 'type', render: (_: any, r: any) => (
-            <Select
-              value={r.type}
-              onChange={(x) => update(r.id, { type: x })}
-              options={[
-                { value: 'exists', label: 'exists' },
-                { value: 'compare', label: 'compare' },
-                { value: 'regex', label: 'regex' },
-                { value: 'set', label: 'set' },
-                { value: 'normalize', label: 'normalize' },
-                { value: 'map', label: 'map' },
-                { value: 'deduce', label: 'deduce' },
+      {isMobile ? (
+        <List
+          dataSource={blocks}
+          rowKey="id"
+          locale={{ emptyText: 'No blocks' }}
+          renderItem={(r) => (
+            <List.Item
+              actions={[
+                <Button danger onClick={() => remove(r.id)} key="rm">
+                  Remove
+                </Button>,
               ]}
-              style={{ width: 120 }}
-            />
-          ) },
-          { title: 'Field', dataIndex: 'field', render: (_: any, r: any) => (
-            <Input
-              value={r.field}
-              onChange={(e) => update(r.id, { field: e.target.value })}
-            />
-          ) },
-          { title: 'Op', dataIndex: 'op', render: (_: any, r: any) =>
-            r.type === 'compare' ? (
-              <Select
-                value={r.op}
-                onChange={(x) => update(r.id, { op: x })}
-                options={[
-                  { value: '>', label: '>' },
-                  { value: '>=', label: '>=' },
-                  { value: '<', label: '<' },
-                  { value: '<=', label: '<=' },
-                  { value: '==', label: '==' },
-                  { value: '!=', label: '!=' },
-                ]}
-                style={{ width: 120 }}
-              />
-            ) : null },
-          { title: 'Props', render: (_: any, r: any) =>
-            r.type === 'compare' ? (
-              <Input
-                placeholder="value"
-                value={r.value}
-                onChange={(e) => update(r.id, { value: e.target.value })}
-              />
-            ) : r.type === 'regex' ? (
-              <Input
-                placeholder="pattern"
-                value={r.pattern}
-                onChange={(e) => update(r.id, { pattern: e.target.value })}
-              />
-            ) : r.type === 'set' ? (
-              <Input
-                placeholder="target"
-                value={r.target}
-                onChange={(e) => update(r.id, { target: e.target.value })}
-              />
-            ) : r.type === 'normalize' ? (
-              <Select
-                value={r.kind}
-                onChange={(x) => update(r.id, { kind: x })}
-                options={[
-                  { value: 'number', label: 'number' },
-                  { value: 'date', label: 'date' },
-                ]}
-                style={{ width: 140 }}
-              />
-            ) : r.type === 'map' ? (
-              <Input
-                placeholder="fn e.g. ((string)__x).ToUpper()"
-                value={r.fn}
-                onChange={(e) => update(r.id, { fn: e.target.value })}
-              />
-            ) : r.type === 'deduce' ? (
-              <Input
-                placeholder="target"
-                value={r.target}
-                onChange={(e) => update(r.id, { target: e.target.value })}
-              />
-            ) : null,
-            width: 360 },
-          { title: 'From', render: (_: any, r: any) =>
-            r.type === 'deduce' ? (
-              <Input
-                placeholder="field1,field2"
-                value={(r.from || []).join(',')}
-                onChange={(e) =>
-                  update(r.id, {
-                    from: e.target.value
-                      .split(',')
-                      .map((s: string) => s.trim())
-                      .filter(Boolean),
-                  })
-                }
-              />
-            ) : null },
-          { title: '', render: (_: any, r: any) => (
-            <Button danger onClick={() => remove(r.id)}>
-              Remove
-            </Button>
-          ), width: 120 },
-        ]}
-      />
+            >
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Select
+                  value={r.type}
+                  onChange={(x) => update(r.id, { type: x })}
+                  options={[
+                    { value: 'exists', label: 'exists' },
+                    { value: 'compare', label: 'compare' },
+                    { value: 'regex', label: 'regex' },
+                    { value: 'set', label: 'set' },
+                    { value: 'normalize', label: 'normalize' },
+                    { value: 'map', label: 'map' },
+                    { value: 'deduce', label: 'deduce' },
+                  ]}
+                  style={{ width: '100%' }}
+                />
+                <Input
+                  placeholder="field"
+                  value={r.field}
+                  onChange={(e) => update(r.id, { field: e.target.value })}
+                />
+                {r.type === 'compare' ? (
+                  <Select
+                    value={r.op}
+                    onChange={(x) => update(r.id, { op: x })}
+                    options={[
+                      { value: '>', label: '>' },
+                      { value: '>=', label: '>=' },
+                      { value: '<', label: '<' },
+                      { value: '<=', label: '<=' },
+                      { value: '==', label: '==' },
+                      { value: '!=', label: '!=' },
+                    ]}
+                    style={{ width: '100%' }}
+                  />
+                ) : null}
+                {r.type === 'compare' ? (
+                  <Input
+                    placeholder="value"
+                    value={r.value}
+                    onChange={(e) => update(r.id, { value: e.target.value })}
+                  />
+                ) : r.type === 'regex' ? (
+                  <Input
+                    placeholder="pattern"
+                    value={r.pattern}
+                    onChange={(e) => update(r.id, { pattern: e.target.value })}
+                  />
+                ) : r.type === 'set' ? (
+                  <Input
+                    placeholder="target"
+                    value={r.target}
+                    onChange={(e) => update(r.id, { target: e.target.value })}
+                  />
+                ) : r.type === 'normalize' ? (
+                  <Select
+                    value={r.kind}
+                    onChange={(x) => update(r.id, { kind: x })}
+                    options={[
+                      { value: 'number', label: 'number' },
+                      { value: 'date', label: 'date' },
+                    ]}
+                    style={{ width: '100%' }}
+                  />
+                ) : r.type === 'map' ? (
+                  <Input
+                    placeholder="fn e.g. ((string)__x).ToUpper()"
+                    value={r.fn}
+                    onChange={(e) => update(r.id, { fn: e.target.value })}
+                  />
+                ) : r.type === 'deduce' ? (
+                  <>
+                    <Input
+                      placeholder="target"
+                      value={r.target}
+                      onChange={(e) => update(r.id, { target: e.target.value })}
+                    />
+                    <Input
+                      placeholder="field1,field2"
+                      value={(r.from || []).join(',')}
+                      onChange={(e) =>
+                        update(r.id, {
+                          from: e.target.value
+                            .split(',')
+                            .map((s: string) => s.trim())
+                            .filter(Boolean),
+                        })
+                      }
+                    />
+                  </>
+                ) : null}
+              </Space>
+            </List.Item>
+          )}
+        />
+      ) : (
+        <Table
+          rowKey={(r: any) => r.id}
+          dataSource={blocks}
+          pagination={false}
+          columns={[
+            {
+              title: 'Type',
+              dataIndex: 'type',
+              render: (_: any, r: any) => (
+                <Select
+                  value={r.type}
+                  onChange={(x) => update(r.id, { type: x })}
+                  options={[
+                    { value: 'exists', label: 'exists' },
+                    { value: 'compare', label: 'compare' },
+                    { value: 'regex', label: 'regex' },
+                    { value: 'set', label: 'set' },
+                    { value: 'normalize', label: 'normalize' },
+                    { value: 'map', label: 'map' },
+                    { value: 'deduce', label: 'deduce' },
+                  ]}
+                  style={{ width: 120 }}
+                />
+              ),
+            },
+            {
+              title: 'Field',
+              dataIndex: 'field',
+              render: (_: any, r: any) => (
+                <Input
+                  value={r.field}
+                  onChange={(e) => update(r.id, { field: e.target.value })}
+                />
+              ),
+            },
+            {
+              title: 'Op',
+              dataIndex: 'op',
+              render: (_: any, r: any) =>
+                r.type === 'compare' ? (
+                  <Select
+                    value={r.op}
+                    onChange={(x) => update(r.id, { op: x })}
+                    options={[
+                      { value: '>', label: '>' },
+                      { value: '>=', label: '>=' },
+                      { value: '<', label: '<' },
+                      { value: '<=', label: '<=' },
+                      { value: '==', label: '==' },
+                      { value: '!=', label: '!=' },
+                    ]}
+                    style={{ width: 120 }}
+                  />
+                ) : null,
+            },
+            {
+              title: 'Props',
+              render: (_: any, r: any) =>
+                r.type === 'compare' ? (
+                  <Input
+                    placeholder="value"
+                    value={r.value}
+                    onChange={(e) => update(r.id, { value: e.target.value })}
+                  />
+                ) : r.type === 'regex' ? (
+                  <Input
+                    placeholder="pattern"
+                    value={r.pattern}
+                    onChange={(e) => update(r.id, { pattern: e.target.value })}
+                  />
+                ) : r.type === 'set' ? (
+                  <Input
+                    placeholder="target"
+                    value={r.target}
+                    onChange={(e) => update(r.id, { target: e.target.value })}
+                  />
+                ) : r.type === 'normalize' ? (
+                  <Select
+                    value={r.kind}
+                    onChange={(x) => update(r.id, { kind: x })}
+                    options={[
+                      { value: 'number', label: 'number' },
+                      { value: 'date', label: 'date' },
+                    ]}
+                    style={{ width: 140 }}
+                  />
+                ) : r.type === 'map' ? (
+                  <Input
+                    placeholder="fn e.g. ((string)__x).ToUpper()"
+                    value={r.fn}
+                    onChange={(e) => update(r.id, { fn: e.target.value })}
+                  />
+                ) : r.type === 'deduce' ? (
+                  <Input
+                    placeholder="target"
+                    value={r.target}
+                    onChange={(e) => update(r.id, { target: e.target.value })}
+                  />
+                ) : null,
+              width: 360,
+            },
+            {
+              title: 'From',
+              render: (_: any, r: any) =>
+                r.type === 'deduce' ? (
+                  <Input
+                    placeholder="field1,field2"
+                    value={(r.from || []).join(',')}
+                    onChange={(e) =>
+                      update(r.id, {
+                        from: e.target.value
+                          .split(',')
+                          .map((s: string) => s.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                  />
+                ) : null,
+            },
+            {
+              title: '',
+              render: (_: any, r: any) => (
+                <Button danger onClick={() => remove(r.id)}>
+                  Remove
+                </Button>
+              ),
+              width: 120,
+            },
+          ]}
+        />
+      )}
       <div style={{ marginTop: 12 }}>
         <Editor
           height={300}

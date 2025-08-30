@@ -36,7 +36,7 @@ describe('RuleTestsPanel', () => {
       { field: 'f', tested: 1, mutated: 0, hits: 1, pass: 1 },
     ] as any);
     (window as any).matchMedia = (query: string) => ({
-      matches: false,
+      matches: true,
       media: query,
       onchange: null,
       addListener: vi.fn(),
@@ -95,5 +95,21 @@ describe('RuleTestsPanel', () => {
     fireEvent.change(screen.getByTestId('editor'), { target: { value: 'oops' } });
     fireEvent.click(screen.getByRole('button', { name: /add test/i }));
     await waitFor(() => expect(message.error).toHaveBeenCalled());
+  });
+
+  it('renders list on mobile', async () => {
+    (window as any).matchMedia = () => ({
+      matches: false,
+      media: '',
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    });
+    render(<RuleTestsPanel ruleId="r1" />);
+    await waitFor(() => expect(RuleTestsService.getApiV1RulesTests).toHaveBeenCalled());
+    expect(document.querySelector('.ant-list')).toBeTruthy();
   });
 });

@@ -12,6 +12,9 @@ import {
   Table,
   Tag,
   message,
+  List,
+  Grid,
+  Checkbox,
 } from 'antd';
 import Editor from '@monaco-editor/react';
 import CoverageHeatmap from './CoverageHeatmap';
@@ -43,6 +46,8 @@ export default function RuleTestsPanel({ ruleId }: { ruleId: string }) {
   );
   const [heatOpen, setHeatOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
 
   const load = async () => {
     const res: any = await RuleTestsService.getApiV1RulesTests({
@@ -220,28 +225,71 @@ export default function RuleTestsPanel({ ruleId }: { ruleId: string }) {
         />
         {loading ? <Progress percent={70} status="active" style={{ minWidth: 200 }} /> : null}
       </Space>
-      <Table<TestRow>
-        rowKey="id"
-        dataSource={tests}
-        columns={columns}
-        rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
-        pagination={false}
-        expandable={{
-          expandedRowRender: (row) => {
+      {isMobile ? (
+        <List
+          dataSource={tests}
+          rowKey="id"
+          locale={{ emptyText: 'No data' }}
+          renderItem={(row) => {
             const r = results[row.name];
-            if (!r) return <i>Not executed yet</i>;
-            if (r.error) return <pre style={{ whiteSpace: 'pre-wrap' }}>{r.error}</pre>;
             return (
-              <div>
-                {r.logs && r.logs.length ? (
-                  <pre style={{ whiteSpace: 'pre-wrap' }}>{r.logs.join('\n')}</pre>
+              <List.Item
+                actions={[
+                  <Checkbox
+                    key="chk"
+                    checked={selectedRowKeys.includes(row.id)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSelectedRowKeys((k) =>
+                        checked ? [...k, row.id] : k.filter((x) => x !== row.id)
+                      );
+                    }}
+                  />,
+                ]}
+              >
+                <List.Item.Meta
+                  title={row.name}
+                  description={r ? (
+                    r.passed ? (
+                      <Tag color="var(--ant-color-success)">passed</Tag>
+                    ) : (
+                      <Tag color="var(--ant-color-error)">failed</Tag>
+                    )
+                  ) : (
+                    <Tag>not run</Tag>
+                  )}
+                />
+                {r && r.error ? (
+                  <pre style={{ whiteSpace: 'pre-wrap' }}>{r.error}</pre>
                 ) : null}
-                <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(r.actual, null, 2)}</pre>
-              </div>
+              </List.Item>
             );
-          },
-        }}
-      />
+          }}
+        />
+      ) : (
+        <Table<TestRow>
+          rowKey="id"
+          dataSource={tests}
+          columns={columns}
+          rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
+          pagination={false}
+          expandable={{
+            expandedRowRender: (row) => {
+              const r = results[row.name];
+              if (!r) return <i>Not executed yet</i>;
+              if (r.error) return <pre style={{ whiteSpace: 'pre-wrap' }}>{r.error}</pre>;
+              return (
+                <div>
+                  {r.logs && r.logs.length ? (
+                    <pre style={{ whiteSpace: 'pre-wrap' }}>{r.logs.join('\n')}</pre>
+                  ) : null}
+                  <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(r.actual, null, 2)}</pre>
+                </div>
+              );
+            },
+          }}
+        />
+      )}
       <Card type="inner" title="New Test" style={{ marginTop: 16 }}>
         <Editor
           height="26vh"
